@@ -80,9 +80,11 @@
     enable = true;
     userName = "Kerby Ferris";
     userEmail = "kerbyferris@gmail.com";
-    extraConfig.init.defaultBranch = "main";
+    extraConfig = {
+      init.defaultBranch = "main";
+      pull.rebase = true;
+    };
   };
-
 
   programs.tmux = {
     enable = true;
