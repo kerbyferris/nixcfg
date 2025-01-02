@@ -1,6 +1,7 @@
 { config, ... }: {
   imports = [
     ../common
+    ./dotfiles
     ../features/cli
     ../features/desktop
     ../features/dev
@@ -14,6 +15,9 @@
     desktop = {
       hyprland.enable = true;
       wayland.enable = true;
+    };
+    dev = {
+      neovim.enable = true;
     };
   };
 

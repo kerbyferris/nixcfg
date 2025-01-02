@@ -25,7 +25,6 @@ in {
 
         env = [
           "XCURSOR_SIZE,32"
-          "WLR_NO_HARDWARE_CURSORS,1"
           "GTK_THEME,Dracula"
         ];
 

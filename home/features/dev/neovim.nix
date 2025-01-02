@@ -14,10 +14,10 @@ with lib; let
       enable = true;
     };
     home.packages = with pkgs; [
-      make
+      #make
       unzip
       gcc
-      rg
+      #rg
       nerdfonts
     ];
   };

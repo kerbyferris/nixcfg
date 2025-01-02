@@ -41,7 +41,7 @@
 
   nix = {
     settings = {
-      experimental-features = "nix-command flakes";
+      # experimental-features = "nix-command flakes";
       trusted-users = [
         "root"
         "kerby"
@@ -56,5 +56,5 @@
       ((lib.filterAttrs (_: lib.isType "flake")) inputs);
     nixPath = [ "/etc/nix/path" ];
   };
-  users.defaultUserShell = pkgs.zsh;
+  # users.defaultUserShell = pkgs.zsh;
 }
