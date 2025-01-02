@@ -19,7 +19,7 @@
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
 
     dotfiles = {
-      url = "https://github.com/kerbyferris/kickstart.nvim.git";
+      url = "https://github.com/kerbyferris/dotfiles.git";
       flake = false;
     };
   };

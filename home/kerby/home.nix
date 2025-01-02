@@ -74,7 +74,7 @@
   #  /etc/profiles/per-user/m3tam3re/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    EDITOR = "nvim"
+    EDITOR = "nvim";
   };
 
   programs.git = {

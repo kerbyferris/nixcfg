@@ -3,13 +3,13 @@
     "dotfiles": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-SJT5R0L7XksNw1nWOsIzYEAk4jh5v025nyGubDHwRdo=",
+        "narHash": "sha256-ouZfPfPFwKdhZeLvgO3N4DFdRAdhgc2ZfVtQ0C5avEo=",
         "type": "file",
-        "url": "https://github.com/kerbyferris/kickstart.nvim.git"
+        "url": "https://github.com/kerbyferris/dotfiles.git"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/kerbyferris/kickstart.nvim.git"
+        "url": "https://github.com/kerbyferris/dotfiles.git"
       }
     },
     "home-manager": {
