@@ -1,6 +1,6 @@
 { inputs, ... }: {
   home.file.".config/nvim" = {
-    source = "${inputs.dotfiles}/tree/main/nvim";
+    source = "${inputs.dotfiles}/nvim";
     recursive = true;
   };
 }

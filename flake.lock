@@ -3,13 +3,17 @@
     "dotfiles": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-ouZfPfPFwKdhZeLvgO3N4DFdRAdhgc2ZfVtQ0C5avEo=",
-        "type": "file",
-        "url": "https://github.com/kerbyferris/dotfiles.git"
+        "lastModified": 1735862795,
+        "narHash": "sha256-FiyYP/hTiSOkj99P1YcIxc9uJjjInpMPAp6fKtZlkNs=",
+        "ref": "refs/heads/main",
+        "rev": "eb4e702bd379a7c77cdd660c4e4daea0b988e307",
+        "revCount": 1,
+        "type": "git",
+        "url": "https://github.com/kerbyferris/dotfiles-flake-demo.git"
       },
       "original": {
-        "type": "file",
-        "url": "https://github.com/kerbyferris/dotfiles.git"
+        "type": "git",
+        "url": "https://github.com/kerbyferris/dotfiles-flake-demo.git"
       }
     },
     "home-manager": {

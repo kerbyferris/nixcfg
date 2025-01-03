@@ -19,7 +19,8 @@
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
 
     dotfiles = {
-      url = "https://github.com/kerbyferris/dotfiles.git";
+      #url = "git+https://code.m3tam3re.com/m3tam3re/dotfiles-flake-demo.git";
+      url = "git+https://github.com/kerbyferris/dotfiles-flake-demo.git";
       flake = false;
     };
   };
