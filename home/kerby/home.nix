@@ -17,7 +17,7 @@
   # You should not change this value, even if you update Home Manager. If you do
   # want to update the value, then make sure to first check the Home Manager
   # release notes.
-  home.stateVersion = "24.05"; # Please read the comment before changing.
+  home.stateVersion = "24.11"; # Please read the comment before changing.
 
   dconf.settings = {
     "org/gnome/desktop/peripherals/mouse" = { natural-scroll = true; };
@@ -31,7 +31,7 @@
     # ghostty
     wofi
     alejandra
-    nerdfonts
+    nerd-fonts.inconsolata
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the

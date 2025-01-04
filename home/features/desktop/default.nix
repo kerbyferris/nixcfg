@@ -4,6 +4,7 @@
   ./hyprland.nix
   ];
   home.packages = with pkgs; [
+    google-chrome
   ];
 }
       

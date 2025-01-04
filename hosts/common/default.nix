@@ -56,5 +56,6 @@
       ((lib.filterAttrs (_: lib.isType "flake")) inputs);
     nixPath = [ "/etc/nix/path" ];
   };
-  # users.defaultUserShell = pkgs.zsh;
+  users.defaultUserShell = pkgs.zsh;
+  programs.zsh.enable = true;
 }

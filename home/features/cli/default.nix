@@ -7,7 +7,7 @@
     fd
     htop
     btop
-    httpie
+    file
     jq
     tree
     procs
@@ -15,6 +15,14 @@
     tldr
     zip
   ];
+
+  programs.ghostty = {
+    enable = true;
+    settings = {
+      theme = "zenburned";
+      fullscreen = true;
+    };
+  };
 
   programs.zoxide = {
     enable = true;

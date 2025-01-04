@@ -14,11 +14,11 @@ with lib; let
       enable = true;
     };
     home.packages = with pkgs; [
-      #make
+      gnumake
       unzip
       gcc
-      #rg
-      nerdfonts
+      ripgrep
+      nerd-fonts.inconsolata
     ];
   };
 }

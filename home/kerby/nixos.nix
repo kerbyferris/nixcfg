@@ -1,7 +1,7 @@
 { config, ... }: {
   imports = [
     ../common
-    ./dotfiles
+#    ./dotfiles
     ../features/cli
     ../features/desktop
     ../features/dev
