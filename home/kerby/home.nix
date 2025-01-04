@@ -19,6 +19,10 @@
   # release notes.
   home.stateVersion = "24.05"; # Please read the comment before changing.
 
+  dconf.settings = {
+    "org/gnome/desktop/peripherals/mouse" = { natural-scroll = true; };
+  };
+
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
