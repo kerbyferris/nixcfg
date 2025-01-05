@@ -27,8 +27,6 @@
   # environment.
   home.packages = with pkgs; [
     neofetch
-    # neovim
-    # ghostty
     wofi
     alejandra
     nerd-fonts.inconsolata

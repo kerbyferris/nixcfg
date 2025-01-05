@@ -23,13 +23,18 @@ in {
           "wl-paste -p -t text --watch clipman store -P --histpath=\"~/.local/share/clipman-primary.json\""
         ];
 
+        misc = {
+          disable_splash_rendering = true;
+          disable_hyprland_logo = true;
+        };
+
         env = [
-          "XCURSOR_SIZE,32"
-          "GTK_THEME,Dracula"
+          # "XCURSOR_SIZE,32"
+          # "GTK_THEME,Dracula"
         ];
 
         input = {
-          kb_layout = "de,us";
+          kb_layout = "us";
           kb_variant = "";
           kb_model = "";
           kb_rules = "";
@@ -53,12 +58,12 @@ in {
         };
 
         decoration = {
-          "col.shadow" = "rgba(1E202966)";
-          drop_shadow = true;
-          shadow_range = 60;
-          shadow_offset = "1 2";
-          shadow_render_power = 3;
-          shadow_scale = 0.97;
+          # "col.shadow" = "rgba(1E202966)";
+          # drop_shadow = true;
+          # shadow_range = 60;
+          # shadow_offset = "1 2";
+          # shadow_render_power = 3;
+          # shadow_scale = 0.97;
           rounding = 8;
           blur = {
             enabled = true;
@@ -128,9 +133,9 @@ in {
         "$mainMod" = "SUPER";
 
         bind = [
-          "$mainMod, return, exec, kitty -e zellij-ps"
-          "$mainMod, t, exec, kitty -e fish -c 'neofetch; exec fish'"
-          "$mainMod SHIFT, e, exec, kitty -e zellij_nvim"
+          "$mainMod, return, exec, ghostty -e tmux"
+          "$mainMod, t, exec, ghostty -e zsh -c 'neofetch; exec zsh'"
+          "$mainMod SHIFT, e, exec, ghostty -e nvim"
           "$mainMod, o, exec, thunar"
           "$mainMod, Escape, exec, wlogout -p layer-shell"
           "$mainMod, Space, togglefloating"

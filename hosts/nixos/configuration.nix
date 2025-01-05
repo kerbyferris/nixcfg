@@ -10,6 +10,9 @@
       ./hardware-configuration.nix
     ];
 
+  # Additional hardware config for tap to click
+  hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -88,8 +91,11 @@
   };
 
   # Enable automatic login for the user.
-  # services.displayManager.autoLogin.enable = true;
-  # services.displayManager.autoLogin.user = "kerby";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "kerby";
+
+  # Fingerprint reader
+  services.fprintd.enable = true;
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -125,11 +131,6 @@
     settings.PermitRootLogin = "no";
     allowSFTP = true;
   };
-
-  #programs.hyprland = {
-  #  enable = true;
-  #  xwayland.enable = true;
-  #};
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "kerby" ];
