@@ -21,6 +21,7 @@
     settings = {
       theme = "zenburned";
       fullscreen = true;
+      window-decoration = false;
     };
   };
 

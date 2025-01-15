@@ -27,7 +27,6 @@
   # environment.
   home.packages = with pkgs; [
     neofetch
-    wofi
     alejandra
     nerd-fonts.inconsolata
 
@@ -44,6 +43,7 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
+  home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
@@ -113,6 +113,28 @@
       ";
   };
 
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      biqu = {
+      hostname = "192.168.1.13";
+      user = "biqu";
+      };
+    };
+  };
+
+  systemd.user.services.dropbox = {
+      Unit = {
+          Description = "Dropbox service";
+      };
+      Install = {
+          WantedBy = [ "default.target" ];
+      };
+      Service = {
+          ExecStart = "${pkgs.dropbox}/bin/dropbox";
+          Restart = "on-failure";
+      };
+  };
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
