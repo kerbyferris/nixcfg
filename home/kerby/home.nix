@@ -80,6 +80,10 @@
     EDITOR = "nvim";
   };
 
+  home.sessionPath = [
+    "$HOME/.cargo/bin"
+  ];
+
   programs.git = {
     enable = true;
     userName = "Kerby Ferris";

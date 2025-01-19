@@ -7,5 +7,7 @@
     git
     nodejs
     go
+    cargo
+    rustc
   ];
 }
