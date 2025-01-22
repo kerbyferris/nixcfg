@@ -4,7 +4,7 @@
 #    ./dotfiles
     ../features/cli
     ../features/desktop
-    ../features/dev
+    # ../features/dev
     ./home.nix
   ];
 
@@ -16,9 +16,9 @@
       hyprland.enable = true;
     #   wayland.enable = true;
     };
-    dev = {
-      neovim.enable = true;
-    };
+    # dev = {
+    #   neovim.enable = true;
+    # };
   };
 
   # wayland.windowManager.hyprland = {

@@ -1,11 +1,12 @@
 {pkgs, ...}: {
   imports = [
-    ./neovim.nix
+    # ./neovim.nix
   ];
 
   home.packages = with pkgs; [
     git
     nodejs
     go
+    nvim
   ];
 }

@@ -32,6 +32,6 @@
     davinci-resolve
     pciutils
     bottles
+    pywal16
   ];
-  # programs.pywal.enable = true;
 }

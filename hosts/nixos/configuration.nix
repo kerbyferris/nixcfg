@@ -52,8 +52,10 @@
     xkb.options = "ctrl:swapcaps";
   };
 
+  stylix.enable = true;
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
   stylix.image = ./spiralrock.jpg;
+  stylix.targets.gtk.enable = true;
 
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
@@ -96,6 +98,8 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  # home-manager.backupFileExtension = "BAK";
+
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
@@ -172,5 +176,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
-
 }
