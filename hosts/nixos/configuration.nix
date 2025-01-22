@@ -52,6 +52,9 @@
     xkb.options = "ctrl:swapcaps";
   };
 
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
+  stylix.image = ./spiralrock.jpg;
+
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
@@ -102,11 +105,14 @@
     ];
   };
 
-  programs.hyprland.enable = true;
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
 
   # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "kerby";
+  # services.displayManager.autoLogin.enable = true;
+  # services.displayManager.autoLogin.user = "kerby";
 
   # Fingerprint reader
   services.fprintd.enable = true;
@@ -128,6 +134,9 @@
     git
     keymapp
     libinput
+    kmscon
+    base16-schemes
+    nh
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

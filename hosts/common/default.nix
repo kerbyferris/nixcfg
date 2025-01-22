@@ -39,17 +39,21 @@
     };
   };
 
+  system.autoUpgrade.enable = true;
+  system.autoUpgrade.dates = "weekly";
+
   nix = {
     settings = {
-      # experimental-features = "nix-command flakes";
       trusted-users = [
         "root"
         "kerby"
       ]; # Set users that are allowed to use the flake command
+      auto-optimise-store = true;
     };
     gc = {
       automatic = true;
-      options = "--delete-older-than 30d";
+      dates = "daily";
+      options = "--delete-older-than 10d";
     };
     optimise.automatic = true;
     registry = (lib.mapAttrs (_: flake: { inherit flake; }))

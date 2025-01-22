@@ -1,19 +1,26 @@
 {pkgs, ...}: {
   imports = [
     # ./waybar.nix
-    # ./hyprland.nix
+    ./hyprland.nix
   ];
   home.packages = with pkgs; [
+    xfce.thunar
+    blueman
     google-chrome
     waybar
+    nwg-look
     libnotify
-    dolphin
+    nordic
     swww
+    swaynotificationcenter
     kitty
-    rofi-wayland
+    hyprshot
+    brightnessctl
+    hypridle
     networkmanagerapplet
     discord
-    wofi
+    # wofi
+    rofi
     bitwig-studio
     vital
     morgen
@@ -23,9 +30,8 @@
     wineWowPackages.full
     winetricks
     davinci-resolve
-    # intel-ocl
     pciutils
     bottles
   ];
+  # programs.pywal.enable = true;
 }
-      

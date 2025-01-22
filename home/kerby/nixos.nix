@@ -12,10 +12,10 @@
     cli = {
       zsh.enable = true;
     };
-    # desktop = {
-    #   hyprland.enable = true;
+    desktop = {
+      hyprland.enable = true;
     #   wayland.enable = true;
-    # };
+    };
     dev = {
       neovim.enable = true;
     };

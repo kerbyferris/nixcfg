@@ -14,13 +14,15 @@
     ripgrep
     tldr
     zip
+    killall
+    pciutils
   ];
 
   programs.ghostty = {
     enable = true;
     settings = {
       theme = "zenburned";
-      fullscreen = true;
+      # fullscreen = true;
       window-decoration = false;
     };
   };

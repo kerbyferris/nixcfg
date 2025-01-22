@@ -28,7 +28,24 @@
   home.packages = with pkgs; [
     neofetch
     alejandra
+
+    dina-font
+    font-awesome
+    fira-code
+    fira-code-symbols
+    liberation_ttf
+    mplus-outline-fonts.githubRelease
+    nerd-fonts.fira-code
     nerd-fonts.inconsolata
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-emoji
+    roboto-mono
+
+    gruvbox-gtk-theme
+    gruvbox-plus-icons
+    tokyonight-gtk-theme
+    vimix-gtk-themes
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -78,11 +95,20 @@
   #
   home.sessionVariables = {
     EDITOR = "nvim";
+    NIXOS_OZONE_WL = "1";
   };
 
   home.sessionPath = [
     "$HOME/.cargo/bin"
   ];
+
+  gtk = {
+    enable = true;
+    theme.name = "Gruvbox-Dark-B";
+    iconTheme.name = "Gruvbox-Plus-Dark";
+    gtk3.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
+    gtk4.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
+  };
 
   programs.git = {
     enable = true;
@@ -93,6 +119,8 @@
       pull.rebase = true;
     };
   };
+
+  programs.waybar.enable = true;
 
   programs.tmux = {
     enable = true;
