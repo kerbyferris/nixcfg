@@ -7,7 +7,6 @@
     xfce.thunar
     blueman
     google-chrome
-    waybar
     nwg-look
     libnotify
     nordic

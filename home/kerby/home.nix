@@ -51,8 +51,6 @@
     # git
     # nodejs
     # go
-    neovim
-
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -67,15 +65,11 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
-  # home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
+  home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
-    ".config/nvim" = {
-      source = dotfiles/nvim;
-      recursive = true;
-    };
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
@@ -130,8 +124,6 @@
       pull.rebase = true;
     };
   };
-
-  programs.waybar.enable = true;
 
   programs.tmux = {
     enable = true;
