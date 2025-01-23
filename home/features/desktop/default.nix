@@ -1,10 +1,6 @@
-{pkgs, ...}: {
-  imports = [
-    # ./waybar.nix
-    ./hyprland.nix
-  ];
+{pkgs, lib, ...}: {
   home.packages = with pkgs; [
-    xfce.thunar
+    nautilus
     blueman
     google-chrome
     nwg-look
@@ -19,7 +15,6 @@
     networkmanagerapplet
     discord
     # wofi
-    rofi
     bitwig-studio
     vital
     morgen
@@ -31,6 +26,10 @@
     davinci-resolve
     pciutils
     bottles
-    pywal16
+    # pywal16
   ];
+  programs.rofi = {
+    enable = true;
+    theme = lib.mkDefault "gruvbox-dark-soft";
+  };
 }

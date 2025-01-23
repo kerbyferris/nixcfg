@@ -26,6 +26,7 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
+    btop
     neofetch
     alejandra
 
@@ -43,10 +44,10 @@
     noto-fonts-emoji
     roboto-mono
 
-    gruvbox-gtk-theme
-    gruvbox-plus-icons
-    tokyonight-gtk-theme
-    vimix-gtk-themes
+    # gruvbox-gtk-theme
+    # gruvbox-plus-icons
+    # tokyonight-gtk-theme
+    # vimix-gtk-themes
 
     # git
     # nodejs
@@ -108,9 +109,10 @@
   ];
 
   gtk = {
-    enable = true;
-    # theme.name = "Gruvbox-Dark-B";
-    # iconTheme.name = "Gruvbox-Plus-Dark";
+    iconTheme = {
+      package=pkgs.numix-icon-theme;
+      name = "Numix";
+    };
     gtk3.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
     gtk4.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
   };

@@ -5,8 +5,6 @@
   home.packages = with pkgs; [
     coreutils
     fd
-    htop
-    btop
     file
     jq
     tree
