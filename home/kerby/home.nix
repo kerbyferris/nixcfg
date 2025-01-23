@@ -32,7 +32,6 @@
 
     dina-font
     font-awesome
-    font-awesome_5
     fira-code
     fira-code-symbols
     liberation_ttf
