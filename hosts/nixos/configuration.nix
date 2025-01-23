@@ -164,6 +164,15 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "kerby" ];
 
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    # extraPackages = with pkgs; [
+    #   # intel-compute-runtime
+    #   rocmPackages.clr.icd
+    # ];
+  };
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];

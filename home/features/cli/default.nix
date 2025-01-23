@@ -22,7 +22,7 @@
       # theme = "zenburned";
       # fullscreen = true;
       window-decoration = false;
-      font-size=12;
+      font-size=11;
     };
   };
 

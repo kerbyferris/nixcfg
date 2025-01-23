@@ -26,10 +26,19 @@
     davinci-resolve
     pciutils
     bottles
+    pavucontrol
     # pywal16
   ];
   programs.rofi = {
     enable = true;
     theme = lib.mkDefault "gruvbox-dark-soft";
+
+    extraConfig = {
+      show-icons = true;
+      display-drun = "application: ";
+      drun-display-format = "{icon} {name}";
+      icon-theme = "Papirus";
+      terminal = "ghostty";
+    };
   };
 }

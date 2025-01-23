@@ -45,7 +45,8 @@
     roboto-mono
 
     # gruvbox-gtk-theme
-    # gruvbox-plus-icons
+    gruvbox-plus-icons
+    papirus-icon-theme
     # tokyonight-gtk-theme
     # vimix-gtk-themes
 
@@ -109,9 +110,13 @@
   ];
 
   gtk = {
+    # iconTheme = {
+    #   package=pkgs.numix-icon-theme;
+    #   name = "Numix";
+    # };
     iconTheme = {
-      package=pkgs.numix-icon-theme;
-      name = "Numix";
+      package=pkgs.papirus-icon-theme;
+      name = "Papirus";
     };
     gtk3.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
     gtk4.extraConfig.Settings = ''gtk-application-prefer-dark-themes=1'';
