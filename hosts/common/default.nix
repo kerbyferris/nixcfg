@@ -1,7 +1,6 @@
 # Common configuration for all hosts
 
-{
-  pkgs,
+{ pkgs,
   lib,
   inputs,
   outputs,

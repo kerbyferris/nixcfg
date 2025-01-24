@@ -26,7 +26,8 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
-    btop
+    stable.btop-rocm
+
     neofetch
     alejandra
 
@@ -38,6 +39,7 @@
     mplus-outline-fonts.githubRelease
     nerd-fonts.fira-code
     nerd-fonts.inconsolata
+    nerd-fonts.jetbrains-mono
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-emoji
@@ -66,6 +68,15 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
+
+  programs.btop = {
+    settings = {
+      color_theme = "gruvbox_dark";
+      vim_keys = true;
+      shown_boxes = "proc cpu mem net gpu0 gpu1";
+    };
+  };
+
   home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage

@@ -23,7 +23,6 @@
     xwayland
     wineWowPackages.full
     winetricks
-    davinci-resolve
     pciutils
     bottles
     pavucontrol

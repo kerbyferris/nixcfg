@@ -17,6 +17,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.initrd.kernelModules = [ "amdgpu "];
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -46,25 +47,27 @@
     LC_TIME = "en_AG";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver = {
-    enable = true;
-    xkb.options = "ctrl:swapcaps";
-  };
 
-  stylix.enable = true;
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
-  stylix.image = ./spiralrock.jpg;
-  stylix.targets.gtk.enable = true;
+  stylix = {
+    enable = true;
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
+    image = ../../wallpapers/spiralrock.jpg;
+    targets.gtk.enable = true;
+  };
 
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
 
+  # Enable the X11 windowing system.
   # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "ctrl:swapcaps";
+    };
   };
 
   hardware.keyboard.zsa.enable = true;
@@ -97,9 +100,9 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   home-manager.backupFileExtension = "BAK";
 
+  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
@@ -142,6 +145,9 @@
     kmscon
     base16-schemes
     nh
+    stable.nvtopPackages.full
+    davinci-resolve
+    clinfo
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -164,13 +170,26 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "kerby" ];
 
+  # Enable openGL and install Rocm
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs; [
+    extraPackages = with pkgs.stable; [
       # intel-compute-runtime
-      # rocmPackages.clr.icd
+      rocmPackages_5.clr.icd
+      rocmPackages_5.clr
+      rocmPackages_5.rocminfo
+      rocmPackages_5.rocm-runtime
     ];
+  };
+
+  # This is necesery because many programs hard-code the path to hip
+  systemd.tmpfiles.rules = [
+    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.stable.rocmPackages_5.clr}"
+  ];
+  environment.variables = {
+    # As of ROCm 4.5, AMD has disabled OpenCL on Polaris based cards. This is needed if you have a 500 series card.
+    ROC_ENABLE_PRE_VEGA = "1";
   };
 
   # Open ports in the firewall.

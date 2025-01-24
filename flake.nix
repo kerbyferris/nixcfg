@@ -18,16 +18,14 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
     stylix.url = "github:danth/stylix";
-
-#dotfiles = {
-      #url = "git+https://code.m3tam3re.com/m3tam3re/dotfiles-flake-demo.git";
-# url = "git+https://github.com/kerbyferris/dotfiles-flake-demo.git";
-#     flake = false;
-#    };
+    hyprpanel = {
+      url = "github:Jas-SinghFSU/HyprPanel";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
    };
 
 #outputs = { self, dotfiles, home-manager, nixpkgs, ... }@inputs:
-  outputs = { self, home-manager, nixpkgs, ... }@inputs:
+  outputs = { self, home-manager, hyprpanel, nixpkgs-stable, nixpkgs, ... }@inputs:
     let
       inherit (self) outputs;
       systems = [

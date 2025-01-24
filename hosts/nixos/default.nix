@@ -32,6 +32,7 @@
 # };
 #
 # Please also change your hostname accordingly:
+#:w
 
 # networking.hostName = "nixos"; # Define your hostname.
 
