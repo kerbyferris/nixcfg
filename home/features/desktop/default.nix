@@ -1,6 +1,7 @@
 {pkgs, lib, ...}: {
   home.packages = with pkgs; [
     nautilus
+    fstl
     blueman
     google-chrome
     nwg-look
@@ -14,19 +15,27 @@
     hypridle
     networkmanagerapplet
     discord
-    # wofi
     bitwig-studio
+    zoom-us
+    vlc
+    moc
+    openscad
+    signal-desktop
+    # qbittorrent
     vital
-    morgen
-    youtube-music
+    # morgen
+    # youtube-music
+    kew
     dropbox
     xwayland
-    wineWowPackages.full
-    winetricks
+    wineWowPackages.unstableFull
+    # winetricks
     pciutils
-    bottles
+    # bottles
     pavucontrol
-    # pywal16
+    # orca-slicer
+    prusa-slicer
+    # cura
   ];
   programs.rofi = {
     enable = true;

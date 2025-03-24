@@ -26,7 +26,9 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = with pkgs; [
-    stable.btop-rocm
+    btop-rocm
+    # btop
+    rpi-imager
 
     neofetch
     alejandra
@@ -45,8 +47,8 @@
     noto-fonts-emoji
     roboto-mono
 
-    # gruvbox-gtk-theme
-    gruvbox-plus-icons
+    gruvbox-gtk-theme
+    # gruvbox-plus-icons
     papirus-icon-theme
     # tokyonight-gtk-theme
     # vimix-gtk-themes
@@ -72,6 +74,7 @@
   programs.btop = {
     settings = {
       color_theme = "gruvbox_dark";
+      theme_background = true;
       vim_keys = true;
       shown_boxes = "proc cpu mem net gpu0 gpu1";
     };

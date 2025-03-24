@@ -22,10 +22,14 @@
       url = "github:Jas-SinghFSU/HyprPanel";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
    };
 
 #outputs = { self, dotfiles, home-manager, nixpkgs, ... }@inputs:
-  outputs = { self, home-manager, hyprpanel, nixpkgs-stable, nixpkgs, ... }@inputs:
+  outputs = { self, home-manager, hyprpanel, nixpkgs-stable, nixpkgs, rust-overlay, ... }@inputs:
     let
       inherit (self) outputs;
       systems = [
@@ -53,7 +57,10 @@
         "kerby@nixos" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages."x86_64-linux";
           extraSpecialArgs = { inherit inputs outputs; };
-          modules = [ ./home/kerby/nixos.nix ];
+          modules = [ 
+            ./home/kerby/nixos.nix
+            inputs.hyprpanel.homeManagerModules.hyprpanel
+          ];
         };
       };
     };

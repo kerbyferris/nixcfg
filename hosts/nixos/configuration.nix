@@ -86,6 +86,14 @@
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
+    extraConfig.pipewire = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 2048;
+        "default.clock.min-quantum" = 2048;
+        "default.clock.max-quantum" = 8192;
+      };
+    };
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
@@ -135,9 +143,17 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "freeimage-unstable-2021-11-01"
+    "electron-32.3.3"
+  ];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    libgcc
+    dig
+    whois
     vim
     git
     keymapp
@@ -145,8 +161,8 @@
     kmscon
     base16-schemes
     nh
-    stable.nvtopPackages.full
-    davinci-resolve
+    nvtopPackages.full
+    # davinci-resolve
     clinfo
   ];
 
@@ -174,18 +190,22 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs.stable; [
+    # extraPackages = with pkgs.stable; [
+    extraPackages = with pkgs; [
       # intel-compute-runtime
-      rocmPackages_5.clr.icd
-      rocmPackages_5.clr
+      # rocmPackages_5.clr.icd
+      # rocmPackages_5.clr
       rocmPackages_5.rocminfo
       rocmPackages_5.rocm-runtime
+      amdvlk
+      driversi686Linux.amdvlk
     ];
   };
 
   # This is necesery because many programs hard-code the path to hip
   systemd.tmpfiles.rules = [
-    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.stable.rocmPackages_5.clr}"
+    # "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.stable.rocmPackages.clr}"
+    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
   ];
   environment.variables = {
     # As of ROCm 4.5, AMD has disabled OpenCL on Polaris based cards. This is needed if you have a 500 series card.
