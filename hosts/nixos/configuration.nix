@@ -47,7 +47,6 @@
     LC_TIME = "en_AG";
   };
 
-
   stylix = {
     enable = true;
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
@@ -151,7 +150,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    libgcc
+    gcc
     dig
     whois
     vim
@@ -192,7 +191,7 @@
     enable32Bit = true;
     # extraPackages = with pkgs.stable; [
     extraPackages = with pkgs; [
-      # intel-compute-runtime
+      intel-compute-runtime
       # rocmPackages_5.clr.icd
       # rocmPackages_5.clr
       rocmPackages_5.rocminfo

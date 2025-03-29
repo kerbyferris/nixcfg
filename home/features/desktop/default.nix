@@ -16,19 +16,20 @@
     networkmanagerapplet
     discord
     bitwig-studio
+    probe-rs-tools
     zoom-us
     vlc
     moc
     openscad
     signal-desktop
-    # qbittorrent
+    qbittorrent
     vital
-    # morgen
-    # youtube-music
+    morgen
+    youtube-music
     kew
     dropbox
     xwayland
-    wineWowPackages.unstableFull
+    # wineWowPackages.unstableFull
     # winetricks
     pciutils
     # bottles
