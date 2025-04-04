@@ -1,10 +1,11 @@
-{ config, ... }: {
+{config, ...}: {
   imports = [
+    #    ./dotfiles
     ../common
-#    ./dotfiles
     ../features/cli
     ../features/desktop
     ./home.nix
+    # ./neovim.nix
   ];
 
   features = {
@@ -12,5 +13,4 @@
       zsh.enable = true;
     };
   };
-
 }

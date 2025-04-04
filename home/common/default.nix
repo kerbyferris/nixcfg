@@ -1,4 +1,10 @@
-{ config, lib, outputs, pkgs, ... }: {
+{
+  config,
+  lib,
+  outputs,
+  pkgs,
+  ...
+}: {
   nixpkgs = {
     # You can add overlays here
     overlays = [
@@ -9,6 +15,7 @@
 
       # You can also add overlays exported from other flakes:
       # neovim-nightly-overlay.overlays.default
+      # rust-overlay.overlays.default
 
       # Or define it inline, for example:
       # (final: prev: {
@@ -29,7 +36,7 @@
   nix = {
     package = lib.mkDefault pkgs.nix;
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = ["nix-command" "flakes"];
       warn-dirty = false;
     };
   };

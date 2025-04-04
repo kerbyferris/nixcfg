@@ -26,7 +26,12 @@
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    # flake-parts.url = "github:hercules-ci/flake-parts";
+    nixvim = {
+      # url = "github:kerbyferris/kickstart.nixvim";
+      url = "github:nix-community/nixvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -57,6 +62,7 @@
         modules = [
           ./hosts/nixos
           inputs.stylix.nixosModules.stylix
+          # inputs.nixvim.nixosModules.nixvim
         ];
       };
     };
@@ -66,6 +72,7 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home/kerby/nixos.nix
+          # inputs.nixvim.homeManagerModules.nixvim
         ];
       };
     };

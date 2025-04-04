@@ -19,7 +19,7 @@
       "kvm"
       "qemu-libvirtd"
     ];
-    packages = [ inputs.home-manager.packages.${pkgs.system}.default ];
+    packages = [inputs.home-manager.packages.${pkgs.system}.default];
   };
   home-manager.users.kerby =
     import ../../../home/kerby/${config.networking.hostName}.nix;

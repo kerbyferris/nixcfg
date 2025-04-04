@@ -132,7 +132,6 @@
     extraGroups = ["networkmanager" "wheel" "plugdev"];
     packages = with pkgs; [
       waybar
-      neovim
     ];
   };
 
@@ -140,11 +139,6 @@
     enable = true;
     xwayland.enable = true;
   };
-
-  # programs.nixvim = {
-  #   enable = true;
-  #   defaultEditor = true;
-  # };
 
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
