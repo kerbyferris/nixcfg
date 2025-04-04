@@ -107,7 +107,6 @@
         action = "<cmd>tabclose<CR>";
       }
       {
-      {
         mode = "n";
         key = "<Esc>";
         action = "<cmd>nohlsearch<CR>";
@@ -181,8 +180,6 @@
       gitsigns.enable = true;
 
       nvim-autopairs.enable = true;
-
-      lazygit.enable = true;
 
       # Detect tabstop and shiftwidth automatically
       # https://nix-community.github.io/nixvim/plugins/sleuth/index.html

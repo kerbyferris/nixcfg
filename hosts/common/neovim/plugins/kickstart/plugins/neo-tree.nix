@@ -10,7 +10,7 @@
       window = {
         mappings = {
           "\\" = "close_window";
-          "o" = "open";
+          o = "open";
         };
       };
     };

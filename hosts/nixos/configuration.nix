@@ -58,6 +58,7 @@
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
     image = ../../wallpapers/spiralrock.jpg;
     targets.gtk.enable = true;
+    targets.nixvim.enable = false;
   };
 
   # Enable the GNOME Desktop Environment.
