@@ -3,17 +3,17 @@
   #
   # Snippet Engine & its associated nvim-cmp source
   # https://nix-community.github.io/nixvim/plugins/luasnip/index.html
-  plugins.luasnip = {
+  programs.nixvim.plugins.luasnip = {
     enable = true;
   };
 
   # https://nix-community.github.io/nixvim/plugins/cmp-nvim-lsp.html
-  plugins.cmp-nvim-lsp = {
+  programs.nixvim.plugins.cmp-nvim-lsp = {
     enable = true;
   };
 
   # https://nix-community.github.io/nixvim/plugins/cmp-path.html
-  plugins.cmp-path = {
+  programs.nixvim.plugins.cmp-path = {
     enable = true;
   };
 
@@ -27,7 +27,7 @@
 
   # TODO: Waiting on this bug to be fixed https://github.com/NixOS/nixpkgs/issues/306367
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extralua#extraluapackages
-  extraLuaPackages = ps: [
+  programs.nixvim.extraLuaPackages = ps: [
     # Required by luasnip
     ps.jsregexp
   ];
@@ -35,7 +35,7 @@
   # Autocompletion
   # See `:help cmp`
   # https://nix-community.github.io/nixvim/plugins/cmp/index.html
-  plugins.cmp = {
+  programs.nixvim.plugins.cmp = {
     enable = true;
 
     settings = {

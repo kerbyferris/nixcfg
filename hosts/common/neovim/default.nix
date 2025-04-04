@@ -1,20 +1,17 @@
 {pkgs, ...}: {
   imports = [
     # Plugins
-    # ./plugins/gitsigns.nix
-    # ./plugins/which-key.nix
+    ./plugins/which-key.nix
     ./plugins/telescope.nix
-    # ./plugins/conform.nix
-    # ./plugins/lsp.nix
-    # ./plugins/nvim-cmp.nix
-    # ./plugins/mini.nix
-    # ./plugins/treesitter.nix
+    ./plugins/conform.nix
+    ./plugins/lsp.nix
+    ./plugins/nvim-cmp.nix
+    ./plugins/mini.nix
+    ./plugins/treesitter.nix
 
-    # ./plugins/kickstart/plugins/debug.nix
-    # ./plugins/kickstart/plugins/indent-blankline.nix
-    # ./plugins/kickstart/plugins/lint.nix
-    # ./plugins/kickstart/plugins/autopairs.nix
-    # ./plugins/kickstart/plugins/neo-tree.nix
+    ./plugins/kickstart/plugins/debug.nix
+    ./plugins/kickstart/plugins/lint.nix
+    ./plugins/kickstart/plugins/neo-tree.nix
   ];
 
   programs.nixvim = {
@@ -171,9 +168,9 @@
     ];
 
     plugins = {
-      web-devicons = {
-        enable = true;
-      };
+      web-devicons.enable = true;
+      gitsigns.enable = true;
+      nvim-autopairs.enable = true;
 
       # Detect tabstop and shiftwidth automatically
       # https://nix-community.github.io/nixvim/plugins/sleuth/index.html

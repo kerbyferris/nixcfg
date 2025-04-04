@@ -5,17 +5,22 @@
   # be extended to other languages as well. That's why it's called
   # kickstart.nixvim and not ktichen-sink.nixvim ;)
   # https://nix-community.github.io/nixvim/plugins/dap/index.html
-  plugins.dap = {
-    enable = true;
+  programs.nixvim.plugins = {
+    dap = {
+      enable = true;
+    };
 
-    extensions = {
-      # Creates a beautiful debugger UI
-      dap-ui = {
-        enable = true;
+    # Add your own debuggers here
+    dap-go = {
+      enable = true;
+    };
+    dap-ui = {
+      enable = true;
 
-        # Set icons to characters that are more likely to work in every terminal.
-        # Feel free to remove or use ones that you like more! :)
-        # Don't feel like these are good choices.
+      # Set icons to characters that are more likely to work in every terminal.
+      # Feel free to remove or use ones that you like more! :)
+      # Don't feel like these are good choices.
+      settings = {
         icons = {
           expanded = "▾";
           collapsed = "▸";
@@ -36,16 +41,11 @@
           };
         };
       };
-
-      # Add your own debuggers here
-      dap-go = {
-        enable = true;
-      };
     };
   };
 
   # https://nix-community.github.io/nixvim/keymaps/index.html
-  keymaps = [
+  programs.nixvim.keymaps = [
     {
       mode = "n";
       key = "<F5>";
@@ -135,7 +135,7 @@
   ];
 
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extraconfiglua#extraconfiglua
-  extraConfigLua = ''
+  programs.nixvim.extraConfigLua = ''
     require('dap').listeners.after.event_initialized['dapui_config'] = require('dapui').open
     require('dap').listeners.before.event_terminated['dapui_config'] = require('dapui').close
     require('dap').listeners.before.event_exited['dapui_config'] = require('dapui').close

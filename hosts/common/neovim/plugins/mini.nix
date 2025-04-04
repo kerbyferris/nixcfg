@@ -1,7 +1,7 @@
 {
   # Collection of various small independent plugins/modules
   # https://nix-community.github.io/nixvim/plugins/mini.html
-  plugins.mini = {
+  programs.nixvim.plugins.mini = {
     enable = true;
 
     modules = {
@@ -40,7 +40,7 @@
   # default behavior. For example, here we set the section for
   # cursor location to LINE:COLUMN
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extraconfiglu#extraconfiglua
-  extraConfigLua = ''
+  programs.nixvim.extraConfigLua = ''
     require('mini.statusline').section_location = function()
       return '%2l:%-2v'
     end

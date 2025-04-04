@@ -1,7 +1,14 @@
-{
+{pkgs, ...}: {
+  programs.nixvim.extraPackages = with pkgs; [
+    nodePackages_latest.coc-markdownlint
+    nix
+    vale
+    nodePackages.jsonlint
+    tflint
+  ];
   # Linting
   # https://nix-community.github.io/nixvim/plugins/lint/index.html
-  plugins.lint = {
+  programs.nixvim.plugins.lint = {
     enable = true;
 
     # NOTE: Enabling these will cause errors unless these tools are installed
@@ -9,16 +16,16 @@
       nix = ["nix"];
       markdown = [
         "markdownlint"
-        #vale
+        "vale"
       ];
       #clojure = ["clj-kondo"];
       #dockerfile = ["hadolint"];
       #inko = ["inko"];
       #janet = ["janet"];
-      #json = ["jsonlint"];
-      #rst = ["vale"];
+      json = ["jsonlint"];
+      rst = ["vale"];
       #ruby = ["ruby"];
-      #terraform = ["tflint"];
+      terraform = ["tflint"];
       #text = ["vale"];
     };
 
@@ -40,7 +47,7 @@
   };
 
   # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html
-  autoGroups = {
+  programs.nixvim.autoGroups = {
     lint = {
       clear = true;
     };

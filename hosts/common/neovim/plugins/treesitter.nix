@@ -1,7 +1,7 @@
 {
   # Highlight, edit, and navigate code
   # https://nix-community.github.io/nixvim/plugins/treesitter/index.html
-  plugins.treesitter = {
+  programs.nixvim.plugins.treesitter = {
     enable = true;
 
     # TODO: Don't think I need this as nixGrammars is true which should atuo install these???
@@ -21,7 +21,7 @@
       ];
 
       highlight = {
-       enable = true;
+        enable = true;
 
         # Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         additional_vim_regex_highlighting = true;

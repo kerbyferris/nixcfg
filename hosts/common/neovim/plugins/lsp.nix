@@ -2,18 +2,18 @@
   # Dependencies
   #
   # https://nix-community.github.io/nixvim/plugins/cmp-nvim-lsp.html
-  plugins.cmp-nvim-lsp = {
+  programs.nixvim.plugins.cmp-nvim-lsp = {
     enable = true;
   };
 
   # Useful status updates for LSP.
   # https://nix-community.github.io/nixvim/plugins/fidget/index.html
-  plugins.fidget = {
+  programs.nixvim.plugins.fidget = {
     enable = true;
   };
 
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extraplugi#extraplugins
-  extraPlugins = with pkgs.vimPlugins; [
+  programs.nixvim.extraPlugins = with pkgs.vimPlugins; [
     # NOTE: This is how you would ad a vim plugin that is not implemented in Nixvim, also see extraConfigLuaPre below
     # `neodev` configure Lua LSP for your Neovim config, runtime and plugins
     # used for completion, annotations, and signatures of Neovim apis
@@ -21,44 +21,19 @@
   ];
 
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extraplugi#extraconfigluapre
-  extraConfigLuaPre = ''
+  programs.nixvim.extraConfigLuaPre = ''
     require('neodev').setup {}
   '';
 
   # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html
-  # autoGroups = {
-  #   "kickstart-lsp-attach" = {
-  #     clear = true;
-  #   };
-  # };
+  programs.nixvim.autoGroups = {
+    "kickstart-lsp-attach" = {
+      clear = true;
+    };
+  };
 
-  # Brief aside: **What is LSP?**
-  #
-  # LSP is an initialism you've probably heard, but might not understand what it is.
-  #
-  # LSP stands for Language Server Protocol. It's a protocol that helps editors
-  # and language tooling communicate in a standardized fashion.
-  #
-  # In general, you have a "server" which is some tool built to understand a particular
-  # language (such as `gopls`, `lua_ls`, `rust-analyzer`, etc.). These Language Servers
-  # (sometimes called LSP servers, but that's kind of like ATM Machine) are standalone
-  # processes that communicate with some "client" - in this case, Neovim!
-  #
-  # LSP provides Neovim with features like:
-  #  - Go to definition
-  #  - Find references
-  #  - Autocompletion
-  #  - Symbol Search
-  #  - and more!
-  #
-  # Thus, Language Servers are external tools that must be installed separately from
-  # Neovim which are configured below in the `server` section.
-  #
-  # If you're wondering about lsp vs treesitter, you can check out the wonderfully
-  # and elegantly composed help section, `:help lsp-vs-treesitter`
-  #
   # https://nix-community.github.io/nixvim/plugins/lsp/index.html
-  plugins.lsp = {
+  programs.nixvim.plugins.lsp = {
     enable = true;
 
     # Enable the following language servers
@@ -80,15 +55,15 @@
       pyright = {
         enable = true;
       };
-      rust-analyzer = {
+      rust_analyzer = {
         enable = true;
         installCargo = false;
         installRustc = false;
       };
-      tsserver = {
+      ts_ls = {
         enable = true;
       };
-      lua-ls = {
+      lua_ls = {
         enable = true;
 
         # cmd = {
