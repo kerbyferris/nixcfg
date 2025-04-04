@@ -12,12 +12,19 @@
     ./plugins/kickstart/plugins/debug.nix
     ./plugins/kickstart/plugins/lint.nix
     ./plugins/kickstart/plugins/neo-tree.nix
+
+    ./plugins/custom/plugins/lazygit.nix
   ];
 
   programs.nixvim = {
     enable = true;
+
+    extraPackages = with pkgs; [
+    ];
+
     colorschemes = {
       gruvbox.enable = true;
+      # nord.enable = true;
     };
 
     globals = {
@@ -100,6 +107,7 @@
         action = "<cmd>tabclose<CR>";
       }
       {
+      {
         mode = "n";
         key = "<Esc>";
         action = "<cmd>nohlsearch<CR>";
@@ -169,8 +177,12 @@
 
     plugins = {
       web-devicons.enable = true;
+
       gitsigns.enable = true;
+
       nvim-autopairs.enable = true;
+
+      lazygit.enable = true;
 
       # Detect tabstop and shiftwidth automatically
       # https://nix-community.github.io/nixvim/plugins/sleuth/index.html

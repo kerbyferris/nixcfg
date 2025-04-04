@@ -16,7 +16,14 @@
     };
 
     extraOptions = {
-      width = 30;
+      filesystem = {
+        window = {
+          width = 30;
+        };
+        filtered_items = {
+          visible = true;
+        };
+      };
     };
   };
 
