@@ -1,14 +1,15 @@
-# Edb,st this configuration file to define what should be installed on
+# Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, ... }:
-
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  config,
+  pkgs,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Additional hardware config for tap to click
   hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";
@@ -17,7 +18,12 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.initrd.kernelModules = [ "amdgpu "];
+
+  boot.kernelParams = [
+    "i915.enable_fbc=0"
+  ];
+
+  boot.initrd.kernelModules = ["amdgpu "];
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -91,10 +97,20 @@
         "default.clock.quantum" = 2048;
         "default.clock.min-quantum" = 2048;
         "default.clock.max-quantum" = 8192;
+        # "default.clock.max-quantum" = 256;
+        # "default.clock.allowed-rates" = [ 44100 48000 96000 ]; #add rates as needed.
+        # "default.clock.quantum-limit" = 512;
+        # "default.clock.force-quantum" = false;
+        # "default.clock.prefer-quantum" = 128;
       };
     };
-    alsa.enable = true;
-    alsa.support32Bit = true;
+    alsa = {
+      enable = true;
+      support32Bit = true;
+      # extraConfig = ''
+      #   defaults.pcm.rate_converter "speex-float-1"
+      # '';
+    };
     pulse.enable = true;
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
@@ -113,7 +129,7 @@
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = ["networkmanager" "wheel" "plugdev"];
     packages = with pkgs; [
       waybar
       neovim
@@ -124,6 +140,11 @@
     enable = true;
     xwayland.enable = true;
   };
+
+  # programs.nixvim = {
+  #   enable = true;
+  #   defaultEditor = true;
+  # };
 
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
@@ -144,7 +165,7 @@
 
   nixpkgs.config.permittedInsecurePackages = [
     "freeimage-unstable-2021-11-01"
-    "electron-32.3.3"
+    "electron-32.3.catppuccin3"
   ];
 
   # List packages installed in system profile. To search, run:
@@ -155,6 +176,7 @@
     whois
     vim
     git
+    python3
     keymapp
     libinput
     kmscon
@@ -182,8 +204,8 @@
     allowSFTP = true;
   };
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.trusted-users = [ "root" "kerby" ];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nix.settings.trusted-users = ["root" "kerby"];
 
   # Enable openGL and install Rocm
   hardware.graphics = {
@@ -210,6 +232,19 @@
     # As of ROCm 4.5, AMD has disabled OpenCL on Polaris based cards. This is needed if you have a 500 series card.
     ROC_ENABLE_PRE_VEGA = "1";
   };
+
+  services.udev.extraRules = ''
+    # 69-probe-rs.rules
+    ACTION!="add|change", GOTO="probe_rs_rules_end"
+    SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+    SUBSYSTEM!="usb|tty|hidraw", GOTO="probe_rs_rules_end"
+    # STMicroelectronics STLINK-V3
+    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE="660", GROUP="plugdev", TAG+="uaccess"
+    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="660", GROUP="plugdev", TAG+="uaccess"
+    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", MODE="660", GROUP="plugdev", TAG+="uaccess"
+    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", MODE="660", GROUP="plugdev", TAG+="uaccess"
+    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
+  '';
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

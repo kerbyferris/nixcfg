@@ -1,5 +1,10 @@
 {pkgs, lib, ...}: {
   home.packages = with pkgs; [
+    gcc-arm-embedded-9
+    dfu-util
+    gnumake
+    openocd
+    nix-index
     nautilus
     fstl
     blueman
@@ -16,16 +21,20 @@
     networkmanagerapplet
     discord
     bitwig-studio
+    vivaldi
+    librewolf
     probe-rs-tools
     zoom-us
     vlc
+    usbutils
     moc
     openscad
+    tidal-hifi
     signal-desktop
     qbittorrent
     vital
     morgen
-    youtube-music
+    # youtube-music
     kew
     dropbox
     xwayland

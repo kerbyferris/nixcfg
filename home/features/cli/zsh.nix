@@ -31,6 +31,8 @@ with lib; let
         ls = "eza";
         grep = "rg";
         ps = "procs";
+        nvim-backup = "NVIM_APPNAME=\"nvim-backup\" nvim";
+        edit = "nix run github:kerbyferris/kickstart.nixvim";
       };
     };
 
