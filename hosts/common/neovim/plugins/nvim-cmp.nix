@@ -38,6 +38,8 @@
   programs.nixvim.plugins.cmp = {
     enable = true;
 
+    autoEnableSources = true;
+
     settings = {
       snippet = {
         expand = ''
@@ -105,23 +107,10 @@
         #    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
       };
 
-      # WARNING: If plugins.cmp.autoEnableSources Nixivm will automatically enable the
-      # corresponding source plugins. This will work only when this option is set to a list.
-      # If you use a raw lua string, you will need to explicitly enable the relevant source
-      # plugins in your nixvim configuration.
       sources = [
-        {
-          name = "luasnip";
-        }
-        # Adds other completion capabilites.
-        #  nvim-cmp does not ship with all sources by default. They are split
-        #  into multiple repos for maintenance purposes.
-        {
-          name = "nvim_lsp";
-        }
-        {
-          name = "path";
-        }
+        {name = "luasnip";}
+        {name = "nvim_lsp";}
+        {name = "path";}
       ];
     };
   };

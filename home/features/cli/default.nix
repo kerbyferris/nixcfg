@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   imports = [
-  ./zsh.nix
+    ./zsh.nix
   ];
   home.packages = with pkgs; [
     coreutils
@@ -22,7 +22,7 @@
       # theme = "zenburned";
       # fullscreen = true;
       window-decoration = false;
-      font-size=11;
+      font-size = 11;
     };
   };
 

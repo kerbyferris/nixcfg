@@ -1,4 +1,8 @@
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   home.packages = with pkgs; [
     gcc-arm-embedded-9
     dfu-util
@@ -21,6 +25,7 @@
     networkmanagerapplet
     discord
     bitwig-studio
+    obsidian
     vivaldi
     librewolf
     probe-rs-tools
@@ -34,7 +39,6 @@
     qbittorrent
     vital
     morgen
-    # youtube-music
     kew
     dropbox
     xwayland

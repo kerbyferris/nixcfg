@@ -13,6 +13,7 @@
     ./plugins/kickstart/plugins/lint.nix
     ./plugins/kickstart/plugins/neo-tree.nix
 
+    ./plugins/custom/plugins/dap.nix
     ./plugins/custom/plugins/lazygit.nix
   ];
 
@@ -43,8 +44,7 @@
 
     # [[ Setting options ]]
     opts = {
-      # Show line numbers
-      number = true;
+      number = true; # Show line numbers
       mouse = "a"; # Enable mouse mode, can be useful for resizing splits for example!
       showmode = false; # Don't show the mode, since it's already in the statusline
       breakindent = true; # Enable break indent
@@ -54,6 +54,11 @@
       signcolumn = "yes"; # Keep signcolumn on by default
       updatetime = 250; # Decrease update time
       timeoutlen = 300; # Decrease mapped sequence wait time. Displays which-key popup sooner
+      expandtab = true; # All spaces, no tabs
+      shiftwidth = 2;
+      smartindent = true;
+      tabstop = 2;
+      softtabstop = 2;
 
       # Configure how new splits should be opened
       splitright = true;
@@ -65,6 +70,8 @@
       cursorline = true; # Show which line your cursor is on
       scrolloff = 10; # Minimal number of screen lines to keep above and below the cursor
       hlsearch = true; # Set highlight on search, but clear on pressing <Esc> in normal mode
+
+      swapfile = false; # Because way too annoying
     };
 
     # [[ Basic Keymaps ]]
@@ -203,10 +210,6 @@
       };
 
       lualine.enable = true;
-
-      dap = {
-        enable = true;
-      };
     };
 
     # The line beneath this is called `modeline`. See `:help modeline`

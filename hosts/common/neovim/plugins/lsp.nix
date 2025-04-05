@@ -1,6 +1,24 @@
 {pkgs, ...}: {
-  # Dependencies
-  #
+  programs.nixvim.diagnostics = {
+    # "", "✘", "◉", "" "󰅚" " ", " ", " ", " "
+    signs = {
+      text = {
+        ERROR = "◉";
+        WARN = "";
+        INFO = "◉";
+        HINT = "";
+      };
+    };
+  };
+
+  programs.nixvim.plugins.trouble = {
+    enable = true;
+  };
+
+  programs.nixvim.plugins.lspsaga = {
+    enable = true;
+  };
+
   # https://nix-community.github.io/nixvim/plugins/cmp-nvim-lsp.html
   programs.nixvim.plugins.cmp-nvim-lsp = {
     enable = true;
@@ -26,11 +44,11 @@
   '';
 
   # https://nix-community.github.io/nixvim/NeovimOptions/autoGroups/index.html
-  programs.nixvim.autoGroups = {
-    "kickstart-lsp-attach" = {
-      clear = true;
-    };
-  };
+  # programs.nixvim.autoGroups = {
+  #   "kickstart-lsp-attach" = {
+  #     clear = true;
+  #   };
+  # };
 
   # https://nix-community.github.io/nixvim/plugins/lsp/index.html
   programs.nixvim.plugins.lsp = {
@@ -63,22 +81,15 @@
       ts_ls = {
         enable = true;
       };
-      lua_ls = {
+      nixd = {
         enable = true;
 
-        # cmd = {
-        #};
-        # filetypes = {
-        #};
-        settings = {
-          completion = {
-            callSnippet = "Replace";
-          };
-          #diagnostics = {
-          #  disable = {
-          #    "missing-fields";
-          #};
+        extraOptions = {
+          nixpkgs.expr = "import <nixpkgs> { }";
         };
+      };
+      lua_ls = {
+        enable = true;
       };
     };
 

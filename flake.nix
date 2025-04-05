@@ -40,7 +40,6 @@
     hyprpanel,
     nixpkgs-stable,
     nixpkgs,
-    nixvim,
     ...
   } @ inputs: let
     inherit (self) outputs;

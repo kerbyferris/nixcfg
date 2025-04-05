@@ -3,7 +3,6 @@
   #
   # https://nix-community.github.io/nixvim/NeovimOptions/index.html?highlight=extraplugins#extrapackages
   programs.nixvim.extraPackages = with pkgs; [
-    # Used to format Lua code
     stylua
     alejandra
   ];
@@ -30,6 +29,7 @@
       formatters_by_ft = {
         lua = ["stylua"];
         nix = ["alejandra"];
+        cpp = ["clang-format"];
         # Conform can also run multiple formatters sequentially
         # python = [ "isort "black" ];
         #

@@ -6,20 +6,15 @@
 
     closeIfLastWindow = true;
 
-    filesystem = {
-      window = {
-        mappings = {
-          "\\" = "close_window";
-          o = "open";
-        };
+    window = {
+      mappings = {
+        o = "open";
       };
+      width = 30;
     };
 
     extraOptions = {
       filesystem = {
-        window = {
-          width = 30;
-        };
         filtered_items = {
           visible = true;
         };

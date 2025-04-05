@@ -5,7 +5,7 @@
 }:
 with lib; let
   cfg = config.features.cli.zsh;
-  in {
+in {
   options.features.cli.zsh.enable = mkEnableOption "enable extended zsh configuration";
 
   config = mkIf cfg.enable {
@@ -17,7 +17,7 @@ with lib; let
       loginExtra = "neofetch";
       oh-my-zsh = {
         enable = true;
-        plugins = [ 
+        plugins = [
           "git"
           "nvm"
         ];
@@ -26,7 +26,7 @@ with lib; let
       shellAliases = {
         build = "sudo nixos-rebuild switch --flake .";
         homebuild = "home-manager switch --flake .";
-        up ="ping 8.8.8.8";
+        up = "ping 8.8.8.8";
         myip = "curl -s https://icanhazip.com";
         ls = "eza";
         grep = "rg";
@@ -35,6 +35,5 @@ with lib; let
         edit = "nix run github:kerbyferris/kickstart.nixvim";
       };
     };
-
   };
 }
