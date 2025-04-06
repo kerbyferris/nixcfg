@@ -130,7 +130,7 @@
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
-    extraGroups = ["networkmanager" "wheel" "plugdev"];
+    extraGroups = ["networkmanager" "wheel" "plugdev" "dialout"];
     packages = with pkgs; [
       waybar
     ];
@@ -228,18 +228,24 @@
     ROC_ENABLE_PRE_VEGA = "1";
   };
 
-  services.udev.extraRules = ''
-    # 69-probe-rs.rules
-    ACTION!="add|change", GOTO="probe_rs_rules_end"
-    SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
-    SUBSYSTEM!="usb|tty|hidraw", GOTO="probe_rs_rules_end"
-    # STMicroelectronics STLINK-V3
-    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE="660", GROUP="plugdev", TAG+="uaccess"
-    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="660", GROUP="plugdev", TAG+="uaccess"
-    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", MODE="660", GROUP="plugdev", TAG+="uaccess"
-    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", MODE="660", GROUP="plugdev", TAG+="uaccess"
-    ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
-  '';
+  services.udev = {
+    # packages = with pkgs; [platformio-core.udev]; # fails with weird error about python3 packages
+
+    extraRules = ''
+      # 69-probe-rs.rules
+      ACTION!="add|change", GOTO="probe_rs_rules_end"
+      SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+      SUBSYSTEM!="usb|tty|hidraw", GOTO="probe_rs_rules_end"
+      # STMicroelectronics STLINK-V3
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # Raspberry Pi Pico
+      ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+    '';
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
