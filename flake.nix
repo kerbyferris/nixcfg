@@ -11,8 +11,12 @@
   '';
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
+    # nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+    nixpkgs-stable.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
+
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,10 +40,12 @@
 
   outputs = {
     self,
+    determinate,
     home-manager,
     hyprpanel,
     nixpkgs-stable,
     nixpkgs,
+    stylix,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -60,7 +66,8 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/nixos
-          inputs.stylix.nixosModules.stylix
+          determinate.nixosModules.default
+          stylix.nixosModules.stylix
           # inputs.nixvim.nixosModules.nixvim
         ];
       };

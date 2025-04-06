@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{...}: {
   imports = [
     # Plugins
     ./plugins/which-key.nix
@@ -20,8 +20,8 @@
   programs.nixvim = {
     enable = true;
 
-    extraPackages = with pkgs; [
-    ];
+    # extraPackages = with pkgs; [
+    # ];
 
     colorschemes = {
       gruvbox.enable = true;
