@@ -127,6 +127,7 @@
   home-manager.backupFileExtension = "BAK";
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.extraGroups.plugdev = {};
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
@@ -229,7 +230,10 @@
   };
 
   services.udev = {
-    # packages = with pkgs; [platformio-core.udev]; # fails with weird error about python3 packages
+    packages = with pkgs; [
+      openocd
+      platformio-core.udev
+    ];
 
     extraRules = ''
       # 69-probe-rs.rules
