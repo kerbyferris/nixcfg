@@ -13,10 +13,10 @@
 set -e
 
 # Edit your config
-$EDITOR configuration.nix
+$EDITOR ~/nixcfg/
 
 # cd to your config dir
-pushd ~/dotfiles/nixos/
+pushd ~/nixcfg/
 
 # Early return if no changes were detected (thanks @singiamtel!)
 if git diff --quiet '*.nix'; then

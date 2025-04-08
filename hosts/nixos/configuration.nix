@@ -2,8 +2,8 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
-  config,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -59,6 +59,7 @@
     image = ../../wallpapers/spiralrock.jpg;
     targets.gtk.enable = true;
     targets.nixvim.enable = false;
+    targets.qt.platform = lib.mkForce "qtct";
   };
 
   # Enable the GNOME Desktop Environment.
@@ -159,14 +160,10 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "freeimage-unstable-2021-11-01"
-    "electron-32.3.catppuccin3"
-  ];
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    fh
     gcc
     dig
     whois
