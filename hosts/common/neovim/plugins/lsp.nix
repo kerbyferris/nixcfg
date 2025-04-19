@@ -67,6 +67,8 @@
     servers = {
       clangd = {
         enable = true;
+        settings = {
+        };
       };
       gopls = {
         enable = true;
@@ -179,6 +181,14 @@
           action.__raw = "require('telescope.builtin').lsp_dynamic_workspace_symbols";
           options = {
             desc = "LSP: [W]orkspace [S]ymbols";
+          };
+        }
+        {
+          mode = "n";
+          action = "<CMD>Lspsaga show_workspace_diagnostics<Enter>";
+          key = "<leader>wd";
+          options = {
+            desc = "LSPSAGA: [W]orkspace [D]iagnostics";
           };
         }
       ];

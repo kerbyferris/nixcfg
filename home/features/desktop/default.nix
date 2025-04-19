@@ -38,7 +38,7 @@
     signal-desktop
     qbittorrent
     vital
-    morgen
+    # morgen
     kew
     dropbox
     xwayland
@@ -49,6 +49,7 @@
     pavucontrol
     # orca-slicer
     prusa-slicer
+    yt-dlp
     # cura
   ];
   programs.rofi = {
