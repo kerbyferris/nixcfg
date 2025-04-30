@@ -25,6 +25,8 @@
     networkmanagerapplet
     discord
     bitwig-studio
+    imagemagick
+    ghostscript
     obsidian
     vivaldi
     librewolf
