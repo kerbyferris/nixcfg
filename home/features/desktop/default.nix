@@ -4,7 +4,7 @@
   ...
 }: {
   home.packages = with pkgs; [
-    gcc-arm-embedded-9
+    # gcc-arm-embedded-9
     dfu-util
     gnumake
     openocd
