@@ -37,6 +37,9 @@
 
   # Set your time zone.
   time.timeZone = "Europe/Lisbon";
+  # time.timeZone = "Europe/Berlin";
+  services.timesyncd.enable = true;
+  services.geoclue2.enable = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -88,7 +91,6 @@
   };
 
   # Enable sound with pipewire.
-  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -177,6 +179,9 @@
     nvtopPackages.full
     # davinci-resolve
     clinfo
+    (freecad-wayland.override {
+      ifcSupport = true;
+    })
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -207,9 +212,9 @@
     extraPackages = with pkgs; [
       intel-compute-runtime
       # rocmPackages_5.clr.icd
-      # rocmPackages_5.clr
-      rocmPackages_5.rocminfo
-      rocmPackages_5.rocm-runtime
+      rocmPackages.clr
+      # rocmPackages.rocminfo
+      # rocmPackages.rocm-runtime
       amdvlk
       driversi686Linux.amdvlk
     ];
@@ -233,17 +238,17 @@
 
     extraRules = ''
       # 69-probe-rs.rules
-      ACTION!="add|change", GOTO="probe_rs_rules_end"
-      SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
-      SUBSYSTEM!="usb|tty|hidraw", GOTO="probe_rs_rules_end"
-      # STMicroelectronics STLINK-V3
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE="660", GROUP="plugdev", TAG+="uaccess"
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="660", GROUP="plugdev", TAG+="uaccess"
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", MODE="660", GROUP="plugdev", TAG+="uaccess"
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", MODE="660", GROUP="plugdev", TAG+="uaccess"
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
-      # Raspberry Pi Pico
-      ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+      # ACTION!="add|change", GOTO="probe_rs_rules_end"
+      # SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+      # SUBSYSTEM!="usb|tty|hidraw", GOTO="probe_rs_rules_end"
+      # # STMicroelectronics STLINK-V3
+      # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
+      # # Raspberry Pi Pico
+      # ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
     '';
   };
 

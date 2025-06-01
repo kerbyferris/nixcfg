@@ -1,5 +1,5 @@
 {pkgs, ...}: {
-  programs.nixvim.diagnostics = {
+  programs.nixvim.diagnostic.settings = {
     # "", "✘", "◉", "" "󰅚" " ", " ", " ", " "
     signs = {
       text = {

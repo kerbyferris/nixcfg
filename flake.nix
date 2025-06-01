@@ -1,22 +1,19 @@
 {
   description = ''
-    For questions just DM me on X: https://twitter.com/@m3tam3re
-    There is also some NIXOS content on my YT channel: https://www.youtube.com/@m3tam3re
+    Good example starter configs:
 
-    One of the best ways to learn NIXOS is to read other peoples configurations. I have personally learned a lot from Gabriel Fontes configs:
     https://github.com/Misterio77/nix-starter-configs
     https://github.com/Misterio77/nix-config
-
-    Please also check out the starter configs mentioned above.
   '';
 
   inputs = {
-    # nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
-    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
-    nixpkgs-stable.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
+    # nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+    # nixpkgs-stable.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -43,8 +40,6 @@
     self,
     determinate,
     home-manager,
-    hyprpanel,
-    nixpkgs-stable,
     nixpkgs,
     stylix,
     ...

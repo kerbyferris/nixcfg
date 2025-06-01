@@ -25,12 +25,15 @@
     networkmanagerapplet
     discord
     bitwig-studio
+    # freecad-wayland
+    # python312Packages.ifcopenshell
+    blender
+    todoist-electron
     imagemagick
     ghostscript
     obsidian
-    vivaldi
-    librewolf
     probe-rs-tools
+    obs-studio
     zoom-us
     vlc
     usbutils
@@ -40,7 +43,7 @@
     signal-desktop
     qbittorrent
     vital
-    # morgen
+    morgen
     kew
     dropbox
     xwayland
