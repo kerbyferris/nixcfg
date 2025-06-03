@@ -2,8 +2,8 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
-  config,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -43,25 +43,36 @@
     LC_TIME = "en_AG";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  stylix = {
+    enable = true;
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
+    targets.gtk.enable = true;
+    targets.nixvim.enable = false;
+    targets.qt.platform = lib.mkForce "qtct";
+  };
 
-  # Enable the GNOME Desktop Environment.
+  # Enable Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
 
+  # Enable the X11 windowing system.
   # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-    options = "ctrl:swapcaps";
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "ctrl:swapcaps";
+    };
   };
+
+  hardware.keyboard.zsa.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -90,8 +101,8 @@
   };
 
   # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "kerby";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "kerby";
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -106,8 +117,17 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    #  wget
+    fh
+    gcc
+    dig
+    whois
+    vim
+    git
+    python3
+    keymapp
+    libinput
+    base16-schemes
+    nh
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
