@@ -1,14 +1,14 @@
 {config, ...}: {
   imports = [
-    # ../common
-    # ../features/cli
+    ../common
+    ../features/cli
     # ../features/desktop
-    # ./home.nix
+    ./home.nix
   ];
 
-  # features = {
-  #   cli = {
-  #     zsh.enable = true;
-  #   };
-  # };
+  features = {
+    cli = {
+      zsh.enable = true;
+    };
+  };
 }
