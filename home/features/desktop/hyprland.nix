@@ -11,15 +11,20 @@ in {
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      blueman # For blueman-applet
+      brightnessctl # For brightness controls
+      kitty
+      libnotify
       ghostty # Your chosen terminal
+      hypridle
+      hyprshot # For screenshot binds
       nautilus # Your file manager
       networkmanagerapplet # For nm-applet
-      blueman # For blueman-applet
-      waybar
-      swaynotificationcenter # For swaync
-      hyprshot # For screenshot binds
-      brightnessctl # For brightness controls
       playerctl # For media key controls
+      swaynotificationcenter # For swaync
+      swww
+      waybar
+      xwayland
     ];
 
     programs.rofi = {

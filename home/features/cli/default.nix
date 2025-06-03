@@ -4,16 +4,24 @@
   ];
   home.packages = with pkgs; [
     coreutils
+    dfu-util
     fd
     file
+    ghostscript
+    gnumake
+    imagemagick
     jq
-    tree
+    killall
+    moc
+    pciutils
+    probe-rs-tools
     procs
     ripgrep
     tldr
+    tree
+    usbutils
+    yt-dlp
     zip
-    killall
-    pciutils
   ];
 
   programs.ghostty = {

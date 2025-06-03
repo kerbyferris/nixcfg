@@ -7,55 +7,34 @@
     ./hyprland.nix
   ];
   home.packages = with pkgs; [
-    # gcc-arm-embedded-9
-    dfu-util
-    gnumake
-    openocd
-    nix-index
-    nautilus
-    fstl
-    blueman
-    google-chrome
-    nwg-look
-    libnotify
-    nordic
-    swww
-    swaynotificationcenter
-    kitty
-    hyprshot
-    brightnessctl
-    hypridle
-    networkmanagerapplet
-    discord
     bitwig-studio
     blender
-    todoist-electron
-    imagemagick
-    ghostscript
-    obsidian
-    probe-rs-tools
-    obs-studio
-    zoom-us
-    vlc
-    usbutils
-    moc
-    openscad
-    tidal-hifi
-    signal-desktop
-    qbittorrent
-    vital
-    morgen
-    kew
+    # bottles
+    # cura
+    discord
     dropbox
-    xwayland
+    fstl
+    google-chrome
+    kew
+    morgen
+    nix-index
+    nordic
+    nwg-look
+    obs-studio
+    obsidian
+    openocd
+    openscad
+    # orca-slicer
+    pavucontrol
+    prusa-slicer
+    qbittorrent
+    signal-desktop
+    tidal-hifi
+    todoist-electron
+    vital
+    vlc
     # wineWowPackages.unstableFull
     # winetricks
-    pciutils
-    # bottles
-    pavucontrol
-    # orca-slicer
-    prusa-slicer
-    yt-dlp
-    # cura
+    zoom-us
   ];
 }
