@@ -215,6 +215,7 @@
         user = "biqu";
       };
     };
+    addKeysToAgent = "yes";
   };
 
   systemd.user.services.dropbox = {
