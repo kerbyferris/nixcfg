@@ -66,6 +66,14 @@
           stylix.nixosModules.stylix
         ];
       };
+      adegabox = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs outputs;};
+        modules = [
+          ./hosts/adegabox
+          determinate.nixosModules.default
+          stylix.nixosModules.stylix
+        ];
+      };
     };
     homeConfigurations = {
       "kerby@nixos" = home-manager.lib.homeManagerConfiguration {
@@ -73,6 +81,13 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home/kerby/nixos.nix
+        ];
+      };
+      "kerby@adegabox" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        extraSpecialArgs = {inherit inputs outputs;};
+        modules = [
+          ./home/kerby/adegabox.nix
         ];
       };
     };
