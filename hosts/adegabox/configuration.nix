@@ -91,13 +91,19 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.extraGroups.plugdev = {};
   users.users.kerby = {
     isNormalUser = true;
     description = "Kerby Ferris";
     extraGroups = ["networkmanager" "wheel" "plugdev" "dialout"];
     packages = with pkgs; [
-      #  thunderbird
+      waybar
     ];
+  };
+
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
   };
 
   # Enable automatic login for the user.
@@ -132,11 +138,11 @@
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
+  programs.mtr.enable = true;
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
 
   # List services that you want to enable:
 

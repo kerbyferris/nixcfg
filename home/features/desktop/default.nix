@@ -3,6 +3,9 @@
   lib,
   ...
 }: {
+  imports = [
+    ./hyprland.nix
+  ];
   home.packages = with pkgs; [
     # gcc-arm-embedded-9
     dfu-util
@@ -25,8 +28,6 @@
     networkmanagerapplet
     discord
     bitwig-studio
-    # freecad-wayland
-    # python312Packages.ifcopenshell
     blender
     todoist-electron
     imagemagick
@@ -57,16 +58,4 @@
     yt-dlp
     # cura
   ];
-  programs.rofi = {
-    enable = true;
-    theme = lib.mkDefault "gruvbox-dark-soft";
-
-    extraConfig = {
-      show-icons = true;
-      display-drun = "application: ";
-      drun-display-format = "{icon} {name}";
-      icon-theme = "Papirus";
-      terminal = "ghostty";
-    };
-  };
 }

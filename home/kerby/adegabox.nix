@@ -1,4 +1,4 @@
-{config, ...}: {
+{...}: {
   imports = [
     ../common
     ../features/cli
@@ -9,6 +9,9 @@
   features = {
     cli = {
       zsh.enable = true;
+    };
+    desktop = {
+      hyprland.enable = true;
     };
   };
 }
