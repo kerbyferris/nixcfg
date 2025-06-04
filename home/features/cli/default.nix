@@ -30,8 +30,8 @@
   programs.bat.enable = true;
 
   programs.btop = {
+    enable = true;
     settings = {
-      color_theme = "gruvbox_dark";
       theme_background = true;
       vim_keys = true;
       shown_boxes = "proc cpu mem net gpu0 gpu1";
