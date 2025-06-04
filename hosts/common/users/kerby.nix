@@ -8,16 +8,17 @@
     isNormalUser = true;
     description = "Kerby Ferris";
     extraGroups = [
-      "wheel"
-      "networkmanager"
-      "libvirtd"
-      "flatpak"
       "audio"
-      "video"
-      "plugdev"
+      "dialout"
+      "flatpak"
       "input"
       "kvm"
+      "libvirtd"
+      "networkmanager"
+      "plugdev"
       "qemu-libvirtd"
+      "video"
+      "wheel"
     ];
     packages = [inputs.home-manager.packages.${pkgs.system}.default];
   };

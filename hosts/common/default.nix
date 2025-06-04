@@ -41,11 +41,111 @@
     };
   };
 
+  # Enable networking
+  networking.networkmanager.enable = true;
+
+  # Set your time zone.
+  time.timeZone = "Europe/Lisbon";
+  # time.timeZone = "Europe/Berlin";
+  services.timesyncd.enable = true;
+  services.geoclue2.enable = true;
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "en_AG";
+    LC_IDENTIFICATION = "en_AG";
+    LC_MEASUREMENT = "en_AG";
+    LC_MONETARY = "en_AG";
+    LC_NAME = "en_AG";
+    LC_NUMERIC = "en_AG";
+    LC_PAPER = "en_AG";
+    LC_TELEPHONE = "en_AG";
+    LC_TIME = "en_AG";
+  };
+
+  stylix = {
+    enable = true;
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
+    targets.gtk.enable = true;
+    targets.nixvim.enable = false;
+    targets.qt.platform = lib.mkForce "qtct";
+  };
+
+  # Enable the GNOME Desktop Environment.
+  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
+
+  # Enable the X11 windowing system.
+  # Configure keymap in X11
+  services.xserver = {
+    enable = true;
+    xkb = {
+      layout = "us";
+      variant = "";
+      options = "ctrl:swapcaps";
+    };
+  };
+
+  hardware.keyboard.zsa.enable = true;
+
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
+  home-manager.backupFileExtension = "BAK";
+
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
+  systemd.services."getty@tty1".enable = false;
+  systemd.services."autovt@tty1".enable = false;
+
+  # Install firefox.
+  programs.firefox.enable = true;
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    fh
+    gcc
+    dig
+    whois
+    vim
+    git
+    python3
+    keymapp
+    libinput
+    kmscon
+    base16-schemes
+    nh
+  ];
+
+  programs.zsh.enable = true;
+  users.defaultUserShell = pkgs.zsh;
+
+  # Enable the OpenSSH daemon.
+  services.openssh = {
+    enable = true;
+    settings.PermitRootLogin = "no";
+    allowSFTP = true;
+  };
+
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
 
   nix = {
     settings = {
+      experimental-features = ["nix-command" "flakes"];
       trusted-users = [
         "root"
         "kerby"
@@ -63,6 +163,4 @@
       ((lib.filterAttrs (_: lib.isType "flake")) inputs);
     #nixPath = [ "/etc/nix/path" ];
   };
-  users.defaultUserShell = pkgs.zsh;
-  programs.zsh.enable = true;
 }

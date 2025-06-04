@@ -179,14 +179,6 @@ in {
           workspace_swipe = false;
         };
 
-        # Per-device config
-        device = {
-          "epic-mouse-v1" = {
-            # Name of the device becomes the key
-            sensitivity = -0.5;
-          };
-        };
-
         # KEYBINDINGS
         # Note: $mainMod, $terminal, etc. are Hyprland variables defined above.
         # The script `~/dotfiles/waybar/launch.sh` needs to exist at that path.
@@ -195,6 +187,7 @@ in {
         # and referencing that path.
         bind = [
           "$mainMod SHIFT, B, exec, ~/dotfiles/waybar/launch.sh"
+          "$mainMod SHIFT, R, exec, hyprctl reload"
           "$mainMod, RETURN, exec, $terminal"
           "$mainMod, C, killactive,"
           "$mainMod, x, exit,"

@@ -1,11 +1,7 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  pkgs,
-  lib,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -26,69 +22,6 @@
   boot.initrd.kernelModules = ["amdgpu "];
 
   networking.hostName = "nixos"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Set your time zone.
-  time.timeZone = "Europe/Lisbon";
-  # time.timeZone = "Europe/Berlin";
-  services.timesyncd.enable = true;
-  services.geoclue2.enable = true;
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_AG";
-    LC_IDENTIFICATION = "en_AG";
-    LC_MEASUREMENT = "en_AG";
-    LC_MONETARY = "en_AG";
-    LC_NAME = "en_AG";
-    LC_NUMERIC = "en_AG";
-    LC_PAPER = "en_AG";
-    LC_TELEPHONE = "en_AG";
-    LC_TIME = "en_AG";
-  };
-
-  stylix = {
-    enable = true;
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
-    targets.gtk.enable = true;
-    targets.nixvim.enable = false;
-    targets.qt.platform = lib.mkForce "qtct";
-  };
-
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  # Enable the X11 windowing system.
-  # Configure keymap in X11
-  services.xserver = {
-    enable = true;
-    xkb = {
-      layout = "us";
-      variant = "";
-      options = "ctrl:swapcaps";
-    };
-  };
-
-  hardware.keyboard.zsa.enable = true;
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-  };
 
   # Enable sound with pipewire.
   security.rtkit.enable = true;
@@ -126,24 +59,6 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  home-manager.backupFileExtension = "BAK";
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.extraGroups.plugdev = {};
-  users.users.kerby = {
-    isNormalUser = true;
-    description = "Kerby Ferris";
-    extraGroups = ["networkmanager" "wheel" "plugdev" "dialout"];
-    packages = with pkgs; [
-      waybar
-    ];
-  };
-
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-  };
-
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "kerby";
@@ -151,57 +66,16 @@
   # Fingerprint reader
   services.fprintd.enable = true;
 
-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@tty1".enable = false;
-
-  # Install firefox.
-  programs.firefox.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    fh
-    gcc
-    dig
-    whois
-    vim
-    git
-    python3
-    keymapp
-    libinput
-    kmscon
-    base16-schemes
-    nh
     nvtopPackages.full
-    # davinci-resolve
     clinfo
     (freecad-wayland.override {
       ifcSupport = true;
     })
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    settings.PermitRootLogin = "no";
-    allowSFTP = true;
-  };
-
-  nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.trusted-users = ["root" "kerby"];
 
   # Enable openGL and install Rocm
@@ -251,12 +125,6 @@
       # ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
     '';
   };
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

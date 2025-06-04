@@ -1,11 +1,7 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{
-  pkgs,
-  lib,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -16,60 +12,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "adegabox"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  # Set your time zone.
-  time.timeZone = "Europe/Lisbon";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_AG";
-    LC_IDENTIFICATION = "en_AG";
-    LC_MEASUREMENT = "en_AG";
-    LC_MONETARY = "en_AG";
-    LC_NAME = "en_AG";
-    LC_NUMERIC = "en_AG";
-    LC_PAPER = "en_AG";
-    LC_TELEPHONE = "en_AG";
-    LC_TIME = "en_AG";
-  };
-
-  stylix = {
-    enable = true;
-    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
-    targets.gtk.enable = true;
-    targets.nixvim.enable = false;
-    targets.qt.platform = lib.mkForce "qtct";
-  };
-
-  # Enable Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
-  # Enable the X11 windowing system.
-  # Configure keymap in X11
-  services.xserver = {
-    enable = true;
-    xkb = {
-      layout = "us";
-      variant = "";
-      options = "ctrl:swapcaps";
-    };
-  };
-
-  hardware.keyboard.zsa.enable = true;
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
 
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
@@ -90,71 +32,18 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.extraGroups.plugdev = {};
-  users.users.kerby = {
-    isNormalUser = true;
-    description = "Kerby Ferris";
-    extraGroups = ["networkmanager" "wheel" "plugdev" "dialout"];
-    packages = with pkgs; [
-      waybar
-    ];
-  };
-
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-  };
-
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "kerby";
 
-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@tty1".enable = false;
-
-  # Install firefox.
-  programs.firefox.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    fh
-    gcc
-    dig
-    whois
-    vim
-    git
-    python3
-    keymapp
-    libinput
-    base16-schemes
-    nh
+    # git
   ];
-
-  programs.ssh = {
-    startAgent = true;
-  };
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    settings.PermitRootLogin = "no";
-    allowSFTP = true;
-  };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nix.settings.trusted-users = ["root" "kerby"];
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
