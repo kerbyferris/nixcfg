@@ -154,6 +154,8 @@
     allowSFTP = true;
   };
 
+  programs.ssh.startAgent = true;
+
   system.autoUpgrade.enable = true;
   system.autoUpgrade.dates = "weekly";
 
