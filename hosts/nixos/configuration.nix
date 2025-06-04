@@ -19,8 +19,6 @@
     "i915.enable_fbc=0"
   ];
 
-  boot.initrd.kernelModules = ["amdgpu "];
-
   networking.hostName = "nixos"; # Define your hostname.
 
   # Enable sound with pipewire.
@@ -69,40 +67,10 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    nvtopPackages.full
-    clinfo
     (freecad-wayland.override {
       ifcSupport = true;
     })
   ];
-
-  nix.settings.trusted-users = ["root" "kerby"];
-
-  # Enable openGL and install Rocm
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-    # extraPackages = with pkgs.stable; [
-    extraPackages = with pkgs; [
-      intel-compute-runtime
-      # rocmPackages_5.clr.icd
-      rocmPackages.clr
-      # rocmPackages.rocminfo
-      # rocmPackages.rocm-runtime
-      amdvlk
-      driversi686Linux.amdvlk
-    ];
-  };
-
-  # This is necesery because many programs hard-code the path to hip
-  systemd.tmpfiles.rules = [
-    # "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.stable.rocmPackages.clr}"
-    "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
-  ];
-  environment.variables = {
-    # As of ROCm 4.5, AMD has disabled OpenCL on Polaris based cards. This is needed if you have a 500 series card.
-    ROC_ENABLE_PRE_VEGA = "1";
-  };
 
   services.udev = {
     packages = with pkgs; [

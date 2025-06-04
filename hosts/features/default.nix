@@ -1,0 +1,5 @@
+{...}: {
+  imports = [
+    ./davinci-resolve.nix
+  ];
+}

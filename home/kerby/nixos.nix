@@ -14,7 +14,7 @@
 
   programs.zsh = {
     shellAliases = {
-      build = "sudo nixos-rebuild switch --flake .#nixos";
+      build = "nixos-rebuild switch --flake .#nixos";
     };
   };
 }

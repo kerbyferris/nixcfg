@@ -33,5 +33,8 @@
 #:w
 # networking.hostName = "nixos"; # Define your hostname.
 {
-  imports = [../common ./configuration.nix ./hardware-configuration.nix];
+  imports = [../common ./configuration.nix ./hardware-configuration.nix ../features];
+  features = {
+    davinci-resolve.enable = true;
+  };
 }
