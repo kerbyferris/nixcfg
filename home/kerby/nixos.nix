@@ -7,9 +7,6 @@
   ];
 
   features = {
-    cli = {
-      zsh.enable = true;
-    };
     desktop = {
       hyprland.enable = true;
     };

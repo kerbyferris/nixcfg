@@ -35,7 +35,7 @@
     # inputs.zen-browser.packages."${system}".twilight # artifacts are downloaded from this repository to guarantee reproducibility
     # inputs.zen-browser.packages."${system}".twilight-official # artifacts are downloaded from the official Zen repository
 
-    btop-rocm
+    # btop-rocm
     # btop
     rpi-imager
 

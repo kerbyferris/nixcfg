@@ -116,21 +116,35 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    fh
-    gcc
-    dig
-    whois
-    vim
-    git
-    python3
-    keymapp
-    libinput
-    kmscon
     base16-schemes
+    coreutils
+    dfu-util
+    dig
+    fd
+    fh
+    file
+    gcc
+    git
+    gnumake
+    jq
+    keymapp
+    killall
+    kmscon
+    libinput
     nh
+    pciutils
+    procs
+    python3
+    ripgrep
+    tree
+    usbutils
+    vim
+    whois
+    zip
   ];
 
   programs.zsh.enable = true;
+
   users.defaultUserShell = pkgs.zsh;
 
   # Enable the OpenSSH daemon.
