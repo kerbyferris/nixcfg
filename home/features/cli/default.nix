@@ -113,6 +113,7 @@
       ls = "eza";
       grep = "rg";
       ps = "procs";
+      clean = "nix-collect-garbage -d";
     };
   };
 
