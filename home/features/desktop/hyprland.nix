@@ -15,7 +15,7 @@ in {
       brightnessctl # For brightness controls
       kitty
       libnotify
-      ghostty # Your chosen terminal
+      ghostty # terminal
       hypridle
       hyprshot # For screenshot binds
       nautilus # Your file manager

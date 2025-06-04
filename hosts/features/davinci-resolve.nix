@@ -37,6 +37,7 @@ in {
       ROC_ENABLE_PRE_VEGA = "1";
     };
     environment.systemPackages = with pkgs; [
+      davinci-resolve
       nvtopPackages.full
       clinfo
     ];
