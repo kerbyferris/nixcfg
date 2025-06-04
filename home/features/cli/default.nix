@@ -108,15 +108,11 @@
       theme = "robbyrussell"; # "bira" "pmcgee" "robbyrussel"
     };
     shellAliases = {
-      build = "sudo nixos-rebuild switch --flake .";
-      homebuild = "home-manager switch --flake .";
       up = "ping 8.8.8.8";
       myip = "curl -s https://icanhazip.com";
       ls = "eza";
       grep = "rg";
       ps = "procs";
-      nvim-backup = "NVIM_APPNAME=\"nvim-backup\" nvim";
-      edit = "nix run github:kerbyferris/kickstart.nixvim";
     };
   };
 
