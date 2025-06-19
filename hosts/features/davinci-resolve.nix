@@ -15,15 +15,15 @@ in {
     hardware.graphics = {
       enable = true;
       enable32Bit = true;
-      # extraPackages = with pkgs.stable; [
       extraPackages = with pkgs; [
         intel-compute-runtime
         # rocmPackages_5.clr.icd
         rocmPackages.clr
-        # rocmPackages.rocminfo
-        # rocmPackages.rocm-runtime
+        rocmPackages.rocminfo
+        rocmPackages.rocm-runtime
         amdvlk
         driversi686Linux.amdvlk
+        vpl-gpu-rt
       ];
     };
 
@@ -37,6 +37,8 @@ in {
       ROC_ENABLE_PRE_VEGA = "1";
     };
     environment.systemPackages = with pkgs; [
+      kdePackages.kdenlive
+      wineWowPackages.stableFull
       davinci-resolve
       nvtopPackages.full
       clinfo

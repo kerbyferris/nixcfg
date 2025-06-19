@@ -33,8 +33,6 @@
     todoist-electron
     vital
     vlc
-    # wineWowPackages.unstableFull
-    # winetricks
     inputs.zen-browser.packages."${system}".default # beta
     zoom-us
   ];
