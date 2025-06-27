@@ -120,7 +120,6 @@
   programs.ghostty = {
     enable = true;
     settings = {
-      # theme = "zenburned";
       # fullscreen = true;
       window-decoration = false;
       font-size = 11;
