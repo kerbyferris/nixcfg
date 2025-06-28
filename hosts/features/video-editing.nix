@@ -18,6 +18,7 @@ in {
       kdePackages.kdenlive
       wineWowPackages.stableFull
       davinci-resolve
+      clinfo
     ];
   };
 }

@@ -84,6 +84,7 @@
     packages = with pkgs; [
       openocd
       platformio-core.udev
+      clinfo
     ];
 
     extraRules = ''
