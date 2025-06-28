@@ -1,5 +1,7 @@
 {...}: {
   imports = [
-    ./davinci-resolve.nix
+    ./video-editing.nix
+    ./amd-egpu.nix
+    ./freecad.nix
   ];
 }

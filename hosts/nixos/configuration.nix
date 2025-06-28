@@ -9,6 +9,12 @@
 
   # Additional hardware config for tap to click
   hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true; # Important for some applications that might use 32-bit libs
+    # Uncomment the next line if you face issues or want to try newer Mesa versions
+    # package = pkgs.mesa.latest; # Use the latest Mesa from Nixpkgs
+  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -67,9 +73,8 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    (freecad-wayland.override {
-      ifcSupport = true;
-    })
+    intel-media-driver
+    libva-utils
   ];
 
   services.udev = {

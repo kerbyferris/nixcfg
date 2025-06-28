@@ -16,6 +16,11 @@
     useUserPackages = true;
     extraSpecialArgs = {inherit inputs outputs;};
   };
+  nix = {
+    extraOptions = ''
+      download-buffer-size = 104857600
+    '';
+  };
   nixpkgs = {
     # You can add overlays here
     overlays = [
@@ -84,7 +89,7 @@
     xkb = {
       layout = "us";
       variant = "";
-      options = "ctrl:swapcaps";
+      options = "ctrl:swapcaps,compose:ralt";
     };
   };
 

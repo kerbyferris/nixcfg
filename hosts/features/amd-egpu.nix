@@ -5,25 +5,25 @@
   ...
 }:
 with lib; let
-  cfg = config.features.davinci-resolve;
+  cfg = config.features.amd-egpu;
 in {
-  options.features.davinci-resolve.enable = mkEnableOption "enable davinci-resolve config";
+  options.features.amd-egpu.enable = mkEnableOption "enable amd-egpu";
 
   config = mkIf cfg.enable {
-    boot.initrd.kernelModules = ["amdgpu "];
+    boot.initrd.kernelModules = ["amdgpu"];
     # Enable openGL and install Rocm
     hardware.graphics = {
       enable = true;
       enable32Bit = true;
+      # extraPackages = with pkgs.stable; [
       extraPackages = with pkgs; [
         intel-compute-runtime
         # rocmPackages_5.clr.icd
         rocmPackages.clr
-        rocmPackages.rocminfo
-        rocmPackages.rocm-runtime
+        # rocmPackages.rocminfo
+        # rocmPackages.rocm-runtime
         amdvlk
         driversi686Linux.amdvlk
-        vpl-gpu-rt
       ];
     };
 
@@ -37,9 +37,6 @@ in {
       ROC_ENABLE_PRE_VEGA = "1";
     };
     environment.systemPackages = with pkgs; [
-      kdePackages.kdenlive
-      wineWowPackages.stableFull
-      davinci-resolve
       nvtopPackages.full
       clinfo
     ];
