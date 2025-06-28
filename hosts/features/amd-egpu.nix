@@ -17,7 +17,6 @@ in {
       enable32Bit = true;
       # extraPackages = with pkgs.stable; [
       extraPackages = with pkgs; [
-        intel-compute-runtime
         # rocmPackages_5.clr.icd
         rocmPackages.clr
         # rocmPackages.rocminfo

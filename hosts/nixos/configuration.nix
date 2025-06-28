@@ -14,6 +14,9 @@
     enable32Bit = true; # Important for some applications that might use 32-bit libs
     # Uncomment the next line if you face issues or want to try newer Mesa versions
     # package = pkgs.mesa.latest; # Use the latest Mesa from Nixpkgs
+    extraPackages = with pkgs; [
+      intel-compute-runtime
+    ];
   };
 
   # Bootloader.
