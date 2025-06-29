@@ -12,8 +12,7 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true; # Important for some applications that might use 32-bit libs
-    # Uncomment the next line if you face issues or want to try newer Mesa versions
-    # package = pkgs.mesa.latest; # Use the latest Mesa from Nixpkgs
+    package = pkgs.mesa; # This ensures you're on the Mesa version NixOS provides for your channel.
     extraPackages = with pkgs; [
       intel-compute-runtime
     ];
@@ -77,8 +76,16 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     intel-media-driver
+    libva
+    # libva-intel-gpu
     libva-utils
+    ffmpeg
+    libdrm
+    intel-gmmlib
   ];
+
+  environment.sessionVariables.VA_DRIVERS_PATH = "/nix/store/7wpjbidyx1g9algql7jvzm00lzjrwaw6-intel-media-driver-25.1.4/lib/dri/";
+  # VA_DRIVERS_PATH = "${pkgs.intel-media-driver}/lib/dri"; # This assumes it's always in lib/dri.
 
   services.udev = {
     packages = with pkgs; [

@@ -17,6 +17,7 @@
       "networkmanager"
       "plugdev"
       "qemu-libvirtd"
+      "render"
       "video"
       "wheel"
     ];

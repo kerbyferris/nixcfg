@@ -1,16 +1,7 @@
 {
-  description = ''
-    Good example starter configs:
-
-    https://github.com/Misterio77/nix-starter-configs
-    https://github.com/Misterio77/nix-config
-  '';
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
-    # nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
-    # nixpkgs-stable.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
@@ -29,7 +20,6 @@
     };
     # flake-parts.url = "github:hercules-ci/flake-parts";
     nixvim = {
-      # url = "github:kerbyferris/kickstart.nixvim";
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };

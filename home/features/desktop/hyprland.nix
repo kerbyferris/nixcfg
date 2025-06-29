@@ -37,6 +37,7 @@ in {
         drun-display-format = "{icon} {name}";
         icon-theme = "Papirus";
         terminal = "ghostty";
+        font = "JetBrains Mono Nerd Font 11";
       };
     };
 
