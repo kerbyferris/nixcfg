@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Watches a directory for new files and transcodes them for Resolve.
 
-WATCH_DIR="/home/kerby/dev/video/raw"
-OUTPUT_DIR="/home/kerby/dev/video/transcoded"
+WATCH_DIR="/home/kerby/Dropbox/Family Room/footage_raw"
+OUTPUT_DIR="/home/kerby/Dropbox/Family Room/footage_transcoded"
 
 mkdir -p "$WATCH_DIR" "$OUTPUT_DIR"
 
