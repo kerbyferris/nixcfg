@@ -35,6 +35,8 @@
 {
   imports = [../common ./configuration.nix ./hardware-configuration.nix ../features];
   features = {
-    davinci-resolve.enable = false;
+    video-editing.enable = false;
+    freecad.enable = false;
+    amd-egpu.enable = false;
   };
 }
