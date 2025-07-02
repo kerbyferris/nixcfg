@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   programs.nixvim.extraPackages = with pkgs; [
-    nodePackages_latest.coc-markdownlint
+    # nodePackages_latest.coc-markdownlint
     nix
     vale
     nodePackages.jsonlint

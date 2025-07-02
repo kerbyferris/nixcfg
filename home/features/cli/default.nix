@@ -11,7 +11,7 @@
     yt-dlp
 
     # git
-    # nodejs
+    nodejs
     # go
   ];
 
