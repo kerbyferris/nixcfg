@@ -23,7 +23,7 @@
     obsidian
     openocd
     openscad
-    # orca-slicer
+    orca-slicer
     pavucontrol
     prusa-slicer
     qbittorrent

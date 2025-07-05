@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   home.packages = with pkgs; [
     alejandra
     ghostscript
@@ -124,5 +128,9 @@
       window-decoration = false;
       font-size = 11;
     };
+  };
+  programs.kitty = {
+    enable = true;
+    font.size = lib.mkForce 11;
   };
 }

@@ -73,9 +73,11 @@
   stylix = {
     enable = true;
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
-    targets.gtk.enable = true;
-    targets.nixvim.enable = false;
-    targets.qt.platform = lib.mkForce "qtct";
+    targets = {
+      gtk.enable = true;
+      nixvim.enable = false;
+      qt.platform = lib.mkForce "qtct";
+    };
   };
 
   # Enable the GNOME Desktop Environment.

@@ -15,7 +15,7 @@ in {
       brightnessctl # For brightness controls
       kitty
       libnotify
-      ghostty # terminal
+      # ghostty # terminal
       hypridle
       hyprshot # For screenshot binds
       nautilus # Your file manager
@@ -36,7 +36,8 @@ in {
         display-drun = "application: ";
         drun-display-format = "{icon} {name}";
         icon-theme = "Papirus";
-        terminal = "ghostty";
+        # terminal = "ghostty";
+        terminal = "kitty";
         font = "JetBrains Mono Nerd Font 11";
       };
     };
@@ -55,17 +56,18 @@ in {
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)
         "$mainMod" = "SUPER"; # Sets "Windows" key as main modifier
-        "$terminal" = "ghostty";
+        # "$terminal" = "ghostty";
+        "$terminal" = "kitty";
         "$fileManager" = "nautilus";
         "$menu" = "rofi -show drun --show-icons";
 
         # MONITORS
         monitor = [
           "eDP-1,highres@highrr,0x0,1" # laptop
-          "DP-1,highres@highrr,auto-right,1" # Arzopa 1
+          # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
           # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
           # "HDMI-A-4,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          # "DP-3,1920x1080@60,0x0,1" # Asus - commented out
+          "DP-3,1920x1080@60,auto-right,1" # Asus - commented out
         ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
