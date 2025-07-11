@@ -10,7 +10,6 @@
     bitwig-studio
     blender
     # bottles
-    # cura
     discord
     dropbox
     fstl
@@ -23,7 +22,7 @@
     obsidian
     openocd
     openscad
-    orca-slicer
+    # orca-slicer # using flatpak until the webgtk issue is sorted
     pavucontrol
     prusa-slicer
     qbittorrent
