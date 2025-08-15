@@ -7,6 +7,7 @@
     ./hyprland.nix
   ];
   home.packages = with pkgs; [
+    # bambu-studio
     bitwig-studio
     blender
     # bottles

@@ -7,16 +7,12 @@
     alejandra
     ghostscript
     imagemagick
-    moc
     neofetch
     nix-index
+    nodejs
     probe-rs-tools
     tldr
     yt-dlp
-
-    # git
-    nodejs
-    # go
   ];
 
   programs.zoxide = {

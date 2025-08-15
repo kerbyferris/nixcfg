@@ -67,7 +67,8 @@ in {
           # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
           # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
           # "HDMI-A-4,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          "DP-3,1920x1080@60,auto-right,1" # Asus - commented out
+          # "DP-3,1920x1080@60,auto-right,1" # Asus - commented out
+          "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
         ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
