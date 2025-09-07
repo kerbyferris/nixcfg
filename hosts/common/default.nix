@@ -138,6 +138,8 @@
     file
     gcc
     git
+    git-crypt
+    gnupg
     gnumake
     jq
     keymapp
@@ -155,6 +157,8 @@
     whois
     zip
   ];
+
+  programs.gnupg.agent.enable = true;
 
   programs.zsh.enable = true;
 

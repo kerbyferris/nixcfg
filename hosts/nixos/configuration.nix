@@ -31,6 +31,9 @@
 
   # Enable sound with pipewire.
   security.rtkit.enable = true;
+
+  services.fwupd.enable = true;
+
   services.pipewire = {
     enable = true;
     extraConfig.pipewire = {
@@ -75,6 +78,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    fwupd
     intel-media-driver
     libva
     # libva-intel-gpu
