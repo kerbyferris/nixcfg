@@ -84,13 +84,14 @@
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     matchBlocks = {
+      # addKeysToAgent = "yes";
       biqu = {
         hostname = "192.168.1.13";
         user = "biqu";
       };
     };
-    addKeysToAgent = "yes";
   };
 
   programs.zsh = {

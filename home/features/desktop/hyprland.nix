@@ -172,6 +172,7 @@ in {
           kb_options = "ctrl:nocaps"; # From your original config
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
+          # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.
           sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
           touchpad = {
             natural_scroll = true;
@@ -179,9 +180,9 @@ in {
           natural_scroll = true; # This applies to mice if separate from touchpad
         };
 
-        gestures = {
-          workspace_swipe = false;
-        };
+        # gestures = {
+        #   workspace_swipe = false;
+        # };
 
         # KEYBINDINGS
         # Note: $mainMod, $terminal, etc. are Hyprland variables defined above.

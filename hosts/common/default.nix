@@ -85,13 +85,19 @@
   services.desktopManager.gnome.enable = true;
 
   services.flatpak.enable = true;
-  # systemd.services.flatpak-repo = {
-  #   wantedBy = ["multi-user.target"];
-  #   path = [pkgs.flatpak];
-  #   script = ''
-  #     flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  #   '';
-  # };
+
+  services.interception-tools = {
+    enable = true;
+    plugins = with pkgs; [
+      interception-tools-plugins.caps2esc
+    ];
+    udevmonConfig = ''
+      - JOB: "${pkgs.interception-tools}/bin/intercept -g $DEVNODE | ${pkgs.interception-tools-plugins.caps2esc}/bin/caps2esc -m 1 | ${pkgs.interception-tools}/bin/uinput -d $DEVNODE"
+        DEVICE:
+          EVENTS:
+            EV_KEY: [KEY_CAPSLOCK, KEY_ESC]
+    '';
+  };
 
   # Enable the X11 windowing system.
   # Configure keymap in X11

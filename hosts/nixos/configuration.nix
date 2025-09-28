@@ -19,8 +19,31 @@
   };
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
+  # boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub.enable = true;
+  # boot.loader.grub.devices = ["/dev/nvme0n1"];
+  boot.loader.grub.devices = ["nodev"];
+  boot.loader.grub.efiSupport = true;
+  boot.loader.grub.useOSProber = false;
+
+  boot.loader.grub.extraEntries = ''
+    menuentry "Windows 11 (T7 Shield)" {
+      insmod part_gpt
+      insmod fat
+      insmod search_fs_uuid
+      insmod chain
+
+      # Search for the T7 Shield's EFI partition by its UUID and set it as root
+      search --fs-uuid --set=root 3E58-3647
+
+      # Chainload the Windows Boot Manager EFI application
+      chainloader /EFI/Microsoft/Boot/bootmgfw.efi
+    }
+  '';
+
+  time.hardwareClockInLocalTime = true;
+
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.kernelParams = [
@@ -78,6 +101,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    # os-prober
     fwupd
     intel-media-driver
     libva

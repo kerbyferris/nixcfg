@@ -30,7 +30,7 @@ in {
 
   dconf.settings = {
     "org/gnome/desktop/peripherals/mouse" = {natural-scroll = true;};
-    "org/gnome/desktop/input-sources" = {xkb-options = ["ctrl:nocaps"];};
+    # "org/gnome/desktop/input-sources" = {xkb-options = ["ctrl:nocaps"];};
   };
 
   # The home.packages option allows you to install Nix packages into your
