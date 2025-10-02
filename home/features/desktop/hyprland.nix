@@ -167,9 +167,10 @@ in {
         # INPUT
         input = {
           kb_layout = "us";
+          # kb_variant = "intl"; # Explicitly empty as in original
           kb_variant = ""; # Explicitly empty as in original
           kb_model = ""; # Explicitly empty
-          kb_options = "ctrl:nocaps"; # From your original config
+          kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
           # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.

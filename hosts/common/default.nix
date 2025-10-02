@@ -106,7 +106,7 @@
     xkb = {
       layout = "us";
       variant = "";
-      options = "ctrl:swapcaps,compose:ralt";
+      options = "ctrl:swapcaps,compose:ralt,altwin:swap_alt_win";
     };
   };
 

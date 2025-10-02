@@ -1,7 +1,11 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -19,28 +23,30 @@
   };
 
   # Bootloader.
-  # boot.loader.systemd-boot.enable = true;
+  boot.loader.grub.enable = lib.mkForce false;
+  boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub.enable = true;
+  # boot.loader.efi.catalogue.enable = true;
+
   # boot.loader.grub.devices = ["/dev/nvme0n1"];
-  boot.loader.grub.devices = ["nodev"];
-  boot.loader.grub.efiSupport = true;
-  boot.loader.grub.useOSProber = false;
+  # boot.loader.grub.devices = ["nodev"];
+  # boot.loader.grub.efiSupport = true;
+  # boot.loader.grub.useOSProber = false;
 
-  boot.loader.grub.extraEntries = ''
-    menuentry "Windows 11 (T7 Shield)" {
-      insmod part_gpt
-      insmod fat
-      insmod search_fs_uuid
-      insmod chain
-
-      # Search for the T7 Shield's EFI partition by its UUID and set it as root
-      search --fs-uuid --set=root 3E58-3647
-
-      # Chainload the Windows Boot Manager EFI application
-      chainloader /EFI/Microsoft/Boot/bootmgfw.efi
-    }
-  '';
+  # boot.loader.grub.extraEntries = ''
+  #   menuentry "Windows 11 (T7 Shield)" {
+  #      insmod part_gpt
+  #      insmod fat
+  #      insmod search_fs_uuid
+  #      insmod chain
+  #
+  #      # Search for the T7 Shield's EFI partition by its UUID and set it as root
+  #      search --fs-uuid --set=root 3E58-3647
+  #
+  #      # Chainload the Windows Boot Manager EFI application
+  #      chainloader /EFI/Microsoft/Boot/bootmgfw.efi
+  #    }
+  # '';
 
   time.hardwareClockInLocalTime = true;
 
