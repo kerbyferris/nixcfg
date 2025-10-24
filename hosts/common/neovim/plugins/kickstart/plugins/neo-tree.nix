@@ -4,19 +4,18 @@
   programs.nixvim.plugins.neo-tree = {
     enable = true;
 
-    # closeIfLastWindow = true;
-
-    window = {
-      mappings = {
-        o = "open";
+    settings = {
+      window = {
+        mappings = {
+          o = "open";
+        };
+        width = 30;
       };
-      width = 30;
-    };
-
-    extraOptions = {
-      filesystem = {
-        filtered_items = {
-          visible = true;
+      extraOptions = {
+        filesystem = {
+          filtered_items = {
+            visible = true;
+          };
         };
       };
     };

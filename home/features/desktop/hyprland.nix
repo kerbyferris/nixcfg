@@ -15,7 +15,7 @@ in {
       brightnessctl # For brightness controls
       kitty
       libnotify
-      # ghostty # terminal
+      ghostty # terminal
       hypridle
       hyprshot # For screenshot binds
       nautilus # Your file manager
@@ -36,8 +36,8 @@ in {
         display-drun = "application: ";
         drun-display-format = "{icon} {name}";
         icon-theme = "Papirus";
-        # terminal = "ghostty";
-        terminal = "kitty";
+        terminal = "ghostty";
+        # terminal = "kitty";
         font = "JetBrains Mono Nerd Font 11";
       };
     };
@@ -55,7 +55,7 @@ in {
 
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)
-        "$mainMod" = "SUPER"; # Sets "Windows" key as main modifier
+        "$mainMod" = "SUPER_L"; # Sets "Windows" key as main modifier
         # "$terminal" = "ghostty";
         "$terminal" = "kitty";
         "$fileManager" = "nautilus";
@@ -170,7 +170,8 @@ in {
           # kb_variant = "intl"; # Explicitly empty as in original
           kb_variant = ""; # Explicitly empty as in original
           kb_model = ""; # Explicitly empty
-          kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
+          # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
+          kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
           # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.

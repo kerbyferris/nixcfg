@@ -21,8 +21,8 @@ in {
         rocmPackages.clr
         # rocmPackages.rocminfo
         # rocmPackages.rocm-runtime
-        amdvlk
-        driversi686Linux.amdvlk
+        # amdvlk
+        # driversi686Linux.amdvlk
       ];
     };
 

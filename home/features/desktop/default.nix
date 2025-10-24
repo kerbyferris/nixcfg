@@ -8,7 +8,6 @@
   ];
   home.packages = with pkgs; [
     # bambu-studio
-    bitwig-studio
     blender
     # bottles
     discord
@@ -23,11 +22,12 @@
     obsidian
     openocd
     openscad
-    # orca-slicer # using flatpak until the webgtk issue is sorted
+    orca-slicer # using flatpak until the webgtk issue is sorted
     pavucontrol
     prusa-slicer
     qbittorrent
-    rpi-imager
+    quickemu
+    # rpi-imager
     signal-desktop
     tidal-hifi
     todoist-electron
