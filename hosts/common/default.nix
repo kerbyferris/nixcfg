@@ -108,7 +108,8 @@
     xkb = {
       layout = "us";
       variant = "";
-      options = "ctrl:swapcaps,compose:ralt,altwin:swap_alt_win";
+      # options = "ctrl:swapcaps,compose:ralt,altwin:swap_alt_win";
+      options = "ctrl:swapcaps,compose";
     };
   };
 

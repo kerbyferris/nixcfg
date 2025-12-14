@@ -144,6 +144,19 @@
     '';
   };
 
+  # Enable Tailscale
+  services.tailscale.enable = true;
+
+  # Networking
+  # Enable SSH access in from Tailscale network 22
+  # Enable http/s traffic to go through 80 and 443 for access n8n thorugh tailscale
+  networking.firewall = {
+    enable = true;
+    trustedInterfaces = ["tailscale0"];
+    allowedUDPPorts = [3478];
+    allowedTCPPorts = [22 443 80];
+  };
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave

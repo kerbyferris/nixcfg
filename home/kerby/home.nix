@@ -47,7 +47,7 @@ in {
     nerd-fonts.jetbrains-mono
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-emoji
+    noto-fonts-color-emoji
     roboto-mono
     gruvbox-gtk-theme
     # gruvbox-plus-icons

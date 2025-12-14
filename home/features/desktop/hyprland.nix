@@ -66,9 +66,9 @@ in {
           "eDP-1,highres@highrr,0x0,1" # laptop
           # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
           # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
-          # "HDMI-A-4,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          # "DP-3,1920x1080@60,auto-right,1" # Asus - commented out
-          "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
+          # "HDMI-A-3,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
+          "DP-3,1920x1080@60,auto-left,1" # Asus
+          # "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
         ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
@@ -171,7 +171,8 @@ in {
           kb_variant = ""; # Explicitly empty as in original
           kb_model = ""; # Explicitly empty
           # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
-          kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
+          # kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
+          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt";
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
           # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.

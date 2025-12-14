@@ -10,7 +10,7 @@
     ./plugins/treesitter.nix
 
     ./plugins/kickstart/plugins/debug.nix
-    ./plugins/kickstart/plugins/lint.nix
+    # ./plugins/kickstart/plugins/lint.nix
     ./plugins/kickstart/plugins/neo-tree.nix
 
     ./plugins/custom/plugins/dap.nix
@@ -209,7 +209,7 @@
         };
       };
 
-      lualine.enable = true;
+      # lualine.enable = true;
     };
 
     # The line beneath this is called `modeline`. See `:help modeline`

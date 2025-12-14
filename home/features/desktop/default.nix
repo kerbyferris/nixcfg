@@ -10,6 +10,8 @@
     # bambu-studio
     blender
     # bottles
+    code-cursor
+    cursor-cli
     discord
     dropbox
     fstl
@@ -38,7 +40,7 @@
   ];
 
   programs.vscode = {
-    enable = true;
+    # enable = true;
     profiles.default = {
       extensions = with pkgs.vscode-extensions; [
         marus25.cortex-debug

@@ -7,8 +7,10 @@
     alejandra
     ghostscript
     imagemagick
+    kubernetes
     neofetch
     nix-index
+    nmap
     nodejs
     probe-rs-tools
     tldr
@@ -90,6 +92,10 @@
       biqu = {
         hostname = "192.168.1.13";
         user = "biqu";
+      };
+      pi = {
+        hostname = "192.168.1.67";
+        user = "pi";
       };
     };
   };
