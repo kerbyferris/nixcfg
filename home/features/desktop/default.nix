@@ -7,7 +7,8 @@
     ./hyprland.nix
   ];
   home.packages = with pkgs; [
-    # bambu-studio
+    bambu-studio
+    rPackages.bambu
     blender
     # bottles
     code-cursor
@@ -29,7 +30,7 @@
     prusa-slicer
     qbittorrent
     quickemu
-    # rpi-imager
+    rpi-imager
     signal-desktop
     tidal-hifi
     todoist-electron

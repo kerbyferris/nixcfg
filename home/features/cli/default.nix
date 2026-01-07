@@ -53,9 +53,11 @@
 
   programs.git = {
     enable = true;
-    userName = "Kerby Ferris";
-    userEmail = "kerbyferris@gmail.com";
-    extraConfig = {
+    settings = {
+      user = {
+        name = "Kerby Ferris";
+        email = "kerbyferris@gmail.com";
+      };
       init.defaultBranch = "main";
       pull.rebase = true;
     };
