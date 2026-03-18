@@ -67,7 +67,7 @@ in {
           # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
           # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
           # "HDMI-A-3,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          "DP-3,1920x1080@60,auto-left,1" # Asus
+          "DP-3,1920x1080@60,auto-right,1" # Asus
           # "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
         ];
 
@@ -181,6 +181,11 @@ in {
             natural_scroll = true;
           };
           natural_scroll = true; # This applies to mice if separate from touchpad
+        };
+
+        device = {
+          name = "cx-2.4g-receiver-mouse";
+          sensitivity = -0.7;
         };
 
         # gestures = {

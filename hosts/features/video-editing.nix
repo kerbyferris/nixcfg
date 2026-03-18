@@ -47,8 +47,8 @@ in {
     '';
 
     environment.systemPackages = with pkgs; [
-      kdePackages.kdenlive
-      wineWowPackages.stableFull
+      # kdePackages.kdenlive
+      wineWow64Packages.stableFull
       davinci-resolve
       clinfo
       wimlib

@@ -116,6 +116,7 @@
     ffmpeg
     libdrm
     intel-gmmlib
+    tailscale
   ];
 
   environment.sessionVariables.VA_DRIVERS_PATH = "/nix/store/7wpjbidyx1g9algql7jvzm00lzjrwaw6-intel-media-driver-25.1.4/lib/dri/";

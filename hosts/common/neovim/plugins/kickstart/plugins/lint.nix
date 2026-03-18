@@ -1,6 +1,7 @@
 {pkgs, ...}: {
   programs.nixvim.extraPackages = with pkgs; [
     # nodePackages_latest.coc-markdownlint # breaks adega box
+    markdownlint-cli
     nix
     vale
     nodePackages.jsonlint

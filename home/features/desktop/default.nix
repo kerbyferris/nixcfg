@@ -7,22 +7,30 @@
     ./hyprland.nix
   ];
   home.packages = with pkgs; [
-    bambu-studio
-    rPackages.bambu
+    android-tools
+    arduino-ide
+    # bambu-studio # network plugin woes
     blender
     # bottles
+    # calibre
+    clickup
     code-cursor
     cursor-cli
     discord
     dropbox
+    esptool
     fstl
+    gemini-cli
+    claude-code
     google-chrome
     kew
+    lmstudio
     morgen
     nordic
     nwg-look
     obs-studio
     obsidian
+    opencode
     openocd
     openscad
     orca-slicer # using flatpak until the webgtk issue is sorted
@@ -32,7 +40,8 @@
     quickemu
     rpi-imager
     signal-desktop
-    tidal-hifi
+    telegram-desktop
+    # tidal-hifi
     todoist-electron
     vital
     vlc

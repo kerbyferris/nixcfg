@@ -7,6 +7,9 @@
 with lib; let
   cfg = config.features.audio;
 in {
+  imports = [
+    ./bitwig-overlay.nix
+  ];
   options.features.audio.enable = mkEnableOption "enable audio production config";
   config = mkIf cfg.enable {
     home.packages = with pkgs; [

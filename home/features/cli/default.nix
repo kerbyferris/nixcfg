@@ -8,7 +8,7 @@
     ghostscript
     imagemagick
     kubernetes
-    neofetch
+    fastfetch
     nix-index
     nmap
     nodejs
@@ -90,14 +90,13 @@
     enable = true;
     enableDefaultConfig = false;
     matchBlocks = {
-      # addKeysToAgent = "yes";
+      pi = {
+        hostname = "192.168.1.66";
+        user = "pi";
+      };
       biqu = {
         hostname = "192.168.1.13";
         user = "biqu";
-      };
-      pi = {
-        hostname = "192.168.1.67";
-        user = "pi";
       };
     };
   };
@@ -107,7 +106,7 @@
     enableCompletion = true;
     autosuggestion.enable = true;
     autosuggestion.highlight = "fg=#ff00ff,bg=cyan,bold,underline";
-    loginExtra = "neofetch";
+    loginExtra = "fastfetch";
     oh-my-zsh = {
       enable = true;
       plugins = [
