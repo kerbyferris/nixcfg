@@ -16,14 +16,16 @@ in {
       kitty
       libnotify
       ghostty # terminal
+      hyprdynamicmonitors
       hypridle
       hyprshot # For screenshot binds
       nautilus # Your file manager
       networkmanagerapplet # For nm-applet
       playerctl # For media key controls
       swaynotificationcenter # For swaync
-      swww
+      awww
       waybar
+      wl-clipboard
       xwayland
     ];
 
@@ -48,6 +50,7 @@ in {
       "waybar/config".source = ./waybar/config.jsonc;
       "waybar/style.css".source = ./waybar/style.css;
       "waybar/launch.sh".source = ./waybar/launch.sh;
+      "hyprdynamicmonitors/config.toml".source = ./hyprdynamicmonitors/config.toml;
     };
 
     wayland.windowManager.hyprland = {
@@ -56,19 +59,21 @@ in {
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)
         "$mainMod" = "SUPER_L"; # Sets "Windows" key as main modifier
-        # "$terminal" = "ghostty";
-        "$terminal" = "kitty";
+        "$terminal" = "ghostty";
+        # "$terminal" = "kitty";
         "$fileManager" = "nautilus";
         "$menu" = "rofi -show drun --show-icons";
 
         # MONITORS
         monitor = [
-          "eDP-1,highres@highrr,0x0,1" # laptop
+          # "eDP-1,highres@highrr,0x0,1" # laptop
           # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
           # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
           # "HDMI-A-3,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          "DP-3,1920x1080@60,auto-right,1" # Asus
+          # "DP-3,1920x1080@60,auto-right,1" # Asus
           # "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
+          "eDP-1,highres@highrr,auto,1, mirror, DP-1" # laptop
+          "DP-1,highres@higrr,auto,1" # JapanNext
         ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
@@ -82,6 +87,8 @@ in {
           "GDK_SCALE,0.66667" # Original was .66667, using 0. for clarity
           "XCURSOR_SIZE,24"
           "HYPRCURSOR_SIZE,24" # This was duplicated in original, included once
+          "WLR_NO_HARDWARE_CURSORS,1"
+          "MOZ_ENABLE_WAYLAND, 1"
         ];
 
         # AUTOSTART
@@ -172,7 +179,8 @@ in {
           kb_model = ""; # Explicitly empty
           # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
           # kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
-          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt";
+          # kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt, altwin:swap_alt_win";
+          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:rctrl, altwin:swap_alt_win";
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
           # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.
@@ -243,6 +251,14 @@ in {
           "$mainMod SHIFT, S, movetoworkspace, special:magic"
           "$mainMod, mouse_down, workspace, e+1"
           "$mainMod, mouse_up, workspace, e-1"
+          "$mainMod SHIFT, h, resizeactive, -10 0"
+          "$mainMod SHIFT, l, resizeactive, 10 0"
+          "$mainMod SHIFT, k, resizeactive, 0 10"
+          "$mainMod SHIFT, j, resizeactive, 0 -10"
+          "$mainMod ALT, h, movewindow, l"
+          "$mainMod ALT, l, movewindow, r"
+          "$mainMod ALT, k, movewindow, u"
+          "$mainMod ALT, j, movewindow, d"
         ];
 
         bindm = [
@@ -282,6 +298,7 @@ in {
           # "windowrulev2 = float,class:^(kitty)$,title:^(kitty)$" # Example v2, commented out
           "suppressevent maximize, class:.*"
           "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0" # Fix some dragging issues
+          "tile,class:(eagle.exe)" # Ensure Eagle.cool is always tiled
         ];
       };
     };

@@ -52,6 +52,7 @@
   };
 
   programs.git = {
+    signing.format = null;
     enable = true;
     settings = {
       user = {

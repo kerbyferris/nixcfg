@@ -48,8 +48,15 @@ in {
 
     environment.systemPackages = with pkgs; [
       # kdePackages.kdenlive
-      wineWow64Packages.stableFull
+      wineWow64Packages.stable
+      wine
+      (wine.override {wineBuild = "wine64";})
+      wine64
+      wineWow64Packages.staging
+      winetricks
+      wineWow64Packages.waylandFull
       davinci-resolve
+      digikam
       clinfo
       wimlib
       parted

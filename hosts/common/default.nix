@@ -118,6 +118,10 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  services.printing.drivers = [pkgs.hplip];
+
+  services.ipp-usb.enable = true;
+
   services.avahi = {
     enable = true;
     nssmdns4 = true;

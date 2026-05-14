@@ -59,6 +59,8 @@ in {
   home.sessionVariables = {
     EDITOR = "nvim";
     NIXOS_OZONE_WL = "1";
+    WINEPREFIX = "$HOME/.wine-eagle";
+    WINEARCH = "win64";
   };
 
   home.sessionPath = [
@@ -66,6 +68,7 @@ in {
   ];
 
   gtk = {
+    gtk4.theme = null;
     iconTheme = {
       package = pkgs.papirus-icon-theme;
       name = "Papirus";

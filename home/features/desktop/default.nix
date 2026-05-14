@@ -17,35 +17,42 @@
     code-cursor
     cursor-cli
     discord
+    distrobox
     dropbox
     esptool
     fstl
     gemini-cli
-    claude-code
+    # claude-code
     google-chrome
+    hydrus
     kew
     lmstudio
-    morgen
     nordic
     nwg-look
     obs-studio
     obsidian
+    ollama
+    openai-whisper
     opencode
     openocd
     openscad
     orca-slicer # using flatpak until the webgtk issue is sorted
     pavucontrol
+    pdfarranger
     prusa-slicer
     qbittorrent
     quickemu
     rpi-imager
     signal-desktop
+    steam-run
     telegram-desktop
     # tidal-hifi
     todoist-electron
+    upower
     vital
     vlc
     inputs.zen-browser.packages."${system}".default # beta
+    # inputs.tagstudio.packages."${system}".default
     zoom-us
   ];
 

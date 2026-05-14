@@ -24,6 +24,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     fh.url = "https://flakehub.com/f/DeterminateSystems/fh/*.tar.gz";
+    # tagstudio.url = "github:TagStudioDev/TagStudio";
+    hyprdynamicmonitors.url = "github:fiffeek/hyprdynamicmonitors";
   };
 
   outputs = {
@@ -32,6 +34,7 @@
     home-manager,
     nixpkgs,
     stylix,
+    hyprdynamicmonitors,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -54,6 +57,7 @@
           ./hosts/nixos
           determinate.nixosModules.default
           stylix.nixosModules.stylix
+          hyprdynamicmonitors.nixosModules.default
         ];
       };
       adegabox = nixpkgs.lib.nixosSystem {

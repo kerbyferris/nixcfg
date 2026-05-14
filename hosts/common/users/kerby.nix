@@ -11,6 +11,7 @@
       "audio"
       "dialout"
       "flatpak"
+      "hp"
       "input"
       "kvm"
       "libvirtd"

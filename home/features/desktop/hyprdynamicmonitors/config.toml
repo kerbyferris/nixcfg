@@ -1,0 +1,35 @@
+# ~/.config/hyprdynamicmonitors/config.toml
+
+# General settings
+destination = "~/.config/hypr/monitors.conf" # Where to write the generated config
+post_apply_exec = "hyprctl reload"          # Reload Hyprland after applying config
+debounce_time_ms = 500                      # Milliseconds to wait before applying config changes
+
+# --- Profile: Lid Open, No External Monitor ---
+[profiles.laptop_only]
+monitors = [
+    { name = "eDP-1", resolution = "preferred", position = "0x0", scale = 1.00 } # Adjust resolution and scale as needed
+]
+power_events = { on_battery = true, on_ac = true }
+lid_events = { lid_closed = false, lid_open = true }
+monitor_events = { external_connected = false, external_disconnected = true }
+
+# --- Profile: Lid Open, External Monitor Attached ---
+[profiles.dual_monitor]
+monitors = [
+    { name = "eDP-1", resolution = "1920x1200@60", position = "0x0", scale = 1.00 },
+    { name = "DP-1",  resolution = "2560x1440@60", position = "1920x0", scale = 1.00 }
+]
+power_events = { on_battery = true, on_ac = true }
+lid_events = { lid_closed = false, lid_open = true }
+monitor_events = { external_connected = true, external_disconnected = false }
+
+# --- Profile: Lid Closed, External Monitor Attached --- (Clamshell Mode)
+[profiles.clamshell]
+monitors = [
+    { name = "eDP-1", disabled = true }, # Disable internal display
+    { name = "DP-1",  resolution = "2560x1440@60", position = "0x0", scale = 1.00 } # External monitor as primary
+]
+power_events = { on_battery = true, on_ac = true }
+lid_events = { lid_closed = true, lid_open = false }
+monitor_events = { external_connected = true, external_disconnected = false }
