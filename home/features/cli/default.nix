@@ -90,7 +90,7 @@
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    matchBlocks = {
+    settings = {
       pi = {
         hostname = "192.168.1.66";
         user = "pi";

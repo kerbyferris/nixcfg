@@ -55,6 +55,7 @@ in {
 
     wayland.windowManager.hyprland = {
       enable = true;
+      configType = "hyprlang";
 
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)

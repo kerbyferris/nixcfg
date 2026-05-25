@@ -10,13 +10,25 @@ in {
   options.features.audio.enable = mkEnableOption "enable audio production config";
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      # bitwig-studio6 # install via flatpak instead
+      bitwig-studio6
       vcv-rack
     ];
 
-    home.file.".vst/VidPlayVST.so" = {
-      source = "${pkgs.vidplayvst}/lib/vst/VidPlayVST.so";
+    # Create the symlink for the main VST plugin
+    home.file.".vst/VidPlayVSTv2.so" = {
+      source = "${pkgs.vidplayvst}/lib/vst/VidPlayVSTv2.so";
       executable = true;
+    };
+
+    # Create the symlink for the second VST plugin
+    home.file.".vst/VidRenderVSTv1.so" = {
+      source = "${pkgs.vidplayvst}/lib/vst/VidRenderVSTv1.so";
+      executable = true;
+    };
+
+    # Create a stable symlink to the directory containing the plugin's internal libraries.
+    home.file.".config/vidplayvst-libs" = {
+      source = "${pkgs.vidplayvst}/lib/vidplayvst-libs";
     };
 
     xdg.configFile = {

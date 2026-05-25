@@ -1,69 +1,69 @@
 # /path/to/your/flake/pkgs/vidplayvst.nix
 {
   stdenv,
-  fetchurl,
+  lib,
   autoPatchelfHook,
   makeWrapper,
   alsa-lib,
   libx11,
   libxext,
   libxfixes,
+  libGL,
+  zlib,
+  libXrender,
+  libXcursor,
+  libXft,
+  fontconfig,
+  libXinerama,
 }:
 stdenv.mkDerivation rec {
   pname = "vidplayvst";
   version = "2.6.0";
+  src = ../vendor/VidPlayVST-${version}-Setup.run;
 
-  src = ../vendor/VidPlayVST-${version}-Setup.run
-
-  # Tools needed to build the package
-  nativeBuildInputs = [
-    autoPatchelfHook
-    makeWrapper
-  ];
-
-  # Runtime dependencies for the plugin and its libraries
-  # These are common dependencies for graphical/audio applications on Linux.
-  # autoPatchelfHook will use these to patch the binaries.
+  nativeBuildInputs = [autoPatchelfHook makeWrapper];
   buildInputs = [
     alsa-lib
     libx11
     libxext
     libxfixes
-    stdenv.cc.cc.lib # for libstdc++
+    stdenv.cc.cc.lib
+    libGL
+    zlib
+    libXrender
+    libXcursor
+    libXft
+    fontconfig
+    libXinerama
   ];
 
-  # The VST plugin is pre-compiled
   dontUnpack = true;
 
   installPhase = ''
     runHook preInstall
 
-    # Extract the .run file without executing its script
     sh $src --noexec --target extracted
-
-    # Create the directory structure in the output path ($out)
     mkdir -p $out/lib/vst
     mkdir -p $out/lib/vidplayvst-libs
 
-    # Copy the main VST plugin file
-    install -m755 -D extracted/VidPlayVST.so $out/lib/vst/VidPlayVST.so
+    install -m755 -D extracted/vst/VidPlayVSTv2.so $out/lib/vst/VidPlayVSTv2.so
+    install -m755 -D extracted/vst/VidRenderVSTv1.so $out/lib/vst/VidRenderVSTv1.so
 
-    # Copy all of its bundled libraries
-    install -m644 extracted/lib/*.so $out/lib/vidplayvst-libs/
+    # Copy the dependency libraries
+    cp -r extracted/vidplayvst/* $out/lib/vidplayvst-libs/
 
-    # This is the crucial step!
-    # We tell VidPlayVST.so where to find its libraries at runtime.
-    # The RPATH is a search path embedded in the binary.
-    patchelf --set-rpath "$out/lib/vidplayvst-libs" $out/lib/vst/VidPlayVST.so
+    # Find all shared libraries (.so files) in our output and make them
+    # executable, which is required for them to be loaded.
+    find $out -name '*.so' -exec chmod +x {} +
 
     runHook postInstall
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "A VST plugin to play videos in sync with your DAW";
     homepage = "https://vidplayvst.com/";
-    license = licenses.unfree; # It's proprietary software
+    license = licenses.unfree;
     platforms = platforms.linux;
-    maintainers = [maintainers.you]; # Replace with your handle
+    maintainers = [maintainers.kerbyferris];
   };
 }
