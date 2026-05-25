@@ -10,12 +10,19 @@ in {
   options.features.audio.enable = mkEnableOption "enable audio production config";
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      bitwig-studio6
+      # bitwig-studio6 # install via flatpak instead
       vcv-rack
     ];
+
+    home.file.".vst/VidPlayVST.so" = {
+      source = "${pkgs.vidplayvst}/lib/vst/VidPlayVST.so";
+      executable = true;
+    };
+
     xdg.configFile = {
       "pipewire/pipewire.conf.d/10-virtual-sinks.conf".source = ./pipewire/pipewire.conf.d/10-virtual-sinks.conf;
     };
+
     programs.zsh = {
       shellAliases = {
         vcvrack = "env -u WAYLAND_DISPLAY Rack";

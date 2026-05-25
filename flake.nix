@@ -58,6 +58,7 @@
           determinate.nixosModules.default
           stylix.nixosModules.stylix
           hyprdynamicmonitors.nixosModules.default
+          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
         ];
       };
       adegabox = nixpkgs.lib.nixosSystem {
@@ -66,19 +67,29 @@
           ./hosts/adegabox
           determinate.nixosModules.default
           stylix.nixosModules.stylix
+          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
         ];
       };
     };
-    homeConfigurations = {
+    homeConfigurations = let
+      mkPkgs = system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [outputs.overlays.additions outputs.overlays.modifications];
+        };
+    in {
       "kerby@nixos" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        # pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        pkgs = mkPkgs "x86_64-linux";
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home/kerby/nixos.nix
         ];
       };
       "kerby@adegabox" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        # pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        pkgs = mkPkgs "x86_64-linux";
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home/kerby/adegabox.nix

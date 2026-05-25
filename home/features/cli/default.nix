@@ -99,6 +99,10 @@
         hostname = "192.168.1.13";
         user = "biqu";
       };
+      hostinger = {
+        hostname = "82.29.178.198";
+        user = "root";
+      };
     };
   };
 
