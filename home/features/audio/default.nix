@@ -10,7 +10,9 @@ in {
   options.features.audio.enable = mkEnableOption "enable audio production config";
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      bitwig-studio6
+      # bitwig-studio6
+      bitwig-fhs
+      bitwig-debug-shell
       vcv-rack
     ];
 
