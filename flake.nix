@@ -47,8 +47,20 @@
     ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
-    packages =
-      forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
+    packages = forAllSystems (
+      system: let
+        # Create a nixpkgs instance for the given system and apply our overlay to it.
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [self.overlays.additions];
+          config.allowUnfree = true;
+        };
+      in {
+        # Expose the packages from our overlay that we want to be buildable.
+        # We can just pick the ones we defined in overlays/default.nix
+        inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell;
+      }
+    );
     overlays = import ./overlays {inherit inputs;};
     nixosConfigurations = {
       nixos = nixpkgs.lib.nixosSystem {

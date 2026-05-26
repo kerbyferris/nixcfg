@@ -92,7 +92,7 @@
     enableDefaultConfig = false;
     settings = {
       pi = {
-        hostname = "192.168.1.66";
+        hostname = "192.168.1.67";
         user = "pi";
       };
       biqu = {
@@ -102,6 +102,10 @@
       hostinger = {
         hostname = "82.29.178.198";
         user = "root";
+      };
+      mac = {
+        hostname = "192.168.1.89";
+        user = "kerby";
       };
     };
   };

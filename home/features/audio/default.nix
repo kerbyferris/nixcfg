@@ -12,7 +12,6 @@ in {
     home.packages = with pkgs; [
       # bitwig-studio6
       bitwig-fhs
-      bitwig-debug-shell
       vcv-rack
     ];
 
@@ -26,11 +25,6 @@ in {
     home.file.".vst/VidRenderVSTv1.so" = {
       source = "${pkgs.vidplayvst}/lib/vst/VidRenderVSTv1.so";
       executable = true;
-    };
-
-    # Create a stable symlink to the directory containing the plugin's internal libraries.
-    home.file.".config/vidplayvst-libs" = {
-      source = "${pkgs.vidplayvst}/lib/vidplayvst-libs";
     };
 
     xdg.configFile = {

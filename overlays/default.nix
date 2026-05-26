@@ -1,29 +1,18 @@
-# /path/to/your/flake/overlays/default.nix
+# overlays/default.nix
 {inputs, ...}: {
-  # This one brings our custom packages from the 'pkgs' directory
   additions = final: prev: {
-    # Define vidplayvst.
-    # final.callPackage automatically finds its dependencies (stdenv, lib, etc.)
-    # from the final package set.
+    # It will build vidplayvst by calling the file and finding all its
+    # dependencies (stdenv, lib, etc) from nixpkgs.
     vidplayvst = final.callPackage ../pkgs/vidplayvst.nix {};
 
-    # Define the bitwig-fhs wrapper.
-    # It automatically finds its dependencies, including `vidplayvst` which we defined above,
-    # because they all exist in the `final` package set being built.
+    # It will build bitwig-fhs by calling the file and finding dependencies.
+    # It finds `buildFHSUserEnv`, `bitwig-studio6`, and `findutils` in nixpkgs.
+    # It finds `vidplayvst` because we just defined it above.
     bitwig-fhs = final.callPackage ../pkgs/bitwig-fhs.nix {};
-
-    # Define the debug shell in the same way.
-    bitwig-debug-shell = final.callPackage ../pkgs/bitwig-debug-shell.nix {};
   };
 
-  # This one contains whatever you want to overlay
-  # You can change versions, add patches, set compilation flags, anything really.
-  # https://nixos.wiki/wiki/Overlays
-  modifications = final: prev: {
-    # example = prev.example.overrideAttrs (oldAttrs: rec {
-    # ...
-    # });
-  };
+  # Your other overlays below are fine and should remain
+  modifications = final: prev: {};
 
   stable-packages = final: _prev: {
     stable = import inputs.nixpkgs-stable {

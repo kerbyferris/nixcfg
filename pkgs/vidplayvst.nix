@@ -1,4 +1,4 @@
-# /path/to/your/flake/pkgs/vidplayvst.nix
+# pkgs/vidplayvst.nix
 {
   stdenv,
   lib,
@@ -49,11 +49,7 @@ stdenv.mkDerivation rec {
     install -m755 -D extracted/vst/VidPlayVSTv2.so $out/lib/vst/VidPlayVSTv2.so
     install -m755 -D extracted/vst/VidRenderVSTv1.so $out/lib/vst/VidRenderVSTv1.so
 
-    # Copy the dependency libraries
     cp -r extracted/vidplayvst/* $out/lib/vidplayvst-libs/
-
-    # Find all shared libraries (.so files) in our output and make them
-    # executable, which is required for them to be loaded.
     find $out -name '*.so' -exec chmod +x {} +
 
     runHook postInstall
