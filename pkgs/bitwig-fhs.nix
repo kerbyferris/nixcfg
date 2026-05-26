@@ -1,28 +1,42 @@
 # pkgs/bitwig-fhs.nix
 {
-  buildFHSUserEnv,
+  buildFHSEnv,
   bitwig-studio6,
   vidplayvst,
   findutils,
+  coreutils,
+  extraPkgs ? [],
 }:
-buildFHSUserEnv {
+buildFHSEnv {
   name = "bitwig-studio-fhs-env";
-  targetPkgs = _pkgs: [bitwig-studio6];
 
-  multiPkgs = null;
+  targetPkgs = _pkgs: [bitwig-studio6] ++ extraPkgs;
 
-  extraInstallCommands = ''
-    mkdir -p $out/usr/share
-    cp -r ${vidplayvst}/lib/vidplayvst-libs $out/usr/share/vidplayvst
-    # Force permissions now using the absolute path to find from findutils
-    ${findutils}/bin/find $out/usr/share/vidplayvst -type d -exec chmod 755 {} +
-    ${findutils}/bin/find $out/usr/share/vidplayvst -name '*.so' -exec chmod 755 {} +
-  '';
+  buildInputs = [findutils coreutils];
 
   extraBuildCommands = ''
-    mkdir -p $out/lib
-    ln -s ${vidplayvst}/lib/vst $out/lib/vst
+    # Part 1: Handle the dependency libraries
+    mkdir -p $out/usr/share/vidplayvst
+    cp -r ${vidplayvst}/lib/vidplayvst-libs/* $out/usr/share/vidplayvst/
+    find $out/usr/share/vidplayvst -name '*.so' -exec chmod +x {} +
+
+    # Part 2: Handle the main VST plugins
+    mkdir -p $out/usr/lib64/vst
+    ln -s ${vidplayvst}/lib/vst/*.so $out/usr/lib64/vst/
+
+    # Part 3: Standard plugin directories
+    mkdir -p $out/usr/lib64/vst3
+    mkdir -p $out/usr/lib64/lv2
+    mkdir -p $out/usr/lib64/clap
   '';
 
-  runScript = "bitwig-studio6";
+  runScript = ''
+    bash -c '
+      if [ $# -eq 0 ]; then
+        bitwig-studio
+      else
+        "$@"
+      fi
+    ' -- "$@"
+  '';
 }

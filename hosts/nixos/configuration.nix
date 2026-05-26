@@ -120,10 +120,23 @@
   # Fingerprint reader
   services.fprintd.enable = true;
 
+  security.sudo.extraRules = [
+    {
+      users = ["kerby"];
+      commands = [
+        {
+          command = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";
+          options = ["NOPASSWD"];
+        }
+      ];
+    }
+  ];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     # os-prober
+    bitwig-fhs
     fwupd
     intel-media-driver
     libva
@@ -172,6 +185,11 @@
     trustedInterfaces = ["tailscale0"];
     allowedUDPPorts = [3478];
     allowedTCPPorts = [22 443 80];
+  };
+
+  home-manager = {
+    extraSpecialArgs = {inherit pkgs;};
+    users.kerby = import ../../home/kerby/nixos.nix;
   };
 
   # This value determines the NixOS release from which the default
