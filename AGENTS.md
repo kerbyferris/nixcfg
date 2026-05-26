@@ -3,7 +3,8 @@
 ## Build & Rebuild
 
 - Format all `.nix` files before committing: `alejandra .`
-- Rebuild a host: `sudo nixos-rebuild switch --flake .#<host>` (hosts: `nixos`, `adegabox`)
+- Rebuild `nixos` host: `sudo nixos-rebuild switch --flake .#nixos --impure` (--impure required for vendor .deb at /home/kerby/.local/share/nixcfg-vendor/)
+- Rebuild `adegabox` host: `sudo nixos-rebuild switch --flake .#adegabox`
 - The helper script `bin/nix-rebuild.sh` chains format → rebuild → git commit with generation metadata
 
 There is no CI, no lint step, and no test suite. A successful `nixos-rebuild switch` is the only validation.
