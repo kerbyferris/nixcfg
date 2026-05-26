@@ -108,7 +108,15 @@ assert src != null;
     postFixup = let
       wrapperScript = ''
         #!${stdenv.shell}
-        exec "''${BASH_SOURCE[0]%/*}"/../libexec/BitwigConnectControlPanel "$@"
+        self="''${BASH_SOURCE[0]}"
+        while [ -L "$self" ]; do
+          target=$(readlink "$self")
+          if [[ "$target" != /* ]]; then
+            target="$(dirname "$self")/$target"
+          fi
+          self="$target"
+        done
+        exec "$(dirname "$self")"/../libexec/BitwigConnectControlPanel "$@"
       '';
     in ''
       wrapProgram "$out/libexec/bin/show-file-dialog-gtk3" \
