@@ -7,26 +7,12 @@
   pkgs,
   ...
 }: let
-  scriptsDir = ../../bin;
+  # scriptsDir = ../../bin;
 in {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = lib.mkDefault "kerby";
   home.homeDirectory = lib.mkDefault "/home/${config.home.username}";
-  home.file = {
-    "bin/resolve-watch" = {
-      source = "${scriptsDir}/resolve-watch.sh";
-      executable = true;
-    };
-    "bin/transcode-for-resolve" = {
-      source = "${scriptsDir}/transcode-for-resolve.sh";
-      executable = true;
-    };
-    "bin/transcode-for-web" = {
-      source = "${scriptsDir}/transcode-for-web.sh";
-      executable = true;
-    };
-  };
 
   dconf.settings = {
     "org/gnome/desktop/peripherals/mouse" = {natural-scroll = true;};

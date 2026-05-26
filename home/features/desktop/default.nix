@@ -51,7 +51,7 @@
     upower
     vital
     vlc
-    inputs.zen-browser.packages."${system}".default # beta
+    inputs.zen-browser.packages."${pkgs.stdenv.hostPlatform.system}".default # beta
     # inputs.tagstudio.packages."${system}".default
     zoom-us
   ];

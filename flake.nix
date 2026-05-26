@@ -51,17 +51,17 @@
       system: let
         # Create a nixpkgs instance for the given system and apply our overlay to it.
         pkgs = import nixpkgs {
-          inherit system;
+          localSystem.system = system;
           overlays = [self.overlays.additions];
           config.allowUnfree = true;
         };
       in {
-        # Expose the packages from our overlay that we want to be buildable.
-        # We can just pick the ones we defined in overlays/default.nix
         inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell;
       }
     );
+
     overlays = import ./overlays {inherit inputs;};
+
     nixosConfigurations = {
       nixos = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
@@ -70,6 +70,7 @@
           determinate.nixosModules.default
           stylix.nixosModules.stylix
           hyprdynamicmonitors.nixosModules.default
+          home-manager.nixosModules.default
           {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
         ];
       };
@@ -79,32 +80,8 @@
           ./hosts/adegabox
           determinate.nixosModules.default
           stylix.nixosModules.stylix
+          home-manager.nixosModules.default
           {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
-        ];
-      };
-    };
-    homeConfigurations = let
-      mkPkgs = system:
-        import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          overlays = [outputs.overlays.additions outputs.overlays.modifications];
-        };
-    in {
-      "kerby@nixos" = home-manager.lib.homeManagerConfiguration {
-        # pkgs = nixpkgs.legacyPackages."x86_64-linux";
-        pkgs = mkPkgs "x86_64-linux";
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home/kerby/nixos.nix
-        ];
-      };
-      "kerby@adegabox" = home-manager.lib.homeManagerConfiguration {
-        # pkgs = nixpkgs.legacyPackages."x86_64-linux";
-        pkgs = mkPkgs "x86_64-linux";
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home/kerby/adegabox.nix
         ];
       };
     };
