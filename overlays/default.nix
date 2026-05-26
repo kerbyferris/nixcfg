@@ -3,6 +3,7 @@
   additions = final: prev: {
     vidplayvst = final.callPackage ../pkgs/vidplayvst.nix {};
     bitwig-fhs = final.callPackage ../pkgs/bitwig-fhs.nix {};
+    bitwig-connect-control-panel = final.callPackage ../pkgs/bitwig-connect-control-panel.nix {};
   };
 
   # Your other overlays below are fine and should remain

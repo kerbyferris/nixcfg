@@ -56,7 +56,7 @@
           config.allowUnfree = true;
         };
       in {
-        inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell;
+        inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell bitwig-connect-control-panel;
       }
     );
 

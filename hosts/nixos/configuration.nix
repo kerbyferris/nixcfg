@@ -137,6 +137,7 @@
   environment.systemPackages = with pkgs; [
     # os-prober
     bitwig-fhs
+    bitwig-connect-control-panel
     fwupd
     intel-media-driver
     libva
@@ -156,6 +157,7 @@
       openocd
       platformio-core.udev
       clinfo
+      bitwig-connect-control-panel
     ];
 
     extraRules = ''
