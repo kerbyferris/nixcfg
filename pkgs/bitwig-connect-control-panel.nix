@@ -105,26 +105,12 @@ assert src != null;
       runHook postInstall
     '';
 
-    postFixup = let
-      wrapperScript = ''
-        #!${stdenv.shell}
-        self="''${BASH_SOURCE[0]}"
-        while [ -L "$self" ]; do
-          target=$(readlink "$self")
-          if [[ "$target" != /* ]]; then
-            target="$(dirname "$self")/$target"
-          fi
-          self="$target"
-        done
-        exec "$(dirname "$self")"/../libexec/BitwigConnectControlPanel "$@"
-      '';
-    in ''
+    postFixup = ''
       wrapProgram "$out/libexec/bin/show-file-dialog-gtk3" \
         "''${gappsWrapperArgs[@]}"
 
-      install -Dm755 /dev/stdin "$out/bin/bitwig-connect-control-panel" <<'EOF'
-      ${wrapperScript}
-      EOF
+      makeWrapper "$out/libexec/BitwigConnectControlPanel" "$out/bin/bitwig-connect-control-panel" \
+        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [libxcb vulkan-loader libglvnd]}
 
       ln -s bitwig-connect-control-panel "$out/bin/bitwig-control-panel"
 
