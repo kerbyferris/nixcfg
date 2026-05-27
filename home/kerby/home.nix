@@ -18,6 +18,12 @@ in {
     find "$HOME"/.config -name "*.BAK" -delete 2>/dev/null || true
   '';
 
+  home.activation.restartWaybar = config.lib.dag.entryAfter ["writeBoundary"] ''
+    ${pkgs.procps}/bin/pkill -u $USER '\.waybar-wrapp' 2>/dev/null || true
+  '';
+
+  stylix.targets.qt.enable = false;
+
   dconf.settings = {
     "org/gnome/desktop/peripherals/mouse" = {natural-scroll = true;};
     # "org/gnome/desktop/input-sources" = {xkb-options = ["ctrl:nocaps"];};

@@ -3,7 +3,7 @@
 [general]
 destination = "$HOME/.config/hypr/monitors.conf"
 debounce_time_ms = 500
-post_apply_exec = "hyprctl reload"
+post_apply_exec = "until hyprctl monitors >/dev/null 2>&1; do sleep 0.5; done; hyprctl reload"
 
 [scoring]
 name_match = 10

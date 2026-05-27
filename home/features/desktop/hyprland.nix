@@ -68,6 +68,24 @@ in {
       "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
     };
 
+    systemd.user.services.hyprdynamicmonitors = {
+      Unit = {
+        After = lib.mkForce [
+          "hyprdynamicmonitors-prepare.service"
+        ];
+        Before = lib.mkForce [
+          "graphical-session-pre.target"
+        ];
+        Requires = lib.mkForce [];
+        PartOf = lib.mkForce [];
+      };
+      Install = {
+        WantedBy = lib.mkForce [
+          "graphical-session-pre.target"
+        ];
+      };
+    };
+
     wayland.windowManager.hyprland = {
       enable = true;
       configType = "hyprlang";

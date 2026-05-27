@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pkill -f '\.waybar-wrapped' 2>/dev/null || true
+pkill '\.waybar-wrapp' 2>/dev/null || true
 sleep 1
 
 while true; do
