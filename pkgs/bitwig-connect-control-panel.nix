@@ -94,54 +94,54 @@ assert src != null;
     '';
 
     installPhase = ''
-      runHook preInstall
+            runHook preInstall
 
-      mkdir -p $out/libexec
-      cp -r opt/bitwig-control-panel/* $out/libexec/
+            mkdir -p $out/libexec
+            cp -r opt/bitwig-control-panel/* $out/libexec/
 
-      mkdir -p $out/share
-      cp -r usr/share/applications $out/share/
-      cp -r usr/share/icons $out/share/
-      cp -r usr/share/mime $out/share/
+            mkdir -p $out/share
+            cp -r usr/share/applications $out/share/
+            cp -r usr/share/icons $out/share/
+            cp -r usr/share/mime $out/share/
 
-      # Compile Vulkan XCB workaround shim
-      mkdir -p $out/lib
-      cat > vk_fix_xcb.c <<'VKCEOF'
-#define _GNU_SOURCE
-#define VK_USE_PLATFORM_XCB_KHR
-#include <vulkan/vulkan.h>
-#include <dlfcn.h>
+            # Compile Vulkan XCB workaround shim
+            mkdir -p $out/lib
+            cat > vk_fix_xcb.c <<'VKCEOF'
+      #define _GNU_SOURCE
+      #define VK_USE_PLATFORM_XCB_KHR
+      #include <vulkan/vulkan.h>
+      #include <dlfcn.h>
 
-static void *lib = NULL;
-static PFN_vkCreateXcbSurfaceKHR real = NULL;
+      static void *lib = NULL;
+      static PFN_vkCreateXcbSurfaceKHR real = NULL;
 
-static void init(void) {
-  if (!lib) {
-    lib = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
-    if (lib)
-      real = (PFN_vkCreateXcbSurfaceKHR)dlsym(lib, "vkCreateXcbSurfaceKHR");
-    if (!real)
-      __builtin_trap();
-  }
-}
+      static void init(void) {
+        if (!lib) {
+          lib = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_GLOBAL);
+          if (lib)
+            real = (PFN_vkCreateXcbSurfaceKHR)dlsym(lib, "vkCreateXcbSurfaceKHR");
+          if (!real)
+            __builtin_trap();
+        }
+      }
 
-VkResult vkCreateXcbSurfaceKHR(VkInstance instance,
-    const VkXcbSurfaceCreateInfoKHR *pCreateInfo,
-    const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface) {
-  init();
-  VkXcbSurfaceCreateInfoKHR fixed = *pCreateInfo;
-  fixed.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-  fixed.pNext = NULL;
-  return real(instance, &fixed, pAllocator, pSurface);
-}
-VKCEOF
-      $CC -shared -fPIC -O2 \
-        -I${vulkan-headers}/include \
-        -I${lib.getDev libxcb}/include \
-        -o $out/lib/libvk_fix_xcb.so \
-        vk_fix_xcb.c -ldl
+      VkResult vkCreateXcbSurfaceKHR(VkInstance instance,
+          const VkXcbSurfaceCreateInfoKHR *pCreateInfo,
+          const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface) {
+        init();
+        VkXcbSurfaceCreateInfoKHR fixed = *pCreateInfo;
+        fixed.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+        fixed.pNext = NULL;
+        return real(instance, &fixed, pAllocator, pSurface);
+      }
+      VKCEOF
+            $CC -shared -fPIC -O2 \
+              -I${vulkan-headers}/include \
+              -I${lib.getDev libxcb}/include \
+              -o $out/lib/libvk_fix_xcb.so \
+              vk_fix_xcb.c -ldl
 
-      runHook postInstall
+            runHook postInstall
     '';
 
     postFixup = ''
