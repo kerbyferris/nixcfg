@@ -101,11 +101,6 @@
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "kerby";
 
-  services.hyprdynamicmonitors = {
-    enable = true;
-    mode = "user";
-  };
-
   services.upower.enable = true;
 
   services.logind = {

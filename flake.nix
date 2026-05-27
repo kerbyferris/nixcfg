@@ -69,7 +69,6 @@
           ./hosts/nixos
           determinate.nixosModules.default
           stylix.nixosModules.stylix
-          hyprdynamicmonitors.nixosModules.default
           home-manager.nixosModules.default
           {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
         ];
