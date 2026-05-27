@@ -72,12 +72,26 @@ in {
       Unit = {
         After = lib.mkForce [
           "hyprdynamicmonitors-prepare.service"
+          "upower.service"
         ];
         Before = lib.mkForce [
           "graphical-session-pre.target"
         ];
         Requires = lib.mkForce [];
         PartOf = lib.mkForce [];
+      };
+      Service = let
+        waitForDp1 = pkgs.writeShellScript "hyprdynamicmonitors-wait-dp1" ''
+          for i in $(seq 1 20); do
+            if cat /sys/class/drm/card*-DP-*/status 2>/dev/null | grep -q "^connected"; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          exit 0
+        '';
+      in {
+        ExecStartPre = ["-${waitForDp1}"];
       };
       Install = {
         WantedBy = lib.mkForce [
