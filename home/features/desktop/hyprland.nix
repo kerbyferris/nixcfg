@@ -2,21 +2,30 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 with lib; let
   cfg = config.features.desktop.hyprland;
 in {
+  imports = [
+    inputs.hyprdynamicmonitors.homeManagerModules.default
+  ];
+
   options.features.desktop.hyprland.enable = mkEnableOption "enable hyprland config";
 
   config = mkIf cfg.enable {
+    home.hyprdynamicmonitors = {
+      enable = true;
+      configFile = ./hyprdynamicmonitors/config.toml;
+    };
+
     home.packages = with pkgs; [
       blueman # For blueman-applet
       brightnessctl # For brightness controls
       kitty
       libnotify
       ghostty # terminal
-      hyprdynamicmonitors
       hypridle
       hyprshot # For screenshot binds
       nautilus # Your file manager
@@ -49,8 +58,13 @@ in {
     xdg.configFile = {
       "waybar/config".source = ./waybar/config.jsonc;
       "waybar/style.css".source = ./waybar/style.css;
-      "waybar/launch.sh".source = ./waybar/launch.sh;
-      "hyprdynamicmonitors/config.toml".source = ./hyprdynamicmonitors/config.toml;
+      "waybar/launch.sh" = {
+        source = ./waybar/launch.sh;
+        executable = true;
+      };
+      "hyprdynamicmonitors/hyprconfigs/laptop-only.conf".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.conf;
+      "hyprdynamicmonitors/hyprconfigs/dual-monitor.conf".source = ./hyprdynamicmonitors/hyprconfigs/dual-monitor.conf;
+      "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
     };
 
     wayland.windowManager.hyprland = {
@@ -66,16 +80,8 @@ in {
         "$menu" = "rofi -show drun --show-icons";
 
         # MONITORS
-        monitor = [
-          # "eDP-1,highres@highrr,0x0,1" # laptop
-          # "DP-1,highres@highrr,auto-right,1" # Arzopa 1
-          # "HDMI-A-1,1920x1080,1920x0,1" # Arzopa 2 (HDMI) - commented out
-          # "HDMI-A-3,1920x1080,-1920x0,1" # Arzopa 2 (Radeon) - commented out
-          # "DP-3,1920x1080@60,auto-right,1" # Asus
-          # "DP-1,1920x1080@60,auto-right,1" # Asus - commented out
-          "eDP-1,highres@highrr,auto,1, mirror, DP-1" # laptop
-          "DP-1,highres@higrr,auto,1" # JapanNext
-        ];
+        # Managed by hyprdynamicmonitors
+        source = "~/.config/hypr/monitors.conf";
 
         # XWAYLAND specific settings (from your xwayland {} block)
         xwayland = {
@@ -96,8 +102,7 @@ in {
         "exec-once" = [
           "$terminal" # Hyprland will substitute its $terminal variable
           "nm-applet & blueman-applet"
-          "waybar & swaync"
-          # "waybar & hyprpaper & firefox" # Original commented out line
+          "~/.config/waybar/launch.sh & swaync"
         ];
 
         # LOOK AND FEEL
@@ -208,7 +213,7 @@ in {
         # e.g., by placing it in `${config.xdg.configHome}/hypr/scripts/launch.sh`
         # and referencing that path.
         bind = [
-          "$mainMod SHIFT, B, exec, ~/dotfiles/waybar/launch.sh"
+          "$mainMod SHIFT, B, exec, ~/.config/waybar/launch.sh"
           "$mainMod SHIFT, R, exec, hyprctl reload"
           "$mainMod, RETURN, exec, $terminal"
           "$mainMod, C, killactive,"
