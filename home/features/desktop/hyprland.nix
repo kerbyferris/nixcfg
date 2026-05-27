@@ -74,7 +74,7 @@ in {
 
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)
-        "$mainMod" = "SUPER_L"; # Sets "Windows" key as main modifier
+        "$mainMod" = "ALT";
         "$terminal" = "ghostty";
         # "$terminal" = "kitty";
         "$fileManager" = "nautilus";
@@ -187,7 +187,7 @@ in {
           # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
           # kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
           # kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt, altwin:swap_alt_win";
-          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:rctrl, altwin:swap_alt_win";
+          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:rctrl";
           kb_rules = ""; # Explicitly empty
           follow_mouse = 1;
           # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.

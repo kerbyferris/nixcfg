@@ -15,7 +15,7 @@ in {
   home.homeDirectory = lib.mkDefault "/home/${config.home.username}";
 
   home.activation.cleanupStaleBackups = config.lib.dag.entryBefore ["checkLinkTargets"] ''
-    find "$HOME"/.config -name "*.BAK" -exec rm -rf {} \;
+    find "$HOME"/.config -name "*.BAK" -delete 2>/dev/null || true
   '';
 
   dconf.settings = {
