@@ -18,6 +18,7 @@ in {
     home.hyprdynamicmonitors = {
       enable = true;
       configFile = ./hyprdynamicmonitors/config.toml;
+      extraFlags = ["--enable-lid-events"];
     };
 
     home.packages = with pkgs; [

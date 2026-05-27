@@ -13,22 +13,54 @@ lid_state_match = 2
 
 [power_events]
 [power_events.dbus_query_object]
+destination = "org.freedesktop.UPower"
 path = "/org/freedesktop/UPower/devices/line_power_AC"
+method = "org.freedesktop.DBus.Properties.Get"
+expected_discharging_value = "false"
+
+[[power_events.dbus_query_object.args]]
+arg = "org.freedesktop.UPower.Device"
+
+[[power_events.dbus_query_object.args]]
+arg = "Online"
 
 [[power_events.dbus_signal_match_rules]]
+interface = "org.freedesktop.DBus.Properties"
 object_path = "/org/freedesktop/UPower/devices/line_power_AC"
+member = "PropertiesChanged"
+
+[[power_events.dbus_signal_receive_filters]]
+name = "org.freedesktop.DBus.Properties.PropertiesChanged"
 
 [lid_events]
 [lid_events.dbus_query_object]
+destination = "org.freedesktop.UPower"
 path = "/org/freedesktop/UPower"
+method = "org.freedesktop.DBus.Properties.Get"
+expected_lid_closing_value = "true"
+
+[[lid_events.dbus_query_object.args]]
+arg = "org.freedesktop.UPower"
+
+[[lid_events.dbus_query_object.args]]
+arg = "LidIsClosed"
 
 [[lid_events.dbus_signal_match_rules]]
+interface = "org.freedesktop.DBus.Properties"
 object_path = "/org/freedesktop/UPower"
+member = "PropertiesChanged"
+
+[[lid_events.dbus_signal_receive_filters]]
+name = "org.freedesktop.DBus.Properties.PropertiesChanged"
+body = "LidIsClosed"
 
 # --- Profile: Lid Open, No External Monitor ---
 [profiles.laptop_only]
 config_file = "hyprconfigs/laptop-only.conf"
 config_file_type = "static"
+
+[profiles.laptop_only.conditions]
+lid_state = "Opened"
 
 [[profiles.laptop_only.conditions.required_monitors]]
 name = "eDP-1"
@@ -37,6 +69,9 @@ name = "eDP-1"
 [profiles.dual_monitor]
 config_file = "hyprconfigs/dual-monitor.conf"
 config_file_type = "static"
+
+[profiles.dual_monitor.conditions]
+lid_state = "Opened"
 
 [[profiles.dual_monitor.conditions.required_monitors]]
 name = "eDP-1"
@@ -48,6 +83,9 @@ name = "DP-1"
 [profiles.clamshell]
 config_file = "hyprconfigs/clamshell.conf"
 config_file_type = "static"
+
+[profiles.clamshell.conditions]
+lid_state = "Closed"
 
 [[profiles.clamshell.conditions.required_monitors]]
 name = "DP-1"

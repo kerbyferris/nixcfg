@@ -76,7 +76,7 @@
     targets = {
       gtk.enable = true;
       nixvim.enable = false;
-      qt.platform = lib.mkForce "qtct";
+      qt.enable = lib.mkForce false;
     };
   };
 
