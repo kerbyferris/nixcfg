@@ -95,6 +95,7 @@ in {
       };
       Install = {
         WantedBy = lib.mkForce [
+          "default.target"
           "graphical-session-pre.target"
         ];
       };

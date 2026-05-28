@@ -22,6 +22,10 @@ in {
     ${pkgs.procps}/bin/pkill -u $USER '\.waybar-wrapp' 2>/dev/null || true
   '';
 
+  home.activation.reloadSystemdUser = config.lib.dag.entryAfter ["writeBoundary"] ''
+    XDG_RUNTIME_DIR=/run/user/1000 ${pkgs.systemd}/bin/systemctl --user daemon-reload 2>/dev/null || echo "User systemd not running (normal during boot)"
+  '';
+
   stylix.targets.qt.enable = false;
 
   dconf.settings = {
