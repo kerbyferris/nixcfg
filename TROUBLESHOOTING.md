@@ -4,10 +4,9 @@
 > EFI default (`bootctl install`). GRUB entries are still on the ESP but ignored.
 > If a future EFI update resets boot order, re-run `sudo bootctl install`.
 >
-> **Hyprland `windowrulev2` errors after booting old generation:** The new config
-> uses `configType = "hyprlang"` syntax. The old Sep 2025 hyprland binary doesn't
-> understand it. These errors are cosmetic and disappear after booting the current
-> generation. Nothing wrong with the config itself.
+> **Hyprland 0.55 notes:** `windowrulev2` is deprecated in 0.55 but still
+> functional. `togglesplit` dispatcher and `dwindle:pseudotile` were removed.
+> See Issue 7 for details on the config workarounds applied.
 
 ## Quick checks after reboot
 
@@ -22,6 +21,10 @@ systemctl --user status hyprdynamicmonitors-prepare.service
 
 # Waybar
 ps -eo pid,comm | grep waybar
+
+# Hyprland config errors
+hyprctl configerrors
+
 ```
 
 ## Issue 1: Kvantum blocks nixos-rebuild
@@ -283,3 +286,61 @@ Phase 3a — Switch config back to GRUB (if systemd-boot test fails):
 **Key safety property:** `nixos-rebuild boot` and `bootctl install` only write to
 `/boot/loader/` and `/boot/EFI/systemd/`. They never touch `/EFI/NixOS-boot/grubx64.efi`.
 GRUB remains as the escape hatch throughout the entire process.
+
+## Issue 7: Hyprland 0.55 config incompatibilities — **MITIGATED 2026-05-28**
+
+**Symptom:** `hyprctl configerrors` shows multiple errors:
+- `Invalid dispatcher, requested "togglesplit" does not exist`
+- `config option <dwindle:pseudotile> does not exist`
+- `invalid field type bordersize` / `floating:0: missing a value` on `windowrule` lines
+
+**Root cause:** Hyprland 0.55 deprecates hyprlang config in favor of Lua.
+Three specific breakages:
+
+1. **`togglesplit` dispatcher removed** — no longer available in 0.55. The
+   keybinding `$mainMod, t, togglesplit,` produces an error.
+
+2. **`dwindle:pseudotile` removed** — the option no longer exists. Likely
+   moved or renamed in the Lua config rework.
+
+3. **`windowrule` format changed** — the hyprlang `windowrule` keyword in
+   0.55 no longer accepts v2-style rules (`bordersize 0, floating:0, onworkspace:…`).
+   The parser interprets v2 tokens as sub-fields, producing "invalid field type" errors.
+   `windowrulev2` keyword still works (with deprecation warning) but the
+   home-manager module converts Nix `windowrulev2` entries to `windowrule`
+   output, producing broken config.
+
+**Fix (3 changes in commit `6c19859`):**
+
+1. **Removed `togglesplit` keybind** from `home/features/desktop/hyprland.nix`.
+   The `$mainMod + t` shortcut is simply unbound until a replacement is found.
+
+2. **Removed `dwindle.pseudotile`** from `home/features/desktop/hyprland.nix`.
+   The `preserve_split` option is kept.
+
+3. **Moved window rules to a separate sourced file** — bypasses the HM module's
+   broken `windowrulev2` → `windowrule` conversion:
+   - Created `home/features/desktop/window-rules.conf` with raw `windowrulev2 = …` lines
+   - Added `xdg.configFile."hypr/window-rules.conf"` to link it into `~/.config/hypr/`
+   - Changed `source` from a string to a list in the settings to include both
+     `monitors.conf` and `window-rules.conf`
+
+**Result:** Config errors reduced from 10 to 0. Remaining output is cosmetic
+deprecation warnings:
+```
+windowrulev2 is deprecated. Correct syntax can be found on the wiki.
+```
+These appear at Hyprland startup and on `hyprctl reload`. The rules still work.
+
+**Future:** When home-manager's hyprland module gains Lua config support
+(Hyprland 0.55+), the window rules should be migrated to the new format.
+Until then, the separate `window-rules.conf` sourced file is the workaround.
+
+**How to verify:**
+```bash
+hyprctl configerrors
+# Should show only "windowrulev2 is deprecated" warnings, no actual errors
+
+cat ~/.config/hypr/window-rules.conf
+# Should show 8 windowrulev2 rules
+```
