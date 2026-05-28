@@ -66,6 +66,7 @@ in {
       "hyprdynamicmonitors/hyprconfigs/laptop-only.conf".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.conf;
       "hyprdynamicmonitors/hyprconfigs/dual-monitor.conf".source = ./hyprdynamicmonitors/hyprconfigs/dual-monitor.conf;
       "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
+      "hypr/window-rules.conf".source = ./window-rules.conf;
     };
 
     systemd.user.services.hyprdynamicmonitors = {
@@ -113,9 +114,12 @@ in {
         "$fileManager" = "nautilus";
         "$menu" = "rofi -show drun --show-icons";
 
-        # MONITORS
+        # MONITORS and window rules
         # Managed by hyprdynamicmonitors
-        source = "~/.config/hypr/monitors.conf";
+        source = [
+          "~/.config/hypr/monitors.conf"
+          "~/.config/hypr/window-rules.conf"
+        ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
         xwayland = {
@@ -197,7 +201,6 @@ in {
         ];
 
         dwindle = {
-          pseudotile = true;
           preserve_split = true;
           # force_split = 2; # Original commented out
         };
@@ -257,7 +260,7 @@ in {
           "$mainMod, SPACE, exec, $menu"
           "$mainMod SHIFT, m, exec, rofi -show window"
           "$mainMod, P, pseudo," # dwindle
-          "$mainMod, t, togglesplit," # dwindle
+
           "$mainMod, m, fullscreen, 1"
           # "$mainMod, m, fullscreenstate, 0 2" # Original commented out
           "$mainMod, TAB, cyclenext"
@@ -325,21 +328,8 @@ in {
           ", XF86AudioPrev, exec, playerctl previous"
         ];
 
-        # WINDOWS AND WORKSPACES RULES (from `windowrulev2 = ...` lines)
-        windowrulev2 = [
-          # Rules for specific workspaces (from original config)
-          "bordersize 0, floating:0, onworkspace:w[tv1]"
-          "rounding 0, floating:0, onworkspace:w[tv1]"
-          "bordersize 0, floating:0, onworkspace:f[1]"
-          "rounding 0, floating:0, onworkspace:f[1]"
-          # Other window rules from your config
-          "fullscreenstate 0 2, class:(firefox)"
-          # "windowrule = float, ^(kitty)$" # Example v1, commented out
-          # "windowrulev2 = float,class:^(kitty)$,title:^(kitty)$" # Example v2, commented out
-          "suppressevent maximize, class:.*"
-          "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0" # Fix some dragging issues
-          "tile,class:(eagle.exe)" # Ensure Eagle.cool is always tiled
-        ];
+        # WINDOWS AND WORKSPACES RULES
+        # See window-rules.conf for windowrulev2 rules
       };
     };
   };

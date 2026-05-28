@@ -1,4 +1,13 @@
-# Troubleshooting Reference (2026-05-27, updated after fixes)
+# Troubleshooting Reference (2026-05-28)
+
+> **Issue 6 — RESOLVED.** Phase 1-3 complete. systemd-boot is now the permanent
+> EFI default (`bootctl install`). GRUB entries are still on the ESP but ignored.
+> If a future EFI update resets boot order, re-run `sudo bootctl install`.
+>
+> **Hyprland `windowrulev2` errors after booting old generation:** The new config
+> uses `configType = "hyprlang"` syntax. The old Sep 2025 hyprland binary doesn't
+> understand it. These errors are cosmetic and disappear after booting the current
+> generation. Nothing wrong with the config itself.
 
 ## Quick checks after reboot
 
@@ -203,3 +212,74 @@ more aggressive about restarting services that have changed.
   `WriteAtomic` which converts symlink→regular file (because `os.Stat` follows
   symlinks, sees regular file target, `os.Rename` replaces the symlink).
   Daemon later removes the regular file and recreates the symlink.
+
+## Issue 6: System boots into old generation (stale GRUB, systemd-boot not first) — **RESOLVED 2026-05-28**
+
+**Symptom:** After `nixos-rebuild switch`, the system seems updated (`/run/current-system`
+points to new generation, mod key is ALT, opencode works). But after reboot, everything
+is broken again — wrong mod key, no opencode, no hyprdynamicmonitors services.
+
+**Root cause:** Both GRUB and systemd-boot are installed on the ESP, but the EFI boot
+order has GRUB first. GRUB's config (`/boot/grub/grub.cfg`) is stale and points to an
+ancient Sep 2025 generation. Every reboot boots via GRUB into that old generation,
+regardless of how many `nixos-rebuild switch` calls were made (those update systemd-boot
+entries, which GRUB doesn't read).
+
+**How to verify:**
+
+```bash
+bootctl
+# Look for "Boot Loaders Listed in EFI Variables" — both GRUB and systemd-boot appear
+
+cat /proc/cmdline | grep init=
+# Shows the old generation path — this is set at boot, never changes
+# Compare to:
+readlink -f /run/current-system
+# Shows the current (switched) generation — different after nixos-rebuild switch
+```
+
+Current EFI boot entries (on this system):
+- `NixOS-boot` (ID 0x0020) → `/EFI/NixOS-boot/grubx64.efi` — GRUB, boots first
+- `Linux Boot Manager` (ID 0x0022) → `/EFI/systemd/systemd-bootx64.efi` — systemd-boot
+- Both on partition `226c2b0b-8bc9-4508-8fda-ad5b67a68e25` (`/boot`)
+
+**Fix plan (3 phases, with fallback at every step):**
+
+```
+Phase 1 — Prepare systemd-boot entries (no risk):
+  sudo nixos-rebuild boot --flake ~/nixcfg#nixos --impure
+  # Only writes to /boot/loader/entries/, doesn't touch EFI boot order
+
+Phase 2 — One-time test via BIOS boot menu:
+  sudo reboot
+  # Press F12 (or your firmware's boot menu key) during POST
+  # Select "Linux Boot Manager" (systemd-boot)
+  # If it boots into a working system → proceed to Phase 3
+  # If it fails → reboot normally, GRUB is still the default, try Phase 3a instead
+
+Phase 3 — Make permanent:
+  sudo bootctl install
+  # Installs systemd-boot and makes it the default EFI entry
+  # OR manually reorder with efibootmgr:
+  sudo efibootmgr --bootorder 0022,<current-order-minus-0022>
+  sudo reboot
+
+Phase 3a — Switch config back to GRUB (if systemd-boot test fails):
+  # In hosts/nixos/configuration.nix:
+  #   boot.loader.systemd-boot.enable = false;
+  #   boot.loader.grub.enable = true;
+  #   boot.loader.grub.efiSupport = true;
+  #   boot.loader.grub.devices = ["nodev"];
+  sudo nixos-rebuild boot --flake ~/nixcfg#nixos --impure
+  sudo reboot
+```
+
+**Fallback at any point:**
+- BIOS boot menu (F12) → select "NixOS-boot" (GRUB) — GRUB files are untouched
+- BIOS setup → reorder boot priorities manually
+- Boot an older NixOS generation from either bootloader's menu
+- Live USB — `/nix/store` (nvme0n1p6 btrfs) and `/home` are on separate partitions
+
+**Key safety property:** `nixos-rebuild boot` and `bootctl install` only write to
+`/boot/loader/` and `/boot/EFI/systemd/`. They never touch `/EFI/NixOS-boot/grubx64.efi`.
+GRUB remains as the escape hatch throughout the entire process.

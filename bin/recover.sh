@@ -19,6 +19,19 @@ OUTPUT="$SCRIPT_DIR/results.txt"
 
   # ── SECTION A: What generation are we on? ──────────────────────────────────
 
+  echo "=== A0. Bootloader mismatch check (init= vs /run/current-system) ==="
+  booted_init=$(cat /proc/cmdline | tr ' ' '\n' | grep '^init=' | sed 's/init=//')
+  current_system=$(readlink -f /run/current-system 2>/dev/null || echo "FAILED")
+  echo "Booted init  : $booted_init"
+  echo "Current sys  : $current_system"
+  if [ "$booted_init" != "$current_system/init" ]; then
+    echo "*** MISMATCH *** Booted into OLD generation! Bootloader config is stale."
+    echo "    See TROUBLESHOOTING.md Issue 6 (stale GRUB, systemd-boot not first)"
+  else
+    echo "OK — booted and current generation match"
+  fi
+  echo ""
+
   echo "=== A1. Booted NixOS generation ==="
   readlink -f /run/current-system || echo "FAILED"
   echo ""
@@ -151,7 +164,7 @@ OUTPUT="$SCRIPT_DIR/results.txt"
   echo "# 3. monitors.conf missing → daemon didn't run or DP-1 not detected yet"
   echo "#    Fix: wait 10-30 seconds, then check again. Cold-boot GPU race is normal."
   echo "#"
-  echo "# 4. $mainMod != ALT → stale Hyprland generation"
+  echo "# 4. mainMod != ALT → stale Hyprland generation"
   echo "#    Fix: rebuild (see 1), or 'hyprctl reload' if monitors.conf exists"
   echo "#"
   echo "# 5. opencode not found → home-manager profile not linked"
