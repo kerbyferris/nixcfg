@@ -52,6 +52,7 @@ in {
     gruvbox-gtk-theme
     # gruvbox-plus-icons
     papirus-icon-theme
+    pi-coding-agent
   ];
 
   home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
