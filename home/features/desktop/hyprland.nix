@@ -146,7 +146,7 @@ in {
           "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:w[tv1]'"
           "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:f[1]'"
           "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:f[1]'"
-          "hyprctl keyword windowrulev2 'fullscreenstate 0 2, class:(firefox)'"
+          "hyprctl keyword windowrulev2 'fullscreenstate 0 1, class:^(firefox|zen-beta)$'"
           "hyprctl keyword windowrulev2 'suppressevent maximize, class:.*'"
           "hyprctl keyword windowrulev2 'nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0'"
           "hyprctl keyword windowrulev2 'tile,class:(eagle.exe)'"
@@ -338,7 +338,7 @@ in {
         ];
 
         # WINDOWS AND WORKSPACES RULES
-        # Applied via exec-once to avoid windowrulev2 deprecation warnings
+        # Applied via exec-once to avoid windowrulev2 deprecation warnings in config
       };
     };
   };

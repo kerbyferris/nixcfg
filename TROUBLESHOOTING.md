@@ -307,9 +307,11 @@ Three specific breakages:
 2. **`dwindle:pseudotile` removed** — the option no longer exists.
 
 3. **`windowrulev2` deprecated** — the keyword still works, but using it in
-   a sourced config file produces persistent config errors that trigger the
-   on-screen error overlay. Dynamic `hyprctl keyword` calls also produce the
-   deprecation message on stdout but do NOT register as config errors.
+   a sourced config file or in the home-manager-generated hyprlang config
+   (via `settings.windowrulev2`) produces persistent config errors that
+   trigger the on-screen error overlay. Dynamic `hyprctl keyword` calls
+   produce the deprecation message on stdout but do NOT register as config
+   errors, so rules are applied via `exec-once` using `hyprctl keyword`.
 
 **Fix (3 changes):**
 
@@ -317,18 +319,20 @@ Three specific breakages:
 
 2. **Removed `dwindle.pseudotile`** from `home/features/desktop/hyprland.nix`.
 
-3. **Removed `source = ~/.config/hypr/window-rules.conf`** — the raw
-   `windowrulev2 = …` lines were being parsed as config errors, triggering
-   the on-screen error overlay. Rules are now defined inline in the Nix
-   config's `exec-once` list. The home-manager hyprland module detects
-   `windowrulev2` strings and converts them to `windowrule=` entries in the
-   generated config — which Hyprland 0.55.2 accepts without triggering the
-   deprecation error (unlike raw `windowrulev2 =` lines).
+3. **Removed `source = ~/.config/hypr/window-rules.conf`** — moved rules to
+   `exec-once` as `hyprctl keyword windowrulev2 '...'` calls to avoid config
+   errors. Rules applied this way are functional but produce deprecation
+   messages on stdout at startup only.
 
 **Result:** `hyprctl configerrors` returns empty — no errors, no on-screen
-error overlay. The home-manager module handles the `windowrulev2` →
-`windowrule` conversion automatically when rules are specified inline rather
-than in a separately sourced file.
+error overlay.
+
+### Tiled fullscreen for browser video (2026-05-29)
+
+**Attempted:** `fullscreenstate 0 1, class:^(firefox|zen-beta)$`
+— should tell the browser it's fullscreen (hides UI) while keeping the window
+in its tiled bounds. **Did not work** with Zen Browser on Hyprland 0.55.2;
+videos still take over the entire monitor. Not investigated further.
 
 **How to verify:**
 ```bash
