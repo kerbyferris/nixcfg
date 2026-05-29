@@ -73,16 +73,6 @@
           {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
         ];
       };
-      adegabox = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
-        modules = [
-          ./hosts/adegabox
-          determinate.nixosModules.default
-          stylix.nixosModules.stylix
-          home-manager.nixosModules.default
-          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
-        ];
-      };
     };
   };
 }

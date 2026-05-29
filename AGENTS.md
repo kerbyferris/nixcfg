@@ -4,14 +4,13 @@
 
 - Format all `.nix` files before committing: `alejandra .`
 - Rebuild `nixos` host: `sudo nixos-rebuild switch --flake .#nixos --impure` (--impure required for vendor .deb at /home/kerby/.local/share/nixcfg-vendor/)
-- Rebuild `adegabox` host: `sudo nixos-rebuild switch --flake .#adegabox`
 - The helper script `bin/nix-rebuild.sh` chains format → rebuild → git commit with generation metadata
 
 There is no CI, no lint step, and no test suite. A successful `nixos-rebuild switch` is the only validation.
 
 ## Architecture
 
-Flake-based NixOS + Home Manager config for two machines (`nixos` laptop, `adegabox` desktop). Home Manager is used *only* as a NixOS module — there is no standalone `home-manager switch`.
+Flake-based NixOS + Home Manager config for the `nixos` laptop. Home Manager is used *only* as a NixOS module — there is no standalone `home-manager switch`.
 
 Module layout:
 - `hosts/<host>/` — NixOS system config per machine

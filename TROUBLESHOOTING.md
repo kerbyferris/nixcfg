@@ -287,60 +287,51 @@ Phase 3a — Switch config back to GRUB (if systemd-boot test fails):
 `/boot/loader/` and `/boot/EFI/systemd/`. They never touch `/EFI/NixOS-boot/grubx64.efi`.
 GRUB remains as the escape hatch throughout the entire process.
 
-## Issue 7: Hyprland 0.55 config incompatibilities — **MITIGATED 2026-05-28**
+## Issue 7: Hyprland 0.55 config incompatibilities — **RESOLVED 2026-05-28**
 
 **Symptom:** `hyprctl configerrors` shows multiple errors:
 - `Invalid dispatcher, requested "togglesplit" does not exist`
 - `config option <dwindle:pseudotile> does not exist`
 - `invalid field type bordersize` / `floating:0: missing a value` on `windowrule` lines
+- `windowrulev2 is deprecated` — triggers Hyprland's on-screen error overlay
 
-**Root cause:** Hyprland 0.55 deprecates hyprlang config in favor of Lua.
+**Root cause:** Hyprland 0.55 favours Lua config. `windowrulev2` still works
+but Hyprland 0.55 treats the deprecation as a config error, showing an error
+overlay that takes up screen real estate.
+
 Three specific breakages:
 
 1. **`togglesplit` dispatcher removed** — no longer available in 0.55. The
    keybinding `$mainMod, t, togglesplit,` produces an error.
 
-2. **`dwindle:pseudotile` removed** — the option no longer exists. Likely
-   moved or renamed in the Lua config rework.
+2. **`dwindle:pseudotile` removed** — the option no longer exists.
 
-3. **`windowrule` format changed** — the hyprlang `windowrule` keyword in
-   0.55 no longer accepts v2-style rules (`bordersize 0, floating:0, onworkspace:…`).
-   The parser interprets v2 tokens as sub-fields, producing "invalid field type" errors.
-   `windowrulev2` keyword still works (with deprecation warning) but the
-   home-manager module converts Nix `windowrulev2` entries to `windowrule`
-   output, producing broken config.
+3. **`windowrulev2` deprecated** — the keyword still works, but using it in
+   a sourced config file produces persistent config errors that trigger the
+   on-screen error overlay. Dynamic `hyprctl keyword` calls also produce the
+   deprecation message on stdout but do NOT register as config errors.
 
-**Fix (3 changes in commit `6c19859`):**
+**Fix (3 changes):**
 
 1. **Removed `togglesplit` keybind** from `home/features/desktop/hyprland.nix`.
-   The `$mainMod + t` shortcut is simply unbound until a replacement is found.
 
 2. **Removed `dwindle.pseudotile`** from `home/features/desktop/hyprland.nix`.
-   The `preserve_split` option is kept.
 
-3. **Moved window rules to a separate sourced file** — bypasses the HM module's
-   broken `windowrulev2` → `windowrule` conversion:
-   - Created `home/features/desktop/window-rules.conf` with raw `windowrulev2 = …` lines
-   - Added `xdg.configFile."hypr/window-rules.conf"` to link it into `~/.config/hypr/`
-   - Changed `source` from a string to a list in the settings to include both
-     `monitors.conf` and `window-rules.conf`
+3. **Removed `source = ~/.config/hypr/window-rules.conf`** — the raw
+   `windowrulev2 = …` lines were being parsed as config errors, triggering
+   the on-screen error overlay. Rules are now defined inline in the Nix
+   config's `exec-once` list. The home-manager hyprland module detects
+   `windowrulev2` strings and converts them to `windowrule=` entries in the
+   generated config — which Hyprland 0.55.2 accepts without triggering the
+   deprecation error (unlike raw `windowrulev2 =` lines).
 
-**Result:** Config errors reduced from 10 to 0. Remaining output is cosmetic
-deprecation warnings:
-```
-windowrulev2 is deprecated. Correct syntax can be found on the wiki.
-```
-These appear at Hyprland startup and on `hyprctl reload`. The rules still work.
-
-**Future:** When home-manager's hyprland module gains Lua config support
-(Hyprland 0.55+), the window rules should be migrated to the new format.
-Until then, the separate `window-rules.conf` sourced file is the workaround.
+**Result:** `hyprctl configerrors` returns empty — no errors, no on-screen
+error overlay. The home-manager module handles the `windowrulev2` →
+`windowrule` conversion automatically when rules are specified inline rather
+than in a separately sourced file.
 
 **How to verify:**
 ```bash
 hyprctl configerrors
-# Should show only "windowrulev2 is deprecated" warnings, no actual errors
-
-cat ~/.config/hypr/window-rules.conf
-# Should show 8 windowrulev2 rules
+# Should return empty (no output)
 ```

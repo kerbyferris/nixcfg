@@ -66,7 +66,6 @@ in {
       "hyprdynamicmonitors/hyprconfigs/laptop-only.conf".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.conf;
       "hyprdynamicmonitors/hyprconfigs/dual-monitor.conf".source = ./hyprdynamicmonitors/hyprconfigs/dual-monitor.conf;
       "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
-      "hypr/window-rules.conf".source = ./window-rules.conf;
     };
 
     systemd.user.services.hyprdynamicmonitors = {
@@ -114,11 +113,10 @@ in {
         "$fileManager" = "nautilus";
         "$menu" = "rofi -show drun --show-icons";
 
-        # MONITORS and window rules
+        # MONITORS
         # Managed by hyprdynamicmonitors
         source = [
           "~/.config/hypr/monitors.conf"
-          "~/.config/hypr/window-rules.conf"
         ];
 
         # XWAYLAND specific settings (from your xwayland {} block)
@@ -141,6 +139,17 @@ in {
           "$terminal" # Hyprland will substitute its $terminal variable
           "nm-applet & blueman-applet"
           "~/.config/waybar/launch.sh & swaync"
+
+          # WINDOW RULES
+          # Applied dynamically via hyprctl to avoid windowrulev2 deprecation warnings in config
+          "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:w[tv1]'"
+          "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:w[tv1]'"
+          "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:f[1]'"
+          "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:f[1]'"
+          "hyprctl keyword windowrulev2 'fullscreenstate 0 2, class:(firefox)'"
+          "hyprctl keyword windowrulev2 'suppressevent maximize, class:.*'"
+          "hyprctl keyword windowrulev2 'nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0'"
+          "hyprctl keyword windowrulev2 'tile,class:(eagle.exe)'"
         ];
 
         # LOOK AND FEEL
@@ -329,7 +338,7 @@ in {
         ];
 
         # WINDOWS AND WORKSPACES RULES
-        # See window-rules.conf for windowrulev2 rules
+        # Applied via exec-once to avoid windowrulev2 deprecation warnings
       };
     };
   };
