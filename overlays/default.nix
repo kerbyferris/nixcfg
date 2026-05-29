@@ -27,6 +27,15 @@
       };
       npmDepsHash = "sha256-X0qMLqAi5pgrtTw5+DfSPsgIEngUnHwGxqYE6PL8NJU=";
     });
+
+    bitwig-studio6 = prev.bitwig-studio6.overrideAttrs (oldAttrs: {
+      version = "6.0.7";
+      src = final.fetchurl {
+        name = "bitwig-studio-6.0.7.deb";
+        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.0.7/installer_linux";
+        hash = "sha256-FantrFBb9Tl27mHZ28Mpm4rDQ/Sd2nAevGsKUfInZAI=";
+      };
+    });
   };
 
   stable-packages = final: _prev: {
