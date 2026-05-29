@@ -84,6 +84,7 @@
       bind-key -r C-h select-window -t :-\n
       bind-key -r C-l select-window -t :+\n
       setw -g mode-keys vi
+      set -g extended-keys on
       ";
   };
 
