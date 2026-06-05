@@ -13,7 +13,10 @@
 
   # SOPS secret management — decrypts secrets at boot via sops-nix
   sops.defaultSopsFile = ./secrets/secrets.yaml;
-  sops.secrets."agent-env" = {};
+  sops.secrets."agent-env" = {
+    owner = "kerby";
+    group = "users";
+  };
 
   # Additional hardware config for tap to click
   hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";

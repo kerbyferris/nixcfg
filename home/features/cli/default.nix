@@ -148,6 +148,10 @@
       ];
       theme = "robbyrussell"; # "bira" "pmcgee" "robbyrussel"
     };
+    # Source sops-managed env vars (API keys, etc.) if available
+    initContent = ''
+      test -r /run/secrets/agent-env && source /run/secrets/agent-env
+    '';
     shellAliases = {
       up = "ping 8.8.8.8";
       myip = "curl -s https://icanhazip.com";
