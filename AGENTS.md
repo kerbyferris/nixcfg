@@ -22,6 +22,24 @@ Module layout:
 - `pkgs/` — custom derivations (vidplayvst, bitwig-fhs)
 - `overlays/default.nix` — `additions` (pkgs/), `modifications` (empty), `stable-packages` (from `nixpkgs-stable`)
 
+## Secret Safety
+
+This repo has a pre-commit hook in `.githooks/pre-commit` that scans staged
+additions for common API key patterns (OpenRouter, Tavily, GitHub tokens, AWS
+keys, and generic `*_KEY=` assignments). It also verifies that sops-encrypted
+files are actually age-encrypted before commit.
+
+If you're cloning fresh, activate the hook:
+```bash
+git config core.hooksPath .githooks
+```
+
+To bypass when you know the match is a false positive (e.g. env var name in
+comments, test fixture, regex example):
+```bash
+git commit --no-verify
+```
+
 Key import chain: `hosts/users/kerby.nix` → `../../../home/kerby/${hostName}.nix` → `../common` + `../features/**` + `./home.nix`
 
 ### SOPS Secrets

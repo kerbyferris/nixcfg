@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Pre-commit hook: scan staged additions for secret patterns.
+#
+# Installed via `git config core.hooksPath .githooks` in the repo root.
+# Skip with `git commit --no-verify` when you know what you're doing.
+
+set -o nounset -o pipefail
+
+# --- Patterns (POSIX ERE) ---
+# Only the added lines in staged diffs are checked.
+# Pattern: context name, then one or more ERE patterns.
+# If ALL patterns for a check match in a block, it fires.
+
+PATTERNS=(
+  # High-entropy API key prefixes common in this repo
+  "OpenRouter:sk-or-v1-[a-f0-9]{32,}"
+  "Tavily:tvly-[a-zA-Z0-9_-]{10,}"
+  "GitHub PAT:ghp_[a-zA-Z0-9]{36}"
+  "GitHub OAuth:gho_[a-zA-Z0-9]{36}"
+  "GitHub App:ghs_[a-zA-Z0-9]{36}"
+  "Slack token:xox[baprs]-"
+  "AWS access key:AKIA[0-9A-Z]{16}"
+  "Generic API key:['\"](API|SECRET|TOKEN)_?KEY['\"]\s*[:=]\s*['\"][a-zA-Z0-9_\-]{16,}"
+  "Generic password:['\"]password['\"]\s*[:=]\s*['\"][a-zA-Z0-9!@#$%^&*()_+]{8,}"
+)
+
+# Files whose entire content should be sops-encrypted (AGE header check)
+SOPS_FILES=(
+  "hosts/nixos/secrets/secrets.yaml"
+)
+
+# --- Colors ---
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+had_issues=0
+
+# Helper: check staged additions against a pattern.
+check_pattern() {
+  local label="$1" pattern="$2"
+  local matches
+  matches=$(git diff --cached --diff-filter=ACM --no-renames -U0 \
+    | grep -E '^\+' \
+    | grep -cE "$pattern" 2>/dev/null || true)
+  if [ "$matches" -gt 0 ]; then
+    echo -e "${RED}[SECRET]${NC} $label pattern matched in $matches staged addition(s)"
+    # Show the offending lines
+    git diff --cached --diff-filter=ACM --no-renames -U0 \
+      | grep -E '^\+' \
+      | grep -E --color=always "$pattern" \
+      | sed 's/^/    /'
+    had_issues=1
+  fi
+}
+
+echo "🔍 Scanning staged changes for secrets..."
+
+# 1. Pattern-based checks on staged additions
+for entry in "${PATTERNS[@]}"; do
+  label="${entry%%:*}"
+  pattern="${entry#*:}"
+  check_pattern "$label" "$pattern"
+done
+
+# 2. SOPS file freshness check
+for sops_file in "${SOPS_FILES[@]}"; do
+  if git diff --cached --name-only --diff-filter=ACM | grep -qxF "$sops_file"; then
+    # File is staged — verify it's age-encrypted (has AGE header)
+    staged_content=$(git show ":${sops_file}" 2>/dev/null || true)
+    if echo "$staged_content" | grep -q '^sops:' && ! echo "$staged_content" | grep -q '^    age:'; then
+      echo -e "${RED}[SECRET]${NC} $sops_file is staged but NOT age-encrypted!"
+      echo "    Did you accidentally decrypt and re-encrypt with a different method?"
+      echo "    Run: git checkout -- $sops_file && sops --encrypt $sops_file && git add $sops_file"
+      had_issues=1
+    fi
+  fi
+done
+
+# 3. Warn if re-encrypting a sops file produced a plaintext backup
+if git diff --cached --name-only | grep -qF 'secrets.yaml'; then
+  backup="${SOPS_FILES[0]}.bak"
+  if [ -f "$backup" ] && git diff --cached --name-only | grep -qvF "$backup"; then
+    echo -e "${RED}[SECRET]${NC} Stale sops backup detected (not staged): $backup"
+    echo "    Did sops --encrypt-in-place leave a .bak file?"
+    echo "    Run: rm -f $backup && if committed, git rm --cached $backup"
+    had_issues=1
+  fi
+fi
+
+if [ "$had_issues" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}⚠  Commit blocked due to potential secrets in staged changes.${NC}"
+  echo "   Review the lines above. If they are false positives (e.g. env var names,"
+  echo "   regex examples, or test fixtures), commit with: git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ No secrets detected."
+exit 0
