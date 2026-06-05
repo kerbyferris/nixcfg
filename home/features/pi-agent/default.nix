@@ -40,6 +40,7 @@
       default: opencode-go/deepseek-v4-flash
       smol: ollama/qwen2.5-coder:3b
       task: ollama/qwen2.5-coder:3b
+      slow: openrouter/anthropic/claude-sonnet-4.6
     memory:
       backend: mnemopi
     mnemopi:

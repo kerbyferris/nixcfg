@@ -99,22 +99,22 @@ To add a new extension: drop the `.ts` file in `home/features/pi-agent/` and add
 
 ### Model Topology
 
-This machine has a three-tier model setup configured in `modelRoles` (`~/.omp/agent/config.yml`):
+This machine has a four-tier model setup configured in `modelRoles` (`~/.omp/agent/config.yml`):
 
 | Role | Model | Provider | When |
 |---|---|---|---|
-| `default` | DeepSeek V4 Flash | `opencode-go` (OpenRouter) | Main assistant work — most capable option |
+| `default` | DeepSeek V4 Flash | `opencode-go` (DeepSeek API) | Daily driver — fast, cheap, excellent |
+| `slow` | Claude Sonnet 4.6 | `openrouter` | Occasional heavy lifting — reasoning ceiling far above Flash |
 | `smol` / `task` | Qwen2.5-Coder-3B | `ollama` (local, RX 580 Vulkan) | Subagents, lightweight tasks, title gen, memory extraction |
-| (manual switch) | Qwen2.5:14b-64k | `ollama-mac` (SSH tunnel → mac) | When you need more capability than 3B but credits are low |
+| (manual switch) | Qwen2.5:14b-64k | `ollama-mac` (SSH tunnel → mac) | Free offline-capable fallback when DeepSeek/OpenRouter unavailable |
 
-**Why local 3B for smol/task:**
-- **Fast** — 20-40 tok/s on the RX 580 with zero network latency, vs tunneled 14B which adds 50-100ms RTT before the first token
-- **Always available** — smol/task calls should not depend on the mac being awake or the tunnel being up
-- **Appropriate** — exploration, basic code, summarization, and subagent work don't need 14B-level reasoning
+**To invoke the slow model:** `pi --slow <prompt>` or use `/role slow` inside an active session. Cost is negligible for occasional use — a heavy session with Claude Sonnet runs ~$0.14. Your $5 OpenRouter top-up covers hundreds of such calls.
 
-**When to use the tunneled 14B:** When a problem genuinely needs more reasoning power than the 3B can provide. Use `/model ollama-mac/qwen2.5:14b-64k` to switch.
-
-**When to use the local 3B directly:** If OpenRouter credits are exhausted or you're offline. Use `/model ollama/qwen2.5-coder:3b`.
+**When to use each:**
+- Stay on `default` (DeepSeek V4 Flash) for 95% of work — it's absurdly cheap and rarely the bottleneck
+- Reach for `slow` (Claude Sonnet) when Flash is genuinely struggling — multi-step logic, complex planning, code review
+- `smol`/`task` routes automatically to local 3B — subagents and quick work never touch paid APIs
+- Tunneled 14B (mac) is the "free but slow" safety net when you're offline or truly out of credits
 
 ### Rebuild Checklist
 1. `alejandra .` (format all .nix files)
