@@ -3,3 +3,5 @@
 result/
 nix/
 bin/results.txt
+# Never commit plain-text secrets or dotenv files
+.env*

@@ -14,6 +14,7 @@
 #
 # Pi agent extensions managed here:
 #   - hermes-ssh.ts — SSH bridge to the Raspberry Pi agent (Hermes)
+#   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
 #   - settings.json — provider, model, and extension defaults
 {
   config,
@@ -44,6 +45,10 @@ in {
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
   # Declarative: edit ~/nixcfg/home/features/pi-agent/hermes-ssh.ts, then rebuild.
   home.file."${extensionDir}/hermes-ssh.ts".source = ./hermes-ssh.ts;
+
+  # Manage ~/.pi/agent/extensions/tavily-web-search.ts — Web search via Tavily API.
+  # Uses TAVILY_API_KEY from /run/secrets/agent-env (sops-managed).
+  home.file."${extensionDir}/tavily-web-search.ts".source = ./tavily-web-search.ts;
 
   # Manage ~/.pi/agent/settings.json — provider config and extension defaults.
   # The `hermes` flag is left unset by default; pass `--hermes` at runtime to
