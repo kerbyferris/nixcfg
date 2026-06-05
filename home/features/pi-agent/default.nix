@@ -38,9 +38,9 @@
     hideThinkingBlock: true
     modelRoles:
       default: opencode-go/deepseek-v4-flash
-      smol: ollama/qwen2.5-coder:3b
-      task: ollama/qwen2.5-coder:3b
-      slow: openrouter/anthropic/claude-sonnet-4.6
+      smol: ollama/qwen2.5-coder:3b:minimal
+      task: ollama/qwen2.5-coder:3b:minimal
+      slow: openrouter/anthropic/claude-sonnet-4.6:high
     memory:
       backend: mnemopi
     mnemopi:
@@ -76,6 +76,7 @@ in {
   # Manage agent skills at ~/.omp/agent/skills/ — instructional markdown files
   # the agent reads on startup to guide its behavior.
   home.file.".omp/agent/skills/pre-commit-hook.skill.md".source = ./pre-commit-hook.skill.md;
+  home.file.".omp/agent/skills/usage-optimizer.skill.md".source = ./usage-optimizer.skill.md;
 
   # Manage ~/.pi/agent/settings.json — provider config and extension defaults.
   # The `hermes` flag is left unset by default; pass `--hermes` at runtime to

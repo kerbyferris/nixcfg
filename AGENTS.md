@@ -99,22 +99,28 @@ To add a new extension: drop the `.ts` file in `home/features/pi-agent/` and add
 
 ### Model Topology
 
-This machine has a four-tier model setup configured in `modelRoles` (`~/.omp/agent/config.yml`):
+This machine has a four-tier model setup with thinking levels configured in `modelRoles` (`~/.omp/agent/config.yml`):
 
-| Role | Model | Provider | When |
-|---|---|---|---|
-| `default` | DeepSeek V4 Flash | `opencode-go` (DeepSeek API) | Daily driver — fast, cheap, excellent |
-| `slow` | Claude Sonnet 4.6 | `openrouter` | Occasional heavy lifting — reasoning ceiling far above Flash |
-| `smol` / `task` | Qwen2.5-Coder-3B | `ollama` (local, RX 580 Vulkan) | Subagents, lightweight tasks, title gen, memory extraction |
-| (manual switch) | Qwen2.5:14b-64k | `ollama-mac` (SSH tunnel → mac) | Free offline-capable fallback when DeepSeek/OpenRouter unavailable |
+| Role | Model | Thinking | Cost/M out | When |
+|---|---|---|---|---|
+| `default` | DeepSeek V4 Flash | default | $0.20 | Daily driver — fast, cheap, excellent |
+| `slow` | Claude Sonnet 4.6 | `:high` | $15.00 | Occasional heavy lifting — reasoning ceiling far above Flash |
+| `smol` / `task` | Qwen2.5-Coder-3B | `:minimal` | $0.00 | Subagents, lightweight tasks, title gen, memory extraction |
+| (manual) | Qwen2.5:14b-64k | default | $0.00 | Free fallback when offline or out of credits |
 
-**To invoke the slow model:** `pi --slow <prompt>` or use `/role slow` inside an active session. Cost is negligible for occasional use — a heavy session with Claude Sonnet runs ~$0.14. Your $5 OpenRouter top-up covers hundreds of such calls.
+Thinking levels trade latency and token cost for reasoning depth: `:minimal` is
+fast and direct (good for subagent boilerplate), `:default` is balanced,
+`:high` spends more tokens on chain-of-thought for hard problems.
 
-**When to use each:**
-- Stay on `default` (DeepSeek V4 Flash) for 95% of work — it's absurdly cheap and rarely the bottleneck
-- Reach for `slow` (Claude Sonnet) when Flash is genuinely struggling — multi-step logic, complex planning, code review
-- `smol`/`task` routes automatically to local 3B — subagents and quick work never touch paid APIs
-- Tunneled 14B (mac) is the "free but slow" safety net when you're offline or truly out of credits
+**To invoke the slow model:** `pi --slow <prompt>` or `/role slow` inside a session.
+
+### Usage Optimizer Skill
+
+The skill at `~/.omp/agent/skills/usage-optimizer.skill.md` instructs agents to
+periodically check OpenRouter spend and rebalance the model topology if the
+actual usage pattern doesn't match expectations. The monthly budget is $5 on
+OpenRouter; the optimizer keeps premium model spend in check by routing
+lightweight work through the free local/tunneled models.
 
 ### Rebuild Checklist
 1. `alejandra .` (format all .nix files)
