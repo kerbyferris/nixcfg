@@ -16,6 +16,8 @@
 #   - hermes-ssh.ts — SSH bridge to the Raspberry Pi agent (Hermes)
 #   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
 #   - pre-commit-hook.skill.md — Skill to install pre-commit secret scanner
+#   - ollama-tunnel — systemd user service: SSH tunnel to mac's ollama (qwen2.5:14b-64k)
+#     via autossh, exposing the remote model server at localhost:11435 for explicit discovery
 #   - settings.json — provider, model, and extension defaults
 {
   config,
@@ -36,13 +38,32 @@
     hideThinkingBlock: true
     modelRoles:
       default: opencode-go/deepseek-v4-flash
+      smol: ollama/qwen2.5-coder:3b
+      task: ollama/qwen2.5-coder:3b
     memory:
       backend: mnemopi
     mnemopi:
       scoping: per-project-tagged
       noEmbeddings: true
   '';
+
+  # Seed models.yml for ~/.omp/agent/models.yml — registers mac's ollama at the tunnel port.
+  seedModels = pkgs.writeText "omp-models-seed" ''
+    # Seeded by home-manager — mac's ollama via SSH tunnel (localhost:11435).
+    # Local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
+    providers:
+      ollama-mac:
+        baseUrl: http://127.0.0.1:11435
+        api: openai-responses
+        auth: none
+        discovery:
+          type: ollama
+  '';
 in {
+  # autossh is required for the persistent SSH tunnel to mac's ollama
+  home.packages = with pkgs; [
+    autossh
+  ];
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
   # Declarative: edit ~/nixcfg/home/features/pi-agent/hermes-ssh.ts, then rebuild.
   home.file."${extensionDir}/hermes-ssh.ts".source = ./hermes-ssh.ts;
@@ -72,10 +93,30 @@ in {
     # };
   };
 
+  # Manage ~/.omp/agent/models.yml — registers the mac ollama provider (via SSH tunnel).
+  # The local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
+  home.file.".omp/agent/models.yml".source = seedModels;
+
   # ~/.omp/agent/config.yml is NOT managed via home.file (it must be writable
   # at runtime for provider settings from /login). Instead, the activation
   # script seeds it on first install and ensures memory config on subsequent
   # rebuilds without overwriting runtime changes.
+  systemd.user.services.ollama-tunnel = {
+    Unit = {
+      Description = "SSH tunnel to mac ollama (qwen2.5:14b-64k)";
+      After = ["network.target"];
+      Wants = ["network.target"];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -L 11435:localhost:11434 mac -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=accept-new";
+      Restart = "always";
+      RestartSec = 10;
+    };
+    Install = {
+      WantedBy = ["default.target"];
+    };
+  };
   home.activation.ensureAgentConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
     cfg="$HOME/.omp/agent/config.yml"
     if [ ! -f "$cfg" ] || [ -L "$cfg" ]; then

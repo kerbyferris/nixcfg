@@ -97,6 +97,25 @@ PI agent extensions live in `home/features/pi-agent/`:
 To add a new extension: drop the `.ts` file in `home/features/pi-agent/` and add a
 `home.file` entry in `default.nix`. Then rebuild.
 
+### Model Topology
+
+This machine has a three-tier model setup configured in `modelRoles` (`~/.omp/agent/config.yml`):
+
+| Role | Model | Provider | When |
+|---|---|---|---|
+| `default` | DeepSeek V4 Flash | `opencode-go` (OpenRouter) | Main assistant work — most capable option |
+| `smol` / `task` | Qwen2.5-Coder-3B | `ollama` (local, RX 580 Vulkan) | Subagents, lightweight tasks, title gen, memory extraction |
+| (manual switch) | Qwen2.5:14b-64k | `ollama-mac` (SSH tunnel → mac) | When you need more capability than 3B but credits are low |
+
+**Why local 3B for smol/task:**
+- **Fast** — 20-40 tok/s on the RX 580 with zero network latency, vs tunneled 14B which adds 50-100ms RTT before the first token
+- **Always available** — smol/task calls should not depend on the mac being awake or the tunnel being up
+- **Appropriate** — exploration, basic code, summarization, and subagent work don't need 14B-level reasoning
+
+**When to use the tunneled 14B:** When a problem genuinely needs more reasoning power than the 3B can provide. Use `/model ollama-mac/qwen2.5:14b-64k` to switch.
+
+**When to use the local 3B directly:** If OpenRouter credits are exhausted or you're offline. Use `/model ollama/qwen2.5-coder:3b`.
+
 ### Rebuild Checklist
 1. `alejandra .` (format all .nix files)
 2. `sudo nixos-rebuild switch --flake .#nixos --impure`

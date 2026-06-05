@@ -101,6 +101,16 @@
     #media-session.enable = true;
   };
 
+  # Local ollama server with Qwen2.5-Coder-3B for subagent/lightweight tasks.
+  # Uses Vulkan acceleration via the RX 580 eGPU (RADV driver from Mesa).
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-vulkan;
+    loadModels = [
+      "qwen2.5-coder:3b"
+    ];
+  };
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
