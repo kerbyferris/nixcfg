@@ -22,15 +22,25 @@
   ...
 }: let
   extensionDir = "${config.home.homeDirectory}/.pi/agent/extensions";
+
+  # Seed config for ~/.omp/agent/config.yml — used on first install only.
+  # After that the agent owns the file; rebuilds only ensure memory config.
+  seedConfig = pkgs.writeText "omp-config-seed" ''
+    # Seeded by home-manager — agent may modify at runtime.
+    symbolPreset: nerd
+    theme:
+      dark: dark-gruvbox
+    setupVersion: 1
+    hideThinkingBlock: true
+    modelRoles:
+      default: opencode-go/deepseek-v4-flash
+    memory:
+      backend: local
+  '';
 in {
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
   # Declarative: edit ~/nixcfg/home/features/pi-agent/hermes-ssh.ts, then rebuild.
   home.file."${extensionDir}/hermes-ssh.ts".source = ./hermes-ssh.ts;
-
-  # Manage ~/.omp/agent/config.yml — agent runtime settings (theme, models, memory).
-  # WARNING: runtime edits to this file are overwritten on the next nixos-rebuild.
-  # To make permanent changes, edit home/features/pi-agent/omp-config.yml and rebuild.
-  home.file.".omp/agent/config.yml".source = ./omp-config.yml;
 
   # Manage ~/.pi/agent/settings.json — provider config and extension defaults.
   # The `hermes` flag is left unset by default; pass `--hermes` at runtime to
@@ -48,4 +58,17 @@ in {
     #   hermes = "";
     # };
   };
+
+  # ~/.omp/agent/config.yml is NOT managed via home.file (it must be writable
+  # at runtime for provider settings from /login). Instead, the activation
+  # script seeds it on first install and ensures memory config on subsequent
+  # rebuilds without overwriting runtime changes.
+  home.activation.ensureAgentConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
+    cfg="$HOME/.omp/agent/config.yml"
+    if [ ! -f "$cfg" ] || [ -L "$cfg" ]; then
+      cp -f ${seedConfig} "$cfg" && chmod 644 "$cfg"
+    elif ! ${pkgs.gnugrep}/bin/grep -q 'memory:' "$cfg" 2>/dev/null; then
+      printf '\nmemory:\n  backend: local\n' >> "$cfg"
+    fi
+  '';
 }
