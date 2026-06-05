@@ -35,7 +35,10 @@
     modelRoles:
       default: opencode-go/deepseek-v4-flash
     memory:
-      backend: local
+      backend: mnemopi
+    mnemopi:
+      scoping: per-project-tagged
+      noEmbeddings: true
   '';
 in {
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
@@ -67,8 +70,12 @@ in {
     cfg="$HOME/.omp/agent/config.yml"
     if [ ! -f "$cfg" ] || [ -L "$cfg" ]; then
       cp -f ${seedConfig} "$cfg" && chmod 644 "$cfg"
-    elif ! ${pkgs.gnugrep}/bin/grep -q 'memory:' "$cfg" 2>/dev/null; then
-      printf '\nmemory:\n  backend: local\n' >> "$cfg"
+    elif ! ${pkgs.gnugrep}/bin/grep -q 'backend: mnemopi' "$cfg" 2>/dev/null; then
+      # Migrate existing config from 'local' backend to mnemopi
+      ${pkgs.gnused}/bin/sed -i '/^memory:/,/^[a-z]/ { /^memory:/d; s/backend:.*/  backend: mnemopi/; }' "$cfg"
+      if ! ${pkgs.gnugrep}/bin/grep -q '^mnemopi:' "$cfg" 2>/dev/null; then
+        printf '\nmnemopi:\n  scoping: per-project-tagged\n  noEmbeddings: true\n' >> "$cfg"
+      fi
     fi
   '';
 }
