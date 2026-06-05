@@ -4,5 +4,6 @@
     video-editing.enable = true;
     freecad.enable = false;
     amd-egpu.enable = true;
+    sops.enable = true;
   };
 }

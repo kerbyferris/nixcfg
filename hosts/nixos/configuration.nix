@@ -11,6 +11,10 @@
     ./hardware-configuration.nix
   ];
 
+  # SOPS secret management — decrypts secrets at boot via sops-nix
+  sops.defaultSopsFile = ./secrets/secrets.yaml;
+  sops.secrets."agent-env" = {};
+
   # Additional hardware config for tap to click
   hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";
   hardware.graphics = {
@@ -142,6 +146,8 @@
     libdrm
     intel-gmmlib
     tailscale
+    nixd
+    bash-language-server
   ];
 
   environment.sessionVariables.VA_DRIVERS_PATH = "/nix/store/7wpjbidyx1g9algql7jvzm00lzjrwaw6-intel-media-driver-25.1.4/lib/dri/";

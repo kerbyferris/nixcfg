@@ -66,6 +66,23 @@ in {
       "hyprdynamicmonitors/hyprconfigs/laptop-only.conf".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.conf;
       "hyprdynamicmonitors/hyprconfigs/dual-monitor.conf".source = ./hyprdynamicmonitors/hyprconfigs/dual-monitor.conf;
       "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
+      "hypr/scripts/cycle-next-fullscreen.sh" = {
+        text = ''
+          #!/usr/bin/env bash
+          # Cycle to next window preserving fullscreen/maximize state
+          data=$(hyprctl activewindow -j 2>/dev/null || echo '{"fullscreen":0}')
+          fs=''${data#*'"fullscreen":'}
+          fs=''${fs:0:1}
+          if [ "$fs" != "0" ]; then
+            mode=$((fs - 1))
+            hyprctl dispatch cyclenext
+            hyprctl dispatch fullscreenstate 1 "$mode"
+          else
+            hyprctl dispatch cyclenext
+          fi
+        '';
+        executable = true;
+      };
     };
 
     systemd.user.services.hyprdynamicmonitors = {
@@ -221,6 +238,7 @@ in {
         misc = {
           force_default_wallpaper = -1;
           disable_hyprland_logo = true;
+          disable_splash_rendering = true;
         };
 
         # INPUT
@@ -272,9 +290,10 @@ in {
 
           "$mainMod, m, fullscreen, 1"
           # "$mainMod, m, fullscreenstate, 0 2" # Original commented out
-          "$mainMod, TAB, cyclenext"
-          ", PRINT, exec, hyprshot -m window"
+          "$mainMod, TAB, exec, ~/.config/hypr/scripts/cycle-next-fullscreen.sh"
+          ", PRINT, exec, hyprshot -m output"
           "shift, PRINT, exec, hyprshot -m region"
+          "ctrl, PRINT, exec, hyprshot -m window"
           "$mainMod, h, movefocus, l"
           "$mainMod, l, movefocus, r"
           "$mainMod, k, movefocus, u"

@@ -24,6 +24,37 @@ Module layout:
 
 Key import chain: `hosts/users/kerby.nix` → `../../../home/kerby/${hostName}.nix` → `../common` + `../features/**` + `./home.nix`
 
+### SOPS Secrets
+
+API keys and secrets are managed via [sops-nix](https://github.com/Mic92/sops-nix)
+using age encryption derived from SSH keys.
+
+- **Edit a secret**: `cd ~/nixcfg && nix run nixpkgs#sops hosts/nixos/secrets/secrets.yaml`
+  This opens the encrypted file in `$EDITOR`. On save, sops re-encrypts for all
+  authorized recipients defined in `.sops.yaml`.
+- **Add a new secret**: Declare it in `sops.secrets.<name>` in
+  `hosts/nixos/configuration.nix` and add the key to `secrets.yaml` via the edit
+  command above.
+- **Add a recipient**: Generate an age public key from an SSH key, add it to
+  `.sops.yaml`, then re-encrypt existing files with
+  `nix run nixpkgs#sops -- updatekeys hosts/nixos/secrets/secrets.yaml`.
+- **Decrypted paths**: Secrets appear at `/run/secrets/<name>`, owned by
+  `root:root` with mode `0400`. Use `sops.secrets.<name>.owner` to change
+  ownership (requires the user/group to already exist at activation time).
+- **Key files**:
+  - Admin age identity: `~/.config/sops/age/keys.txt` (derived from
+    `~/.ssh/id_ed25519` via `ssh-to-age`)
+  - Machine identity: `/etc/ssh/ssh_host_ed25519_key` (imported automatically by
+    `sops-install-secrets` at boot)
+
+Usage pattern for a systemd service that needs env vars:
+```nix
+sops.secrets."agent-env" = {};
+systemd.services.my-service = {
+  serviceConfig.EnvironmentFile = [ config.sops.secrets."agent-env".path ];
+};
+```
+
 ## Conventions
 
 - State version locked to **24.11** for both NixOS and Home Manager. Do not bump without explicit instruction.

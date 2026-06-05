@@ -1,6 +1,7 @@
 {...}: {
   imports = [
     ../common
+    ../features/pi-agent
     ../features/audio
     ../features/cli
     ../features/desktop

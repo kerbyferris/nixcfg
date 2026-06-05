@@ -75,6 +75,7 @@
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
     targets = {
       gtk.enable = true;
+      kmscon.enable = false;
       nixvim.enable = false;
       qt.enable = lib.mkForce false;
     };

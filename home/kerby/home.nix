@@ -52,10 +52,22 @@ in {
     gruvbox-gtk-theme
     # gruvbox-plus-icons
     papirus-icon-theme
-    pi-coding-agent
   ];
 
   home.file.".icons/default".source = "${pkgs.vanilla-dmz}/share/icons/Vanilla-DMZ";
+
+  # LSP config for the Oh My Pi coding agent
+  home.file."nixcfg/.omp/lsp.json".text = builtins.toJSON {
+    servers = {
+      nixd = {
+        settings = {
+          nixd = {
+            formatting.command = ["alejandra" "--quiet"];
+          };
+        };
+      };
+    };
+  };
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -66,10 +78,11 @@ in {
 
   home.sessionPath = [
     "$HOME/bin:$HOME/.cargo/bin"
+    "$HOME/.local/bin"
   ];
 
   gtk = {
-    gtk4.theme = null;
+    gtk4.theme = lib.mkForce null;
     iconTheme = {
       package = pkgs.papirus-icon-theme;
       name = "Papirus";

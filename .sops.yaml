@@ -1,0 +1,9 @@
+keys:
+  - &admin_kerby age1qxez76npyjdelh0x49trx2fycx5yrezskkv6q73eav28yfkygs5srep228
+  - &host_nixos age194zgt8ex3mhp7rcaauad97s7c96hts4t27ec9dn2aefc9eddfc8sxdq2w9
+creation_rules:
+  - path_regex: hosts/nixos/secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_kerby
+          - *host_nixos

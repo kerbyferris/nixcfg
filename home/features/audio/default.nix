@@ -11,7 +11,7 @@ in {
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       bitwig-studio6
-      vcv-rack
+      # vcv-rack # broken in current nixpkgs: patch URL 404s
     ];
 
     xdg.desktopEntries."com.bitwig.BitwigStudio" = {

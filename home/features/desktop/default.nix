@@ -21,8 +21,8 @@
     dropbox
     esptool
     fstl
-    gemini-cli
-    # claude-code
+    llm-agents.gemini-cli
+    llm-agents.claude-code
     google-chrome
     hydrus
     kew
@@ -31,9 +31,11 @@
     nwg-look
     obs-studio
     obsidian
+    llm-agents.pi
+    llm-agents.omp
     ollama
     openai-whisper
-    opencode
+    llm-agents.opencode
     openocd
     openscad
     orca-slicer # using flatpak until the webgtk issue is sorted

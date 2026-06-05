@@ -15,7 +15,31 @@
     probe-rs-tools
     tldr
     yt-dlp
+    bun
   ];
+
+  # programs.pi-coding-agent = {
+  #   enable = true;
+  #
+  #   # package = inputs.pi-flake.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  #
+  #   mutableDir = true;
+  #
+  #   models = {
+  #     providers = {
+  #       my-provider = {
+  #         # baseUrl = "https://api.openai.com/v1";
+  #         # api = "openai-completions";
+  #         # apiKey = "sk-...";
+  #         # models = [{id = "gpt-4o";}];
+  #       };
+  #     };
+  #   };
+  #
+  #   extensions = [
+  #     "npm:pi-subagents"
+  #   ];
+  # };
 
   programs.zoxide = {
     enable = true;
@@ -84,7 +108,6 @@
       bind-key -r C-h select-window -t :-\n
       bind-key -r C-l select-window -t :+\n
       setw -g mode-keys vi
-      set -g extended-keys on
       ";
   };
 

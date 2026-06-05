@@ -14,6 +14,10 @@
       url = "github:Jas-SinghFSU/HyprPanel";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,6 +30,8 @@
     fh.url = "https://flakehub.com/f/DeterminateSystems/fh/*.tar.gz";
     # tagstudio.url = "github:TagStudioDev/TagStudio";
     hyprdynamicmonitors.url = "github:fiffeek/hyprdynamicmonitors";
+    # pi-flake.url = "github:ChauDucToan/pi-flake";
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
   outputs = {
@@ -35,6 +41,8 @@
     nixpkgs,
     stylix,
     hyprdynamicmonitors,
+    sops-nix,
+    llm-agents,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -52,7 +60,9 @@
         # Create a nixpkgs instance for the given system and apply our overlay to it.
         pkgs = import nixpkgs {
           localSystem.system = system;
-          overlays = [self.overlays.additions];
+          overlays = [
+            self.overlays.additions
+          ];
           config.allowUnfree = true;
         };
       in {
@@ -70,7 +80,8 @@
           determinate.nixosModules.default
           stylix.nixosModules.stylix
           home-manager.nixosModules.default
-          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications];}
+          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.modifications inputs.llm-agents.overlays.default];}
+          sops-nix.nixosModules.sops
         ];
       };
     };
