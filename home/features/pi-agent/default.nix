@@ -12,9 +12,10 @@
 # ~/nixcfg/ and rebuild — never edit files under ~/.pi/, ~/.config/, or other
 # runtime paths directly. Direct edits will be overwritten on the next rebuild.
 #
-# Pi agent extensions managed here:
+# Pi agent extensions and skills managed here:
 #   - hermes-ssh.ts — SSH bridge to the Raspberry Pi agent (Hermes)
 #   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
+#   - pre-commit-hook.skill.md — Skill to install pre-commit secret scanner
 #   - settings.json — provider, model, and extension defaults
 {
   config,
@@ -49,6 +50,10 @@ in {
   # Manage ~/.pi/agent/extensions/tavily-web-search.ts — Web search via Tavily API.
   # Uses TAVILY_API_KEY from /run/secrets/agent-env (sops-managed).
   home.file."${extensionDir}/tavily-web-search.ts".source = ./tavily-web-search.ts;
+
+  # Manage agent skills at ~/.omp/agent/skills/ — instructional markdown files
+  # the agent reads on startup to guide its behavior.
+  home.file.".omp/agent/skills/pre-commit-hook.skill.md".source = ./pre-commit-hook.skill.md;
 
   # Manage ~/.pi/agent/settings.json — provider config and extension defaults.
   # The `hermes` flag is left unset by default; pass `--hermes` at runtime to
