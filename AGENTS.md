@@ -31,3 +31,24 @@ Key import chain: `hosts/users/kerby.nix` → `../../../home/kerby/${hostName}.n
 - `specialArgs.{inputs, outputs}` is passed to all NixOS modules — `inputs` and `outputs` are available in module arguments
 - Custom packages are exported for 5 systems (`x86_64-linux`, `aarch64-linux`, `i686-linux`, `x86_64-darwin`, `aarch64-darwin`) but only `x86_64-linux` is actually used
 - `allowUnfree = true` is set in the flake's package exports
+
+## Declarative Configuration
+
+**All changes to this machine's configuration must be made by editing Nix files
+under ~/nixcfg/ and running `sudo nixos-rebuild switch --flake .#nixos`.** Never
+edit files under ~/.pi/, ~/.config/, ~/.local/, or other runtime paths directly —
+those are managed by Nix/home-manager and will be overwritten on the next rebuild.
+
+### Agent Extensions
+
+PI agent extensions live in `home/features/pi-agent/`:
+- `default.nix` — home-manager module: manages ~/.pi/agent/extensions/ and settings.json
+- `hermes-ssh.ts` — SSH bridge to the Raspberry Pi (Hermes). Activate with `pi --hermes`
+
+To add a new extension: drop the `.ts` file in `home/features/pi-agent/` and add a
+`home.file` entry in `default.nix`. Then rebuild.
+
+### Rebuild Checklist
+1. `alejandra .` (format all .nix files)
+2. `sudo nixos-rebuild switch --flake .#nixos --impure`
+3. Fix any errors before making further changes
