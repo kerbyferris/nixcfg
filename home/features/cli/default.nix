@@ -98,6 +98,7 @@
     clock24 = true;
     customPaneNavigationAndResize = true;
     extraConfig = "
+      set -g default-terminal 'tmux-256color'
       set -g status-bg '#333333'\n
       set -g status-fg white\n
       set -g status-right '#(echo $USER) @ #H '\n
@@ -168,6 +169,8 @@
       # fullscreen = true;
       window-decoration = false;
       font-size = 11;
+      mouse-scroll-multiplier = 1;
+      term = "xterm-256color";
     };
   };
   programs.kitty = {
