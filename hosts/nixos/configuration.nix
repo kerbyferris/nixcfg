@@ -5,7 +5,17 @@
   pkgs,
   lib,
   ...
-}: {
+}: let
+  # Minimal allow-all seccomp profile for podman (development default)
+  # Podman's compiled-in path /usr/share/containers/seccomp.json is
+  # inaccessible on NixOS because /usr/share has root-only permissions.
+  # We create it at boot via systemd-tmpfiles.
+  podmanSeccomp = pkgs.writeText "seccomp.json" (builtins.toJSON {
+    defaultAction = "SCMP_ACT_ALLOW";
+    archMap = [];
+    syscalls = [];
+  });
+in {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -96,6 +106,53 @@
     # If you want to use JACK applications, uncomment this
     jack.enable = true;
 
+    wireplumber.extraConfig."99-bitwig-priority" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [
+            {"node.name" = "~alsa_output.usb-Bitwig_GmbH_Bitwig_Connect.*";}
+          ];
+          actions = {
+            "update-props" = {
+              "priority.session" = 2000;
+            };
+          };
+        }
+      ];
+    };
+
+    wireplumber.extraScripts."blender-routing.lua" = ''
+      local log = Log.open_topic("s-blender-routing")
+      local cutils = require("common-utils")
+
+      -- iterate all sinks to find WH-1000XM4 by nick
+      local function route_to_hp(node)
+        local om = ObjectManager { Interest { type = "node",
+          Constraint { "media.class", "=", "Audio/Sink" },
+        }}
+        om:activate()
+        for sink in om:iterate { type = "SiLinkable" } do
+          local nick = sink.properties["node.nick"]
+          if nick and nick:find("WH%-1000XM4") then
+            local meta = cutils.get_default_metadata_object()
+            if meta then
+              meta:set(node:get_id(), "target.object", tostring(sink:get_id()))
+              log:info("Routed Blender to WH-1000XM4")
+            end
+            break
+          end
+        end
+      end
+
+      local b_om = ObjectManager {
+        Interest { type = "node",
+          Constraint { "node.name", "=", ".blender-wrapped" },
+        },
+      }
+      b_om:connect("object-added", function(_, node) route_to_hp(node) end)
+      b_om:activate()
+    '';
+
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
     #media-session.enable = true;
@@ -111,8 +168,43 @@
     ];
   };
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  # Podman — daemonless container runtime (Docker-compatible)
+  # Used by work-os for containerized dev/deploy workflow
+  virtualisation.podman = {
+    enable = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
+  # Point podman at our Nix-managed seccomp profile (used at runtime)
+  virtualisation.containers.containersConf.settings = {
+    engine.seccomp_profile = "${podmanSeccomp}";
+  };
+  # Podman's compiled-in seccomp path is /usr/share/containers/seccomp.json.
+  # On NixOS, /usr/share has 0700 permissions (security hardening), which
+  # prevents non-root processes from checking the default path. We relax
+  # this so podman can verify its default seccomp profile exists.
+  systemd.tmpfiles.settings."podman-seccomp" = {
+    "/usr/share".d = {
+      mode = "0755";
+      user = "root";
+      group = "root";
+    };
+    "/usr/share/containers".d = {
+      mode = "0755";
+      user = "root";
+      group = "root";
+    };
+    "/usr/share/containers/seccomp.json".f = {
+      mode = "0644";
+      user = "root";
+      group = "root";
+      argument = builtins.toJSON {
+        defaultAction = "SCMP_ACT_ALLOW";
+        archMap = [];
+        syscalls = [];
+      };
+    };
+  };
 
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
@@ -154,6 +246,7 @@
     intel-media-driver
     libva
     # libva-intel-gpu
+    podman-compose # drop-in replacement for docker-compose
     libva-utils
     ffmpeg
     libdrm
@@ -192,6 +285,15 @@
 
   # Enable Tailscale
   services.tailscale.enable = true;
+  # Syncthing — peer-to-peer file sync (runs as kerby, discoverable on LAN + Tailscale)
+  services.syncthing = {
+    enable = true;
+    user = "kerby";
+    group = "users";
+    dataDir = "/home/kerby/.local/share/syncthing";
+    configDir = "/home/kerby/.config/syncthing";
+    openDefaultPorts = true;
+  };
 
   # Networking
   # Enable SSH access in from Tailscale network 22
