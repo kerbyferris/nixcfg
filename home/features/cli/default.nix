@@ -53,6 +53,15 @@
     extraOptions = ["-l" "--icons" "--git" "-a"];
   };
 
+  # programs.bash isn't enabled (user's default shell is zsh via oh-my-zsh),
+  # but tmux may shell-out to bash — source agent-env there too.
+  home.sessionVariablesExtra = ''
+    # Source sops-managed env vars for all login shells
+    if [ -r /run/secrets/agent-env ]; then
+      . /run/secrets/agent-env
+    fi
+  '';
+
   programs.bat.enable = true;
 
   programs.btop = {
@@ -131,6 +140,11 @@
       mac = {
         hostname = "192.168.1.89";
         user = "kerby";
+      };
+      pixel3xl = {
+        hostname = "192.168.1.100";
+        user = "u0_a235";
+        port = 8022;
       };
     };
   };
