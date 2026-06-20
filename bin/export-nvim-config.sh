@@ -52,7 +52,7 @@ return {
   { "folke/which-key.nvim", lazy = false },
   { "folke/trouble.nvim", lazy = false },
   { "folke/todo-comments.nvim", lazy = false },
-  { "folke/fidget.nvim", lazy = false },
+  { "j-hui/fidget.nvim", lazy = false },
   { "nvim-tree/nvim-web-devicons", lazy = false },
   { "nvim-neo-tree/neo-tree.nvim", dependencies = { "MunifTanjim/nui.nvim", "nvim-lua/plenary.nvim", "nvim-tree/nvim-web-devicons" }, lazy = false },
   { "echasnovski/mini.nvim", lazy = false },
