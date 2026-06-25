@@ -58,7 +58,9 @@
   home.sessionVariablesExtra = ''
     # Source sops-managed env vars for all login shells
     if [ -r /run/secrets/agent-env ]; then
+      set -a
       . /run/secrets/agent-env
+      set +a
     fi
   '';
 
@@ -165,7 +167,11 @@
     };
     # Source sops-managed env vars (API keys, etc.) if available
     initContent = ''
-      test -r /run/secrets/agent-env && source /run/secrets/agent-env
+      if [ -r /run/secrets/agent-env ]; then
+        set -a
+        . /run/secrets/agent-env
+        set +a
+      fi
     '';
     shellAliases = {
       up = "ping 8.8.8.8";
