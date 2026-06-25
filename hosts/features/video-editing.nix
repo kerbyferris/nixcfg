@@ -47,7 +47,7 @@ in {
     '';
 
     environment.systemPackages = with pkgs; [
-      # kdePackages.kdenlive
+      kdePackages.kdenlive
       wineWow64Packages.stable
       wine
       (wine.override {wineBuild = "wine64";})
@@ -68,7 +68,27 @@ in {
       # virtualbox
       # qemu
       virt-manager
+      (bottles.override {removeWarningPopup = true;})
+      cifs-utils
       # quickemu
     ];
+
+    # Mount T7 Shield from Hermes (Raspberry Pi) Samba share
+    fileSystems."/mnt/t7-shield" = {
+      device = "//192.168.1.67/T7-Shield";
+      fsType = "cifs";
+      options = [
+        "guest"
+        "uid=1000"
+        "gid=100"
+        "iocharset=utf8"
+        "noexec"
+        "nofail"
+        "noatime"
+        "_netdev"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=300"
+      ];
+    };
   };
 }
