@@ -73,6 +73,14 @@ in {
     "i915.enable_fbc=0"
   ];
 
+  # Roland TR-09 ("Boutique", 0582:01cf): its playback + capture endpoints are
+  # implicit-feedback coupled; on recent kernels opening both (duplex) fails
+  # with "Incompatible EP setup for 0x8e". SKIP_IMPLICIT_FB (bit 18 = 0x40000)
+  # decouples them so full duplex works in Bitwig (10 in / 2 out @ 44.1kHz).
+  boot.extraModprobeConfig = ''
+    options snd-usb-audio vid=0x0582 pid=0x01cf quirk_flags=0x40000
+  '';
+
   networking.hostName = "nixos"; # Define your hostname.
 
   # Enable sound with pipewire.

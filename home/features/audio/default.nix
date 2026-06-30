@@ -59,6 +59,7 @@ in {
 
     xdg.configFile = {
       "pipewire/pipewire.conf.d/10-virtual-sinks.conf".source = ./pipewire/pipewire.conf.d/10-virtual-sinks.conf;
+      "pipewire/pipewire.conf.d/20-clock-rates.conf".source = ./pipewire/pipewire.conf.d/20-clock-rates.conf;
     };
 
     programs.zsh = {
