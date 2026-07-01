@@ -67,5 +67,8 @@ in {
         vcvrack = "env -u WAYLAND_DISPLAY Rack";
       };
     };
+
+    # Point Blender to system fonts from NixOS
+    home.sessionVariables.BLENDER_SYSTEM_FONTS = "/etc/profiles/per-user/kerby/share/fonts";
   };
 }

@@ -14,6 +14,7 @@
         "hyprland/window"
     ],
     "modules-right": [
+        "custom/clipboard",
         //"mpd",
         //"idle_inhibitor",
         "pulseaudio",
@@ -207,6 +208,11 @@
 			"suspend": "systemctl suspend",
 			"hibernate": "systemctl hibernate"
 		}
+    },
+    "custom/clipboard": {
+        "format": "  ",
+        "on-click": "cliphist list | rofi -dmenu -p 'Clipboard' -display-columns 2 | cliphist decode | wl-copy",
+        "tooltip": false
     }
 }
 

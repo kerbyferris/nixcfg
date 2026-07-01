@@ -36,6 +36,7 @@ in {
       awww
       waybar
       wl-clipboard
+      cliphist
       xwayland
     ];
 
@@ -124,7 +125,7 @@ in {
 
       settings = {
         # Hyprland's internal variables (defined with $ in hyprland.conf)
-        "$mainMod" = "ALT";
+        "$mainMod" = "SUPER";
         "$terminal" = "ghostty";
         # "$terminal" = "kitty";
         "$fileManager" = "nautilus";
@@ -154,6 +155,7 @@ in {
         # AUTOSTART
         "exec-once" = [
           "$terminal" # Hyprland will substitute its $terminal variable
+          "wl-paste --watch cliphist store &"
           "nm-applet & blueman-applet"
           "~/.config/waybar/launch.sh & swaync"
 
@@ -163,10 +165,11 @@ in {
           "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:w[tv1]'"
           "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:f[1]'"
           "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:f[1]'"
-          "hyprctl keyword windowrulev2 'fullscreenstate 0 1, class:^(firefox|zen-beta)$'"
           "hyprctl keyword windowrulev2 'suppressevent maximize, class:.*'"
           "hyprctl keyword windowrulev2 'nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0'"
           "hyprctl keyword windowrulev2 'tile,class:(eagle.exe)'"
+          # Suppress blank Wine explorer.exe windows to the special (hidden) workspace
+          "hyprctl keyword windowrulev2 'workspace special,class:(explorer.exe)'"
         ];
 
         # LOOK AND FEEL
@@ -224,6 +227,16 @@ in {
         workspace = [
           "w[tv1], gapsout:0, gapsin:0"
           "f[1], gapsout:0, gapsin:0"
+        ];
+
+        # Window rules — v3 format (Hyprland 0.55+)
+        windowrule = [
+          "match:class (blender), tile 1, min_size 600 400"
+          # Catch Blender's built-in file browser by title
+          "match:title Blender File View, tile 1, min_size 800 600"
+          "match:initial_title Blender File View, tile 1, min_size 800 600"
+          # Zen Browser — keep video fullscreen within window (like Chrome)
+          "match:class (zen-beta), fullscreen_state 0 1"
         ];
 
         dwindle = {
@@ -284,6 +297,7 @@ in {
           "$mainMod, x, exit,"
           "$mainMod, f, exec, $fileManager"
           "$mainMod, V, togglefloating,"
+          "$mainMod SHIFT, V, exec, cliphist list | rofi -dmenu -p \"Clipboard\" -display-columns 2 | cliphist decode | wl-copy"
           "$mainMod, SPACE, exec, $menu"
           "$mainMod SHIFT, m, exec, rofi -show window"
           "$mainMod, P, pseudo," # dwindle

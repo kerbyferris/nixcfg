@@ -33,12 +33,13 @@
     obsidian
     llm-agents.pi
     llm-agents.omp
+    llm-agents.hermes-desktop
     ollama
     openai-whisper
     llm-agents.opencode
     openocd
-    openscad
-    orca-slicer # using flatpak until the webgtk issue is sorted
+    # openscad
+    # orca-slicer # via Flatpak — nixpkg links webkitgtk 2.52 which crashes the Device tab; Flatpak runtime ships a working webkitgtk
     pavucontrol
     pdfarranger
     prusa-slicer
@@ -47,6 +48,7 @@
     rpi-imager
     signal-desktop
     steam-run
+    syncthing
     telegram-desktop
     # tidal-hifi
     todoist-electron

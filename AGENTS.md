@@ -8,6 +8,32 @@
 
 There is no CI, no lint step, and no test suite. A successful `nixos-rebuild switch` is the only validation.
 
+### Future fix — drop the `--impure` flag
+
+Every rebuild needs `--impure` because `overlays/default.nix:7-9` sets the
+`bitwig-connect-control-panel` package's `src` to an absolute path **outside the flake**:
+
+    src = /home/kerby/.local/share/nixcfg-vendor/bitwig-connect-control-panel-1.0.deb;
+
+Nix pure evaluation forbids absolute paths to files outside the flake, so a plain
+`nixos-rebuild switch --flake .#nixos` fails: "access to absolute path ... forbidden
+in pure evaluation mode". `--impure` lifts that restriction. The vendored `.deb`
+lives in `~/.local/share/nixcfg-vendor/` (outside the repo by design; `.gitignore:2`
+also ignores a `vendor/` copy). Annoying but not blocking.
+
+To make plain (pure) rebuilds work, pick one:
+
+1. **`pkgs.requireFile`** (recommended, least disruptive) — the standard NixOS idiom
+   for non-redistributable software. Build prompts for the local path; stays pure.
+   `bitwig-studio` itself is commonly packaged this way.
+2. **Fixed-output hash** — `fetchurl` over `file://` + `sha256`. Pure *and*
+   integrity-checked, but recompute the hash if the `.deb` ever changes.
+3. **Track the `.deb` in the flake** — un-ignore `vendor/bitwig-connect-control-panel-1.0.deb`,
+   commit it, reference via a relative path. Works but commits a binary to git.
+
+Offending references: `overlays/default.nix:7-9` (the `src =` assignment) and
+`pkgs/bitwig-connect-control-panel.nix:44` (`inherit src;`).
+
 ## Architecture
 
 Flake-based NixOS + Home Manager config for the `nixos` laptop. Home Manager is used *only* as a NixOS module — there is no standalone `home-manager switch`.
@@ -96,17 +122,16 @@ PI agent extensions live in `home/features/pi-agent/`:
 
 To add a new extension: drop the `.ts` file in `home/features/pi-agent/` and add a
 `home.file` entry in `default.nix`. Then rebuild.
-
 ### Model Topology
 
 This machine has a four-tier model setup with thinking levels configured in `modelRoles` (`~/.omp/agent/config.yml`):
 
-| Role | Model | Thinking | Cost/M out | When |
+|Role|Model|Thinking|Cost/M out|When|
 |---|---|---|---|---|
-| `default` | DeepSeek V4 Flash | default | $0.20 | Daily driver — fast, cheap, excellent |
-| `slow` | Claude Sonnet 4.6 | `:high` | $15.00 | Occasional heavy lifting — reasoning ceiling far above Flash |
-| `smol` / `task` | Qwen2.5-Coder-3B | `:minimal` | $0.00 | Subagents, lightweight tasks, title gen, memory extraction |
-| (manual) | Qwen2.5:14b-64k | default | $0.00 | Free fallback when offline or out of credits |
+|`default`|DeepSeek V4 Pro (via Command Code)|default|~$0.20|Daily driver — capable via aggregated API|
+|`slow`|Claude Sonnet 4.6|`:high`|$15.00|Occasional heavy lifting — reasoning ceiling far above Flash|
+|`smol` / `task`|Qwen2.5-Coder-3B|`:minimal`|$0.00|Subagents, lightweight tasks, title gen, memory extraction|
+|(manual)|Qwen2.5:14b-64k|default|$0.00|Free fallback when offline or out of credits|
 
 Thinking levels trade latency and token cost for reasoning depth: `:minimal` is
 fast and direct (good for subagent boilerplate), `:default` is balanced,

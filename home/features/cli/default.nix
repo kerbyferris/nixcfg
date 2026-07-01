@@ -148,6 +148,10 @@
         user = "u0_a235";
         port = 8022;
       };
+      proxmox = {
+        hostname = "192.168.1.200";
+        user = "root";
+      };
     };
   };
 

@@ -15,10 +15,14 @@
 # Pi agent extensions and skills managed here:
 #   - hermes-ssh.ts — SSH bridge to the Raspberry Pi agent (Hermes)
 #   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
+#   - pi-commandcode-provider — Command Code API provider (COMMANDCODE_API_KEY)
 #   - pre-commit-hook.skill.md — Skill to install pre-commit secret scanner
 #   - ollama-tunnel — systemd user service: SSH tunnel to mac's ollama (qwen2.5:14b-64k)
 #     via autossh, exposing the remote model server at localhost:11435 for explicit discovery
-#   - settings.json — provider, model, and extension defaults
+#
+# ~/.pi/agent/settings.json is NOT managed via home.file (it must be writable
+# at runtime for provider settings). The activation script seeds it on first
+# install without overwriting runtime changes, same as ~/.omp/agent/config.yml.
 {
   config,
   lib,
@@ -26,18 +30,21 @@
   ...
 }: let
   extensionDir = "${config.home.homeDirectory}/.pi/agent/extensions";
+  ompExtensionDir = "${config.home.homeDirectory}/.omp/agent/extensions";
 
   # Seed config for ~/.omp/agent/config.yml — used on first install only.
   # After that the agent owns the file; rebuilds only ensure memory config.
   seedConfig = pkgs.writeText "omp-config-seed" ''
     # Seeded by home-manager — agent may modify at runtime.
+    extensions:
+      - /home/kerby/.omp/agent/extensions/commandcode-omp.ts
     symbolPreset: nerd
     theme:
       dark: dark-gruvbox
     setupVersion: 1
     hideThinkingBlock: true
     modelRoles:
-      default: opencode-go/deepseek-v4-flash
+      default: commandcode/deepseek/deepseek-v4-flash:high
       smol: ollama/qwen2.5-coder:3b:minimal
       task: ollama/qwen2.5-coder:3b:minimal
       slow: openrouter/anthropic/claude-sonnet-4.6:high
@@ -46,6 +53,15 @@
     mnemopi:
       scoping: per-project-tagged
       noEmbeddings: true
+  '';
+
+  # Seed settings for ~/.pi/agent/settings.json — used on first install only.
+  seedSettings = pkgs.writeText "pi-settings-seed" ''
+    {
+      "defaultProvider": "openrouter",
+      "defaultModel": "openrouter/free",
+      "defaultThinkingLevel": "high"
+    }
   '';
 
   # Seed models.yml for ~/.omp/agent/models.yml — registers mac's ollama at the tunnel port.
@@ -73,28 +89,36 @@ in {
   # Uses TAVILY_API_KEY from /run/secrets/agent-env (sops-managed).
   home.file."${extensionDir}/tavily-web-search.ts".source = ./tavily-web-search.ts;
 
+  # Manage ~/.pi/agent/extensions/pi-commandcode-provider/ — Command Code API provider.
+  # Symlinked as a subdirectory with package.json (pi.extensions), so pi auto-discovers
+  # it in extensions/ (unlike node_modules/ which is skipped during auto-discovery).
+  # Uses COMMANDCODE_API_KEY from /run/secrets/agent-env (sops-managed).
+  home.file."${extensionDir}/pi-commandcode-provider".source = pkgs.pi-commandcode-provider;
+
+  # Manage ~/.omp/agent/settings.json — OMP settings including extension paths.
+  # The extensions array tells OMP to load the commandcode provider explicitly.
+  home.file.".omp/agent/settings.json".text = ''
+    {
+      "extensions": ["/home/kerby/.omp/agent/extensions/commandcode-omp.ts"]
+    }
+  '';
+  # OMP-compatible Command Code provider extension — avoids the legacy-pi-ai-shim
+  # incompatibility in the Nix-packaged omp binary.
+  home.file.".omp/agent/extensions/commandcode-omp.ts".source = ./commandcode-omp.ts;
+
   # Manage agent skills at ~/.omp/agent/skills/ — instructional markdown files
   # the agent reads on startup to guide its behavior.
   home.file.".omp/agent/skills/pre-commit-hook.skill.md".source = ./pre-commit-hook.skill.md;
   home.file.".omp/agent/skills/usage-optimizer.skill.md".source = ./usage-optimizer.skill.md;
 
-  # Manage ~/.pi/agent/settings.json — provider config and extension defaults.
-  # The `hermes` flag is left unset by default; pass `--hermes` at runtime to
-  # activate the SSH bridge. To make it persistent, add it to `flags` below.
-  home.file.".pi/agent/settings.json".text = builtins.toJSON {
-    # Extensions in auto-discovered paths are hot-reloadable with /reload
-
-    # Provider defaults (set manually or via /login)
-    defaultProvider = "openrouter";
-    defaultModel = "openrouter/free";
-    defaultThinkingLevel = "high";
-
-    # Uncomment to always activate Hermes bridge on startup:
-    # flags = {
-    #   hermes = "";
-    # };
+  # Manage ~/.omp/agent/keybindings.json — overrides default keybindings.
+  # Setting "app.exit": [] unbinds Ctrl+D from "exit when editor is empty" so
+  # that Ctrl+D behaves as delete-char-forward (the default Emacs/Readline
+  # binding) instead of accidentally killing the session. Exit via Ctrl+C twice
+  # or /quit.
+  home.file.".omp/agent/keybindings.json".text = builtins.toJSON {
+    "app.exit" = [];
   };
-
   # Manage ~/.omp/agent/models.yml — registers the mac ollama provider (via SSH tunnel).
   # The local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
   home.file.".omp/agent/models.yml".source = seedModels;
@@ -129,6 +153,11 @@ in {
       if ! ${pkgs.gnugrep}/bin/grep -q '^mnemopi:' "$cfg" 2>/dev/null; then
         printf '\nmnemopi:\n  scoping: per-project-tagged\n  noEmbeddings: true\n' >> "$cfg"
       fi
+    fi
+    # Seed ~/.pi/agent/settings.json on first install (must be writable at runtime)
+    pisettings="$HOME/.pi/agent/settings.json"
+    if [ ! -f "$pisettings" ] || [ -L "$pisettings" ]; then
+      cp -f ${seedSettings} "$pisettings" && chmod 644 "$pisettings"
     fi
   '';
 }
