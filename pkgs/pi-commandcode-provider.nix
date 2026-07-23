@@ -24,6 +24,14 @@ buildNpmPackage rec {
     hash = "sha256-gmoaugROC8e4u7Mq7dl/kkWoYq9SwmEg7E9tUa/+TZQ=";
   };
 
+  # Command Code API rejects `null` for these optional fields; must be empty strings
+  postPatch = ''
+    substituteInPlace src/core.ts \
+      --replace-fail 'memory: null,' 'memory: "",' \
+      --replace-fail 'taste: null,' 'taste: "",' \
+      --replace-fail 'skills: null,' 'skills: "",'
+  '';
+
   # Pure TypeScript source — pi loads .ts files via tsx at runtime, no build step
   buildPhase = "true";
 

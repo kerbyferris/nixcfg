@@ -155,9 +155,9 @@ export default async function (pi: ExtensionAPI) {
               gitStatus: "",
               recentCommits: [],
             },
-            memory: null,
-            taste: null,
-            skills: null,
+            memory: "",
+            taste: "",
+            skills: "",
             params: {
               model: model.id,
               messages: msgs,

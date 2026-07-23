@@ -214,6 +214,14 @@ in {
     };
   };
 
+  # Flatpak's glycin-svg loader uses `flatpak-spawn --sandbox prlimit …` to
+  # restrict memory of the SVG icon loader. On NixOS, prlimit is not at
+  # /usr/bin/prlimit, so the sandboxed process fails silently, GTK hits a
+  # fatal icon assertion, and the app crashes (observed: Bambu Studio).
+  systemd.tmpfiles.rules = [
+    "L+    /usr/bin/prlimit   -    -    -     -    ${pkgs.util-linux}/bin/prlimit"
+  ];
+
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "kerby";

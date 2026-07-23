@@ -105,23 +105,26 @@ in {
   # OMP-compatible Command Code provider extension — avoids the legacy-pi-ai-shim
   # incompatibility in the Nix-packaged omp binary.
   home.file.".omp/agent/extensions/commandcode-omp.ts".source = ./commandcode-omp.ts;
+  # Manage ~/.omp/agent/commands/huly.md — file-based slash command for issue triage.
+  home.file.".omp/agent/commands/huly.md".source = ./huly.md;
 
   # Manage agent skills at ~/.omp/agent/skills/ — instructional markdown files
   # the agent reads on startup to guide its behavior.
   home.file.".omp/agent/skills/pre-commit-hook.skill.md".source = ./pre-commit-hook.skill.md;
   home.file.".omp/agent/skills/usage-optimizer.skill.md".source = ./usage-optimizer.skill.md;
-
-  # Manage ~/.omp/agent/keybindings.json — overrides default keybindings.
-  # Setting "app.exit": [] unbinds Ctrl+D from "exit when editor is empty" so
-  # that Ctrl+D behaves as delete-char-forward (the default Emacs/Readline
-  # binding) instead of accidentally killing the session. Exit via Ctrl+C twice
-  # or /quit.
+  home.file.".omp/agent/skills/huly-triage.skill.md".source = ./huly-triage.skill.md;
   home.file.".omp/agent/keybindings.json".text = builtins.toJSON {
     "app.exit" = [];
   };
   # Manage ~/.omp/agent/models.yml — registers the mac ollama provider (via SSH tunnel).
   # The local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
   home.file.".omp/agent/models.yml".source = seedModels;
+  # Manage ~/bin/huly — CLI for quick Huly issue lookup from the terminal.
+  # Installed as a script so it's in PATH for ad-hoc issue triage.
+  home.file."bin/huly" = {
+    source = ./huly-cli.cjs;
+    executable = true;
+  };
 
   # ~/.omp/agent/config.yml is NOT managed via home.file (it must be writable
   # at runtime for provider settings from /login). Instead, the activation

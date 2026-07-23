@@ -184,6 +184,8 @@
       grep = "rg";
       ps = "procs";
       clean = "nix-collect-garbage -d";
+      pixel-kbd-on = "adb shell pm enable com.android.inputmethod.latin";
+      pixel-kbd-off = "adb shell pm disable-user --user 0 com.android.inputmethod.latin";
     };
   };
 

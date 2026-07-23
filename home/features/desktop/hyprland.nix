@@ -143,11 +143,9 @@ in {
         };
 
         # ENVIRONMENT VARIABLES (set within Hyprland's scope)
-        # These are from your `env = ...` lines
         env = [
-          "GDK_SCALE,0.66667" # Original was .66667, using 0. for clarity
           "XCURSOR_SIZE,24"
-          "HYPRCURSOR_SIZE,24" # This was duplicated in original, included once
+          "HYPRCURSOR_SIZE,24"
           "WLR_NO_HARDWARE_CURSORS,1"
           "MOZ_ENABLE_WAYLAND, 1"
         ];
@@ -236,7 +234,7 @@ in {
           "match:title Blender File View, tile 1, min_size 800 600"
           "match:initial_title Blender File View, tile 1, min_size 800 600"
           # Zen Browser — keep video fullscreen within window (like Chrome)
-          "match:class (zen-beta), fullscreen_state 0 1"
+          "match:class (zen-beta), fullscreen_state 1 2"
         ];
 
         dwindle = {

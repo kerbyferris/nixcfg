@@ -9,7 +9,7 @@
   home.packages = with pkgs; [
     android-tools
     arduino-ide
-    # bambu-studio # network plugin woes
+    bambu-studio # replaces Flatpak version which crashes on NixOS (glycin sandbox DBus issue)
     blender
     # bottles
     # calibre

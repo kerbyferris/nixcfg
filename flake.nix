@@ -80,7 +80,7 @@
           determinate.nixosModules.default
           stylix.nixosModules.stylix
           home-manager.nixosModules.default
-          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.stable-packages outputs.overlays.modifications inputs.llm-agents.overlays.default];}
+          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.stable-packages outputs.overlays.modifications inputs.llm-agents.overlays.shared-nixpkgs];}
           sops-nix.nixosModules.sops
         ];
       };

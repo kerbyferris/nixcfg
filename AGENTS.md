@@ -151,3 +151,27 @@ lightweight work through the free local/tunneled models.
 1. `alejandra .` (format all .nix files)
 2. `sudo nixos-rebuild switch --flake .#nixos --impure`
 3. Fix any errors before making further changes
+
+## Homelab Infrastructure Context
+
+This NixOS machine is part of a broader homelab. Key nodes (all on the same LAN `192.168.1.0/23`):
+
+| Machine | LAN IP | Tailnet IP | Purpose |
+|---|---|---|---|
+| **NixOS** (this workstation) | 192.168.1.66 | 100.65.223.26 | Development workstation, Pi coding agent host |
+| **Proxmox VE** (pve.internal) | 192.168.1.200 | 100.89.21.38 | Hypervisor hosting LXC containers |
+| **CT 101** (`immich`) | 192.168.1.103 | — | Immich photo management |
+| **CT 102** (`huly`) | 192.168.1.250 | — | Huly workspace (Docker Compose, 14 containers) |
+| **CT 103** (`open-webui`) | 192.168.1.107 | — | Open WebUI (Ollama frontend) |
+| **CT 104** (`gateway`) | 192.168.1.106 | 100.73.99.43 | Caddy reverse proxy + Tailscale, serves `media`/`tasks`/`chat`.fruitfruit.studio |
+| **Raspberry Pi** | 192.168.1.67 (also .66) | 100.102.201.53 | Hermes agent, Caddy for Pi-local services (kanban, now, cms, work) |
+| **Mac (bomjardim)** | — | 100.117.4.49 | Ollama server (Qwen3.6:35b) |
+| **VPS (hostinger)** | 82.29.178.198 | 100.127.153.41 | PeerTube + Docker services via Traefik |
+
+**Reverse proxy architecture** (2026-07-01 onwards):
+- **Gateway CT 104** (Caddy + Tailscale, `100.73.99.43`) handles `media.*`, `tasks.*`, `chat.*.fruitfruit.studio` on the Proxmox side
+- **Pi Caddy** handles `now.*`, `kanban.*`, `cms.*`, `work.kerbyandnaomi.com`, `qa.work.kerbyandnaomi.com`, `export.media.*` (Pi-local services)
+- Route53 DNS-01 TLS for all domains via the `acme-dns-route53` IAM policy, creds at both `/etc/caddy/route53.env` (Pi) and `CT 104:/etc/caddy/route53.env`
+- All `*.fruitfruit.studio` A records point to the relevant Tailscale IP (tailnet-only access)
+
+**Pi no longer reverse-proxies for Proxmox services** — if the Pi goes down, `media`, `tasks`, and `chat` remain reachable.

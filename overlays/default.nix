@@ -17,13 +17,22 @@
     winetricks = final.stable.winetricks;
 
     bitwig-studio6 = prev.bitwig-studio6.overrideAttrs (oldAttrs: {
-      version = "6.0.7";
+      version = "6.0.11";
       src = final.fetchurl {
-        name = "bitwig-studio-6.0.7.deb";
-        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.0.7/installer_linux";
-        hash = "sha256-FantrFBb9Tl27mHZ28Mpm4rDQ/Sd2nAevGsKUfInZAI=";
+        name = "bitwig-studio-6.0.11.deb";
+        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.0.11/installer_linux";
+        hash = "sha256-rnr/Z8y6klKrU2gT5/XT+sRryl/HZZZ04n565L0HPEw=";
       };
     });
+
+    # patool 4.0.5 tests fail with nixpkgs-unstable's gnutar/file — MIME detection regressions
+    python3Packages =
+      prev.python3Packages
+      // {
+        patool = prev.python3Packages.patool.overridePythonAttrs (_: {
+          doCheck = false;
+        });
+      };
   };
 
   stable-packages = final: _prev: {
