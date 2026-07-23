@@ -23,10 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # flake-parts.url = "github:hercules-ci/flake-parts";
-    nixvim = {
-      url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixvim.url = "github:nix-community/nixvim";
     fh.url = "https://flakehub.com/f/DeterminateSystems/fh/*.tar.gz";
     # tagstudio.url = "github:TagStudioDev/TagStudio";
     hyprdynamicmonitors.url = "github:fiffeek/hyprdynamicmonitors";
