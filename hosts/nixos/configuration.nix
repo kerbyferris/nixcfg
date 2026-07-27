@@ -2,6 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
+  config,
   pkgs,
   lib,
   ...
@@ -26,6 +27,11 @@ in {
   sops.secrets."agent-env" = {
     owner = "kerby";
     group = "users";
+  };
+  sops.secrets."tailscale-auth-key" = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   # Additional hardware config for tap to click
@@ -310,13 +316,10 @@ in {
     '';
   };
 
-  # Enable Tailscale
+
+  # Enable Tailscale — auto-reconnects via sops-decrypted auth key
   services.tailscale.enable = true;
-  # Auth key for auto-reconnect across reboots and state loss.
-  # Create the key at https://login.tailscale.com/admin/settings/keys
-  # (reusable, tags optional) and drop it in /var/lib/tailscale/authkey
-  # with mode 400 owned by root. Revokable from the admin console.
-  services.tailscale.authKeyFile = "/var/lib/tailscale/authkey";
+  services.tailscale.authKeyFile = config.sops.secrets."tailscale-auth-key".path;
   # Syncthing — peer-to-peer file sync (runs as kerby, discoverable on LAN + Tailscale)
   services.syncthing = {
     enable = true;
