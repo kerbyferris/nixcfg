@@ -272,6 +272,17 @@ in {
     bash-language-server
   ];
 
+  # XDG Portal — required for native file picker in Firefox/Zen on Hyprland
+  xdg.portal = {
+    enable = true;
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    config = {
+      hyprland = {
+        default = ["hyprland" "gtk"];
+        "org.freedesktop.impl.portal.FileChooser" = ["gtk"];
+      };
+    };
+  };
   environment.sessionVariables.VA_DRIVERS_PATH = "/nix/store/7wpjbidyx1g9algql7jvzm00lzjrwaw6-intel-media-driver-25.1.4/lib/dri/";
   # VA_DRIVERS_PATH = "${pkgs.intel-media-driver}/lib/dri"; # This assumes it's always in lib/dri.
 
@@ -301,6 +312,11 @@ in {
 
   # Enable Tailscale
   services.tailscale.enable = true;
+  # Auth key for auto-reconnect across reboots and state loss.
+  # Create the key at https://login.tailscale.com/admin/settings/keys
+  # (reusable, tags optional) and drop it in /var/lib/tailscale/authkey
+  # with mode 400 owned by root. Revokable from the admin console.
+  services.tailscale.authKeyFile = "/var/lib/tailscale/authkey";
   # Syncthing — peer-to-peer file sync (runs as kerby, discoverable on LAN + Tailscale)
   services.syncthing = {
     enable = true;
