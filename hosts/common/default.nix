@@ -49,6 +49,12 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # Disable EDNS0 in resolv.conf: Tailscale's MagicDNS resolver (100.100.100.100)
+  # returns malformed packets for EDNS0 queries, which glibc rejects → sporadic
+  # "server not found" for public domains (e.g. github.com). Plain DNS queries
+  # get clean responses. Upstream bug: https://github.com/tailscale/tailscale/issues/8088
+  networking.resolvconf.dnsExtensionMechanism = false;
+
   # Set your time zone.
   time.timeZone = "Europe/Lisbon";
   # time.timeZone = "Europe/Berlin";
