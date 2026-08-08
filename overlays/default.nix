@@ -33,6 +33,17 @@
           doCheck = false;
         });
       };
+
+    # hyprland 0.56.1 CMake FetchContent tries to download glaze from GitHub,
+    # which fails in the sandbox (no network). Point it at nixpkgs' glaze instead.
+    hyprland = prev.hyprland.overrideAttrs (oldAttrs: {
+      nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [final.git];
+      cmakeFlags =
+        (oldAttrs.cmakeFlags or [])
+        ++ [
+          "-DFETCHCONTENT_SOURCE_DIR_GLAZE=${final.glaze.src}"
+        ];
+    });
   };
 
   stable-packages = final: _prev: {

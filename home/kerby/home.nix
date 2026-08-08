@@ -51,9 +51,19 @@ in {
     montserrat
     noto-fonts-color-emoji
     roboto-mono
-    gruvbox-gtk-theme
     # gruvbox-plus-icons
     poppins
+    # Override gtk.portal to work on Hyprland (not just GNOME)
+    # Without this, portal-gtk never starts and Firefox file dialogs break
+    (pkgs.runCommand "xdg-portal-gtk-hyprland" {} ''
+            mkdir -p $out/share/xdg-desktop-portal/portals
+            cat > $out/share/xdg-desktop-portal/portals/gtk.portal << 'PORTALEOF'
+      [portal]
+      DBusName=org.freedesktop.impl.portal.desktop.gtk
+      Interfaces=org.freedesktop.impl.portal.FileChooser;org.freedesktop.impl.portal.AppChooser;org.freedesktop.impl.portal.Print;org.freedesktop.impl.portal.Notification;org.freedesktop.impl.portal.Inhibit;org.freedesktop.impl.portal.Access;org.freedesktop.impl.portal.Account;org.freedesktop.impl.portal.Email;org.freedesktop.impl.portal.DynamicLauncher;org.freedesktop.impl.portal.Lockdown;org.freedesktop.impl.portal.Settings;org.freedesktop.impl.portal.Wallpaper;
+      UseIn=gnome;Hyprland
+      PORTALEOF
+    '')
     source-sans
     papirus-icon-theme
   ];
@@ -91,7 +101,7 @@ in {
     EDITOR = "nvim";
     NIXOS_OZONE_WL = "1";
     WINEPREFIX = "$HOME/.wine-eagle";
-    WINEARCH = "win64";
+    GTK_USE_PORTAL = "1";
   };
 
   home.sessionPath = [

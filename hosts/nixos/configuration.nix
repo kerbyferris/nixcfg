@@ -28,7 +28,7 @@ in {
     owner = "kerby";
     group = "users";
   };
-  sops.secrets."tailscale-auth-key" = {
+  sops.secrets."TS_AUTH_KEY" = {
     owner = "root";
     group = "root";
     mode = "0400";
@@ -129,6 +129,24 @@ in {
           actions = {
             "update-props" = {
               "priority.session" = 2000;
+            };
+          };
+        }
+      ];
+    };
+
+    wireplumber.extraConfig."98-boutique-resample" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [
+            {"node.name" = "~alsa_input.usb-Roland_Boutique.*";}
+            {"node.name" = "~alsa_output.usb-Roland_Boutique.*";}
+          ];
+          actions = {
+            "update-props" = {
+              "resample.quality" = 14;
+              "resample.n-taps" = 256;
+              "resample.cutoff" = 0.99;
             };
           };
         }
@@ -316,10 +334,9 @@ in {
     '';
   };
 
-
   # Enable Tailscale — auto-reconnects via sops-decrypted auth key
   services.tailscale.enable = true;
-  services.tailscale.authKeyFile = config.sops.secrets."tailscale-auth-key".path;
+  services.tailscale.authKeyFile = config.sops.secrets."TS_AUTH_KEY".path;
   # Syncthing — peer-to-peer file sync (runs as kerby, discoverable on LAN + Tailscale)
   services.syncthing = {
     enable = true;

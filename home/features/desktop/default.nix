@@ -10,9 +10,10 @@
     android-tools
     arduino-ide
     bambu-studio # replaces Flatpak version which crashes on NixOS (glycin sandbox DBus issue)
+    brave
     blender
     # bottles
-    # calibre
+    calibre
     clickup
     code-cursor
     cursor-cli
@@ -27,7 +28,6 @@
     hydrus
     kew
     lmstudio
-    nordic
     nwg-look
     obs-studio
     obsidian
@@ -87,6 +87,26 @@
         ];
         "git.openRepositoryInParentFolders" = "always";
       };
+    };
+  };
+  # Auto-unlock the login keyring with an empty password for auto-login setups.
+  # Without this, Chromium-based browsers (Brave, Chrome) prompt for a keyring
+  # password on every launch because PAM can't pass a login password during
+  # auto-login.
+  systemd.user.services.gnome-keyring-unlock = {
+    Unit = {
+      Description = "Unlock GNOME keyring with empty password for auto-login";
+      After = ["graphical-session.target"];
+      PartOf = ["graphical-session.target"];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'echo \"\" | ${pkgs.gnome-keyring}/bin/gnome-keyring-daemon --replace --daemonize --unlock'";
+      RemainAfterExit = true;
+      KillMode = "process";
+    };
+    Install = {
+      WantedBy = ["graphical-session.target"];
     };
   };
 }

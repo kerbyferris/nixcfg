@@ -8,7 +8,7 @@
     ghostscript
     imagemagick
     kubernetes
-    fastfetch
+    gh
     nix-index
     nmap
     nodejs
@@ -16,6 +16,7 @@
     tldr
     yt-dlp
     bun
+    fastfetch
   ];
 
   # programs.pi-coding-agent = {
@@ -128,7 +129,7 @@
     enableDefaultConfig = false;
     settings = {
       pi = {
-        hostname = "192.168.1.67";
+        hostname = "raspberrypi";
         user = "pi";
       };
       biqu = {
