@@ -10,18 +10,18 @@
 }:
 buildNpmPackage rec {
   pname = "pi-commandcode-provider";
-  version = "0.4.0";
+  version = "0.5.0";
 
   src = fetchFromGitHub {
     owner = "patlux";
     repo = "pi-commandcode-provider";
-    rev = "a35c2b1e8301ce6cae4440a1054b974b87fb54c2";
-    hash = "sha256-puSMHdv9aDoG4KV5ZLBoXfjbQ6gSeZlaUHgWrya7ZfY=";
+    rev = "4b6e1cd85af0481b4a3433d919ceb841363a8ef2";
+    hash = "sha256-Q8QqhEWWUSTneUV9oTKXWch7XTUOoOW1UpqgRtQi14s=";
   };
 
   npmDeps = fetchNpmDeps {
     inherit src;
-    hash = "sha256-gmoaugROC8e4u7Mq7dl/kkWoYq9SwmEg7E9tUa/+TZQ=";
+    hash = "sha256-l0hoR4vpMmV/x9Q8LtCB5/iNCV3t2414j8GkLe1H6ZA=";
   };
 
   # Command Code API rejects `null` for these optional fields; must be empty strings

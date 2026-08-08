@@ -22,11 +22,11 @@ interface Usage {
   cacheWrite: number;
   totalTokens: number;
   reasoningTokens?: number;
-  cost: { total: number };
+  cost: { input: number; output: number; cacheRead: number; cacheWrite: number; total: number };
 }
 
 function defaultUsage(): Usage {
-  return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { total: 0 } };
+  return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 }
 
 async function getApiKey(): Promise<string | undefined> {
@@ -203,10 +203,11 @@ export default async function (pi: ExtensionAPI) {
 
           let buffer = "";
           const decoder = new TextDecoder();
-          let contentIndex = 0;
+          let contentIndex = -1;
           let fullContent = "";
           let usage: Usage = defaultUsage();
           let finished = false;
+          let textStarted = false;
 
           while (true) {
             const { done, value } = await reader.read();
@@ -223,20 +224,33 @@ export default async function (pi: ExtensionAPI) {
                 switch (event.type) {
                   case "text-delta": {
                     const text = typeof event.text === "string" ? event.text : "";
-                    if (text) {
-                      fullContent += text;
+                    if (!text) break;
+                    if (!textStarted) {
+                      textStarted = true;
+                      contentIndex = 0;
                       stream.push({
-                        type: "text_delta",
+                        type: "text_start",
                         contentIndex,
-                        delta: text,
                         partial: {
-                          role: "assistant",
-                          content: [{ type: "text" as const, text: fullContent }],
+                          role: "assistant" as const,
+                          content: [{ type: "text" as const, text: "" }],
                           stopReason: null,
                           usage,
                         },
                       });
                     }
+                    fullContent += text;
+                    stream.push({
+                      type: "text_delta",
+                      contentIndex,
+                      delta: text,
+                      partial: {
+                        role: "assistant" as const,
+                        content: [{ type: "text" as const, text: fullContent }],
+                        stopReason: null,
+                        usage,
+                      },
+                    });
                     break;
                   }
                   case "finish": {
@@ -254,7 +268,7 @@ export default async function (pi: ExtensionAPI) {
                             ?.cacheWriteTokens as number
                         ) ?? 0,
                         totalTokens: (totalUsage.totalTokens as number) ?? 0,
-                        cost: { total: 0 },
+                        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
                       };
                     }
                     finished = true;
@@ -281,16 +295,20 @@ export default async function (pi: ExtensionAPI) {
 
           const msg = {
             role: "assistant" as const,
-            content: [{ type: "text" as const, text: fullContent }],
+            content: textStarted
+              ? [{ type: "text" as const, text: fullContent }]
+              : [],
             stopReason: "stop" as const,
             usage,
           };
-          stream.push({
-            type: "text_end",
-            contentIndex,
-            content: fullContent,
-            partial: msg,
-          });
+          if (textStarted) {
+            stream.push({
+              type: "text_end",
+              contentIndex,
+              content: fullContent,
+              partial: msg,
+            });
+          }
           stream.push({ type: "done", reason: "stop" as const, message: msg });
           stream.end();
         } catch (err: unknown) {
