@@ -109,7 +109,7 @@ export default async function (pi: ExtensionAPI) {
     authHeader: true,
     api: "commandcode-custom",
     streamSimple: function commandCodeStream(
-      model: { id: string },
+      model: { id: string; api?: string; provider?: string; cost?: Record<string, number> },
       messages: { messages?: unknown[] } | unknown[],
       options?: {
         apiKey?: string;
@@ -235,6 +235,9 @@ export default async function (pi: ExtensionAPI) {
                           role: "assistant" as const,
                           content: [{ type: "text" as const, text: "" }],
                           stopReason: null,
+                          model: model.id,
+                          api: model.api ?? "commandcode-custom",
+                          provider: model.provider ?? "commandcode",
                           usage,
                         },
                       });
@@ -248,6 +251,9 @@ export default async function (pi: ExtensionAPI) {
                         role: "assistant" as const,
                         content: [{ type: "text" as const, text: fullContent }],
                         stopReason: null,
+                        model: model.id,
+                        api: model.api ?? "commandcode-custom",
+                        provider: model.provider ?? "commandcode",
                         usage,
                       },
                     });
@@ -299,6 +305,9 @@ export default async function (pi: ExtensionAPI) {
               ? [{ type: "text" as const, text: fullContent }]
               : [],
             stopReason: "stop" as const,
+            model: model.id,
+            api: model.api ?? "commandcode-custom",
+            provider: model.provider ?? "commandcode",
             usage,
           };
           if (textStarted) {
@@ -350,6 +359,7 @@ export default async function (pi: ExtensionAPI) {
       name: m.name ?? m.id,
       context: m.context ?? 1000000,
       maxOutput: m.maxOutput ?? 64000,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     })),
   });
 }
