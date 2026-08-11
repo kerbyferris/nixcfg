@@ -4,6 +4,8 @@
     vidplayvst = final.callPackage ../pkgs/vidplayvst.nix {};
     bitwig-fhs = final.callPackage ../pkgs/bitwig-fhs.nix {};
     pi-commandcode-provider = final.callPackage ../pkgs/pi-commandcode-provider.nix {};
+    immich-go = final.callPackage ../pkgs/immich-go.nix {};
+    omp-commandcode-plugin = final.callPackage ../pkgs/omp-commandcode-plugin.nix {};
     bitwig-connect-control-panel = final.callPackage ../pkgs/bitwig-connect-control-panel.nix {
       src = /home/kerby/.local/share/nixcfg-vendor/bitwig-connect-control-panel-1.0.deb;
     };

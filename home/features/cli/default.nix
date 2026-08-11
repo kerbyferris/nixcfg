@@ -17,6 +17,7 @@
     yt-dlp
     bun
     fastfetch
+    immich-go
   ];
 
   # programs.pi-coding-agent = {

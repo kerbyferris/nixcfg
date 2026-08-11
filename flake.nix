@@ -63,7 +63,7 @@
           config.allowUnfree = true;
         };
       in {
-        inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell bitwig-connect-control-panel pi-commandcode-provider;
+        inherit (pkgs) vidplayvst bitwig-fhs bitwig-debug-shell bitwig-connect-control-panel pi-commandcode-provider immich-go;
       }
     );
 

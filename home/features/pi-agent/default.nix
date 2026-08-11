@@ -15,7 +15,8 @@
 # Pi agent extensions and skills managed here:
 #   - hermes-ssh.ts — SSH bridge to the Raspberry Pi agent (Hermes)
 #   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
-#   - pi-commandcode-provider — Command Code API provider (COMMANDCODE_API_KEY)
+#   - pi-commandcode-provider — Command Code API provider (for pi, old; COMMANDCODE_API_KEY)
+#   - omp-commandcode-plugin — Command Code model provider for OMP (native /login)
 #   - pre-commit-hook.skill.md — Skill to install pre-commit secret scanner
 #   - ollama-tunnel — systemd user service: SSH tunnel to mac's ollama (qwen2.5:14b-64k)
 #     via autossh, exposing the remote model server at localhost:11435 for explicit discovery
@@ -30,14 +31,12 @@
   ...
 }: let
   extensionDir = "${config.home.homeDirectory}/.pi/agent/extensions";
-  ompExtensionDir = "${config.home.homeDirectory}/.omp/agent/extensions";
 
   # Seed config for ~/.omp/agent/config.yml — used on first install only.
   # After that the agent owns the file; rebuilds only ensure memory config.
   seedConfig = pkgs.writeText "omp-config-seed" ''
     # Seeded by home-manager — agent may modify at runtime.
-    extensions:
-      - /home/kerby/.omp/agent/extensions/commandcode-omp.ts
+    extensions: []
     symbolPreset: nerd
     theme:
       dark: dark-gruvbox
@@ -58,23 +57,18 @@
   # Seed settings for ~/.pi/agent/settings.json — used on first install only.
   seedSettings = pkgs.writeText "pi-settings-seed" ''
     {
-      "defaultProvider": "openrouter",
-      "defaultModel": "openrouter/free",
-      "defaultThinkingLevel": "high"
+      "providerSettings": {}
     }
   '';
 
   # Seed models.yml for ~/.omp/agent/models.yml — registers mac's ollama at the tunnel port.
+  # Uses openai-completions because Ollama's /v1 endpoint speaks the OpenAI API format.
+  # OMP 17.2.11 dropped the "ollama" provider API type.
   seedModels = pkgs.writeText "omp-models-seed" ''
-    # Seeded by home-manager — mac's ollama via SSH tunnel (localhost:11435).
-    # Local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
     providers:
-      ollama-mac:
-        baseUrl: http://127.0.0.1:11435
-        api: openai-responses
-        auth: none
-        discovery:
-          type: ollama
+      - id: ollama-mac
+        baseUrl: http://localhost:11435/v1
+        api: openai-completions
   '';
 in {
   # autossh is required for the persistent SSH tunnel to mac's ollama
@@ -89,22 +83,16 @@ in {
   # Uses TAVILY_API_KEY from /run/secrets/agent-env (sops-managed).
   home.file."${extensionDir}/tavily-web-search.ts".source = ./tavily-web-search.ts;
 
-  # Manage ~/.pi/agent/extensions/pi-commandcode-provider/ — Command Code API provider.
-  # Symlinked as a subdirectory with package.json (pi.extensions), so pi auto-discovers
-  # it in extensions/ (unlike node_modules/ which is skipped during auto-discovery).
+  # Manage ~/.pi/agent/extensions/pi-commandcode-provider/ — Command Code API provider (for pi, old).
   # Uses COMMANDCODE_API_KEY from /run/secrets/agent-env (sops-managed).
   home.file."${extensionDir}/pi-commandcode-provider".source = pkgs.pi-commandcode-provider;
 
-  # Manage ~/.omp/agent/settings.json — OMP settings including extension paths.
-  # The extensions array tells OMP to load the commandcode provider explicitly.
-  home.file.".omp/agent/settings.json".text = ''
-    {
-      "extensions": ["/home/kerby/.omp/agent/extensions/commandcode-omp.ts"]
-    }
-  '';
-  # OMP-compatible Command Code provider extension — avoids the legacy-pi-ai-shim
-  # incompatibility in the Nix-packaged omp binary.
-  home.file.".omp/agent/extensions/commandcode-omp.ts".source = ./commandcode-omp.ts;
+  # OMP plugin: oh-my-pi-plugin-command-code — Command Code model provider with
+  # native OAuth /login. Auto-discovered from ~/.omp/plugins/node_modules/ via
+  # the `omp.extensions` field in package.json. No API key in env vars needed.
+  # Model IDs use the `commandcode/<id>` prefix (e.g. commandcode/deepseek/deepseek-v4-flash).
+  home.file.".omp/plugins/node_modules/oh-my-pi-plugin-command-code".source = pkgs.omp-commandcode-plugin;
+
   # Manage ~/.omp/agent/commands/huly.md — file-based slash command for issue triage.
   home.file.".omp/agent/commands/huly.md".source = ./huly.md;
 

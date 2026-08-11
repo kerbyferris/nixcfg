@@ -90,5 +90,42 @@ in {
         "x-systemd.idle-timeout=300"
       ];
     };
+
+    # Mount T7 DaVinci workspace from Proxmox (RW) — video editing, projects, audio
+    fileSystems."/mnt/davinci" = {
+      device = "//192.168.1.200/davinci";
+      fsType = "cifs";
+      options = [
+        "credentials=${config.sops.templates."proxmox-samba-credentials".path}"
+        "uid=1000"
+        "gid=100"
+        "iocharset=utf8"
+        "nofail"
+        "noatime"
+        "_netdev"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=600"
+        "x-systemd.mount-timeout=10"
+      ];
+    };
+
+    # Mount T7 Immich data from Proxmox (RO) — Immich upload library, thumbs, encoded-video
+    fileSystems."/mnt/immich-data" = {
+      device = "//192.168.1.200/immich-data";
+      fsType = "cifs";
+      options = [
+        "credentials=${config.sops.templates."proxmox-samba-credentials".path}"
+        "uid=1000"
+        "gid=100"
+        "iocharset=utf8"
+        "ro"
+        "nofail"
+        "noatime"
+        "_netdev"
+        "x-systemd.automount"
+        "x-systemd.idle-timeout=600"
+        "x-systemd.mount-timeout=10"
+      ];
+    };
   };
 }

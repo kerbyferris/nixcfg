@@ -33,6 +33,26 @@ in {
     group = "root";
     mode = "0400";
   };
+  sops.secrets."proxmox-samba-username" = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+  };
+  sops.secrets."proxmox-samba-password" = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+  };
+  # Credentials file for Proxmox Samba mounts (CIFS expects username= / password= format)
+  sops.templates."proxmox-samba-credentials" = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+    content = ''
+      username=${config.sops.placeholder.proxmox-samba-username}
+      password=${config.sops.placeholder.proxmox-samba-password}
+    '';
+  };
 
   # Additional hardware config for tap to click
   hardware.trackpoint.device = "TPPS/2 Synaptics TrackPoint";
