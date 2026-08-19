@@ -68,8 +68,13 @@ in {
   # Bootloader.
   boot.loader.grub.enable = lib.mkForce false;
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
   # boot.loader.efi.catalogue.enable = true;
+
+  # Back on latest after Linux 7.1.8 boot-loop regression (Aug 2026).
+  # If the splash-loop returns, the regression is back — re-pin to linuxPackages_6_12.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # boot.loader.grub.devices = ["/dev/nvme0n1"];
   # boot.loader.grub.devices = ["nodev"];
@@ -93,10 +98,9 @@ in {
 
   time.hardwareClockInLocalTime = true;
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
   boot.kernelParams = [
     "i915.enable_fbc=0"
+    "acpi.poweroff_on_fatal=0"
   ];
 
   # Roland TR-09 ("Boutique", 0582:01cf): its playback + capture endpoints are
