@@ -121,157 +121,370 @@ in {
 
     wayland.windowManager.hyprland = {
       enable = true;
-      configType = "hyprlang";
+      configType = "lua";
 
       settings = {
-        # Hyprland's internal variables (defined with $ in hyprland.conf)
-        "$mainMod" = "SUPER";
-        "$terminal" = "ghostty";
-        # "$terminal" = "kitty";
-        "$fileManager" = "nautilus";
-        "$menu" = "rofi -show drun --show-icons";
-
-        # MONITORS
-        # Managed by hyprdynamicmonitors
-        source = [
-          "~/.config/hypr/monitors.conf"
-        ];
-
-        # XWAYLAND specific settings (from your xwayland {} block)
-        xwayland = {
-          force_zero_scaling = true;
+        # Lua locals, rendered before everything else. Referenced by name in
+        # `extraConfig` below (e.g. `hl.dsp.exec_cmd(terminal)`).
+        mainMod = {
+          _var = "SUPER";
+        };
+        terminal = {
+          _var = "ghostty";
+        };
+        # terminal = { _var = "kitty"; };
+        fileManager = {
+          _var = "nautilus";
+        };
+        menu = {
+          _var = "rofi -show drun --show-icons";
         };
 
-        # ENVIRONMENT VARIABLES (set within Hyprland's scope)
+        # hl.config(...) — dotted section settings (replaces the hyprlang blocks)
+        config = {
+          # XWAYLAND specific settings
+          xwayland = {
+            force_zero_scaling = true;
+          };
+
+          # LOOK AND FEEL
+          general = {
+            gaps_in = 2;
+            gaps_out = 2;
+            border_size = 0;
+            resize_on_border = false;
+            allow_tearing = false;
+            layout = "dwindle";
+          };
+
+          decoration = {
+            rounding = 6;
+            active_opacity = 1.0;
+            inactive_opacity = 1.0;
+            shadow = {
+              # Corresponds to the shadow {} block
+              enabled = false;
+              range = 4;
+              render_power = 3;
+            };
+          };
+
+          animations = {
+            enabled = true;
+          };
+
+          dwindle = {
+            preserve_split = true;
+            # force_split = 2; # Original commented out
+          };
+
+          master = {
+            new_status = "master";
+          };
+
+          misc = {
+            force_default_wallpaper = -1;
+            disable_hyprland_logo = true;
+            disable_splash_rendering = true;
+          };
+
+          # INPUT
+          input = {
+            kb_layout = "us";
+            # kb_variant = "intl"; # Explicitly empty as in original
+            kb_variant = ""; # Explicitly empty as in original
+            kb_model = ""; # Explicitly empty
+            # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
+            # kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
+            # kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt, altwin:swap_alt_win";
+            kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:rctrl";
+            kb_rules = ""; # Explicitly empty
+            follow_mouse = 1;
+            # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.
+            sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
+            touchpad = {
+              natural_scroll = true;
+            };
+            natural_scroll = true; # This applies to mice if separate from touchpad
+          };
+        };
+
+        # hl.curve(...) — animation curves (2-arg calls)
+        curve = [
+          {
+            _args = [
+              "easeOutQuint"
+              {
+                type = "bezier";
+                points = [
+                  [0.23 1]
+                  [0.32 1]
+                ];
+              }
+            ];
+          }
+          {
+            _args = [
+              "easeInOutCubic"
+              {
+                type = "bezier";
+                points = [
+                  [0.65 0.05]
+                  [0.36 1]
+                ];
+              }
+            ];
+          }
+          {
+            _args = [
+              "linear"
+              {
+                type = "bezier";
+                points = [
+                  [0 0]
+                  [1 1]
+                ];
+              }
+            ];
+          }
+          {
+            _args = [
+              "almostLinear"
+              {
+                type = "bezier";
+                points = [
+                  [0.5 0.5]
+                  [0.75 1.0]
+                ];
+              }
+            ];
+          }
+          {
+            _args = [
+              "quick"
+              {
+                type = "bezier";
+                points = [
+                  [0.15 0]
+                  [0.1 1]
+                ];
+              }
+            ];
+          }
+        ];
+
+        # hl.animation(...)
+        animation = [
+          {
+            leaf = "global";
+            enabled = true;
+            speed = 10;
+            bezier = "default";
+          }
+          {
+            leaf = "border";
+            enabled = true;
+            speed = 5.39;
+            bezier = "easeOutQuint";
+          }
+          {
+            leaf = "windows";
+            enabled = true;
+            speed = 4.79;
+            bezier = "easeOutQuint";
+          }
+          {
+            leaf = "windowsIn";
+            enabled = true;
+            speed = 4.1;
+            bezier = "easeOutQuint";
+            style = "popin 87%";
+          }
+          {
+            leaf = "windowsOut";
+            enabled = true;
+            speed = 1.49;
+            bezier = "linear";
+            style = "popin 87%";
+          }
+          {
+            leaf = "fadeIn";
+            enabled = true;
+            speed = 1.73;
+            bezier = "almostLinear";
+          }
+          {
+            leaf = "fadeOut";
+            enabled = true;
+            speed = 1.46;
+            bezier = "almostLinear";
+          }
+          {
+            leaf = "fade";
+            enabled = true;
+            speed = 3.03;
+            bezier = "quick";
+          }
+          {
+            leaf = "layers";
+            enabled = true;
+            speed = 3.81;
+            bezier = "easeOutQuint";
+          }
+          {
+            leaf = "layersIn";
+            enabled = true;
+            speed = 4;
+            bezier = "easeOutQuint";
+            style = "fade";
+          }
+          {
+            leaf = "layersOut";
+            enabled = true;
+            speed = 1.5;
+            bezier = "linear";
+            style = "fade";
+          }
+          {
+            leaf = "fadeLayersIn";
+            enabled = true;
+            speed = 1.79;
+            bezier = "almostLinear";
+          }
+          {
+            leaf = "fadeLayersOut";
+            enabled = true;
+            speed = 1.39;
+            bezier = "almostLinear";
+          }
+          {
+            leaf = "workspaces";
+            enabled = true;
+            speed = 1.94;
+            bezier = "almostLinear";
+            style = "fade";
+          }
+          {
+            leaf = "workspacesIn";
+            enabled = true;
+            speed = 1.21;
+            bezier = "almostLinear";
+            style = "fade";
+          }
+          {
+            leaf = "workspacesOut";
+            enabled = true;
+            speed = 1.94;
+            bezier = "almostLinear";
+            style = "fade";
+          }
+        ];
+
+        # hl.env(...) — ENVIRONMENT VARIABLES
         env = [
-          "XCURSOR_SIZE,24"
-          "HYPRCURSOR_SIZE,24"
-          "WLR_NO_HARDWARE_CURSORS,1"
-          "MOZ_ENABLE_WAYLAND, 1"
+          {_args = ["XCURSOR_SIZE" "24"];}
+          {_args = ["HYPRCURSOR_SIZE" "24"];}
+          {_args = ["WLR_NO_HARDWARE_CURSORS" "1"];}
+          {_args = ["MOZ_ENABLE_WAYLAND" "1"];}
         ];
 
-        # AUTOSTART
-        "exec-once" = [
-          "$terminal" # Hyprland will substitute its $terminal variable
-          "wl-paste --watch cliphist store &"
-          "nm-applet & blueman-applet"
-          "~/.config/waybar/launch.sh & swaync"
-
-          # WINDOW RULES
-          # Applied dynamically via hyprctl to avoid windowrulev2 deprecation warnings in config
-          "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:w[tv1]'"
-          "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:w[tv1]'"
-          "hyprctl keyword windowrulev2 'bordersize 0, floating:0, onworkspace:f[1]'"
-          "hyprctl keyword windowrulev2 'rounding 0, floating:0, onworkspace:f[1]'"
-          "hyprctl keyword windowrulev2 'suppressevent maximize, class:.*'"
-          "hyprctl keyword windowrulev2 'nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0'"
-          "hyprctl keyword windowrulev2 'tile,class:(eagle.exe)'"
-          # Suppress blank Wine explorer.exe windows to the special (hidden) workspace
-          "hyprctl keyword windowrulev2 'workspace special,class:(explorer.exe)'"
-        ];
-
-        # LOOK AND FEEL
-        general = {
-          gaps_in = 2;
-          gaps_out = 2;
-          border_size = 0;
-          resize_on_border = false;
-          allow_tearing = false;
-          layout = "dwindle";
-        };
-
-        decoration = {
-          rounding = 6;
-          active_opacity = 1.0;
-          inactive_opacity = 1.0;
-          shadow = {
-            # Corresponds to the shadow {} block
-            enabled = false;
-            range = 4;
-            render_power = 3;
-          };
-        };
-
-        animations = {
-          enabled = true; # Original: "yes, please :)" - the "please :)" is a comment
-          bezier = [
-            "easeOutQuint,0.23,1,0.32,1"
-            "easeInOutCubic,0.65,0.05,0.36,1"
-            "linear,0,0,1,1"
-            "almostLinear,0.5,0.5,0.75,1.0"
-            "quick,0.15,0,0.1,1"
-          ];
-          animation = [
-            "global, 1, 10, default"
-            "border, 1, 5.39, easeOutQuint"
-            "windows, 1, 4.79, easeOutQuint"
-            "windowsIn, 1, 4.1, easeOutQuint, popin 87%"
-            "windowsOut, 1, 1.49, linear, popin 87%"
-            "fadeIn, 1, 1.73, almostLinear"
-            "fadeOut, 1, 1.46, almostLinear"
-            "fade, 1, 3.03, quick"
-            "layers, 1, 3.81, easeOutQuint"
-            "layersIn, 1, 4, easeOutQuint, fade"
-            "layersOut, 1, 1.5, linear, fade"
-            "fadeLayersIn, 1, 1.79, almostLinear"
-            "fadeLayersOut, 1, 1.39, almostLinear"
-            "workspaces, 1, 1.94, almostLinear, fade"
-            "workspacesIn, 1, 1.21, almostLinear, fade"
-            "workspacesOut, 1, 1.94, almostLinear, fade"
-          ];
-        };
-
-        # Workspace rules (from `workspace = ...` lines)
-        workspace = [
-          "w[tv1], gapsout:0, gapsin:0"
-          "f[1], gapsout:0, gapsin:0"
-        ];
-
-        # Window rules — v3 format (Hyprland 0.55+)
-        windowrule = [
-          "match:class (blender), tile 1, min_size 600 400"
+        # hl.window_rule(...) — structured rules (replaces hyprlang windowrule
+        # and the old exec-once `hyprctl keyword windowrulev2` workarounds)
+        window_rule = [
+          {
+            match = {class = "(blender)";};
+            tile = true;
+            min_size = "600 400";
+          }
           # Catch Blender's built-in file browser by title
-          "match:title Blender File View, tile 1, min_size 800 600"
-          "match:initial_title Blender File View, tile 1, min_size 800 600"
+          {
+            match = {title = "Blender File View";};
+            tile = true;
+            min_size = "800 600";
+          }
+          {
+            match = {initial_title = "Blender File View";};
+            tile = true;
+            min_size = "800 600";
+          }
           # Zen Browser — keep video fullscreen within window (like Chrome)
-          "match:class (zen-beta), fullscreen_state 1 2"
+          {
+            match = {class = "(zen-beta)";};
+            fullscreen_state = "1 2";
+          }
+          # Suppress maximize requests from all apps
+          {
+            match = {class = ".*";};
+            suppress_event = "maximize";
+          }
+          # Fix dragging issues with XWayland: no focus for blank Wine windows
+          {
+            match = {
+              class = "^$";
+              title = "^$";
+              xwayland = true;
+              float = true;
+              fullscreen = false;
+              pin = false;
+            };
+            no_focus = true;
+          }
+          # Eagle (Wine) — force tiling
+          {
+            match = {class = "(eagle.exe)";};
+            tile = true;
+          }
+          # Suppress blank Wine explorer.exe windows to the special (hidden) workspace
+          {
+            match = {class = "(explorer.exe)";};
+            workspace = "special";
+          }
+          # Smart gaps: no gaps/borders on w[tv1] and f[1] workspaces
+          {
+            match = {
+              float = false;
+              workspace = "w[tv1]";
+            };
+            border_size = 0;
+          }
+          {
+            match = {
+              float = false;
+              workspace = "w[tv1]";
+            };
+            rounding = 0;
+          }
+          {
+            match = {
+              float = false;
+              workspace = "f[1]";
+            };
+            border_size = 0;
+          }
+          {
+            match = {
+              float = false;
+              workspace = "f[1]";
+            };
+            rounding = 0;
+          }
         ];
 
-        dwindle = {
-          preserve_split = true;
-          # force_split = 2; # Original commented out
-        };
+        # hl.workspace_rule(...)
+        workspace_rule = [
+          {
+            workspace = "w[tv1]";
+            gaps_out = 0;
+            gaps_in = 0;
+          }
+          {
+            workspace = "f[1]";
+            gaps_out = 0;
+            gaps_in = 0;
+          }
+        ];
 
-        master = {
-          new_status = "master";
-        };
-
-        misc = {
-          force_default_wallpaper = -1;
-          disable_hyprland_logo = true;
-          disable_splash_rendering = true;
-        };
-
-        # INPUT
-        input = {
-          kb_layout = "us";
-          # kb_variant = "intl"; # Explicitly empty as in original
-          kb_variant = ""; # Explicitly empty as in original
-          kb_model = ""; # Explicitly empty
-          # kb_options = "ctrl:nocaps, altwin:swap_alt_win, compose:ralt"; # From your original config
-          # kb_options = "ctrl:nocaps, lv3:ralt_alt, altwin:swap_lalt_lwin, compose:ralt";
-          # kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:ralt, altwin:swap_alt_win";
-          kb_options = "ctrl:nocaps, lv3:ralt_alt, compose:rctrl";
-          kb_rules = ""; # Explicitly empty
-          follow_mouse = 1;
-          # sensitivity = -0.5; # -1.0 - 1.0, 0 means no modification.
-          sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
-          touchpad = {
-            natural_scroll = true;
-          };
-          natural_scroll = true; # This applies to mice if separate from touchpad
-        };
-
+        # hl.device(...)
         device = {
           name = "cx-2.4g-receiver-mouse";
           sensitivity = -0.7;
@@ -280,97 +493,121 @@ in {
         # gestures = {
         #   workspace_swipe = false;
         # };
-
-        # KEYBINDINGS
-        # Note: $mainMod, $terminal, etc. are Hyprland variables defined above.
-        # The script `~/dotfiles/waybar/launch.sh` needs to exist at that path.
-        # For better reproducibility, consider managing this script with Nix as well,
-        # e.g., by placing it in `${config.xdg.configHome}/hypr/scripts/launch.sh`
-        # and referencing that path.
-        bind = [
-          "$mainMod SHIFT, B, exec, ~/.config/waybar/launch.sh"
-          "$mainMod SHIFT, R, exec, hyprctl reload"
-          "$mainMod, RETURN, exec, $terminal"
-          "$mainMod, C, killactive,"
-          "$mainMod, x, exit,"
-          "$mainMod, f, exec, $fileManager"
-          "$mainMod, V, togglefloating,"
-          "$mainMod SHIFT, V, exec, cliphist list | rofi -dmenu -p \"Clipboard\" -display-columns 2 | cliphist decode | wl-copy"
-          "$mainMod, SPACE, exec, $menu"
-          "$mainMod SHIFT, m, exec, rofi -show window"
-          "$mainMod, P, pseudo," # dwindle
-
-          "$mainMod, m, fullscreen, 1"
-          # "$mainMod, m, fullscreenstate, 0 2" # Original commented out
-          "$mainMod, TAB, exec, ~/.config/hypr/scripts/cycle-next-fullscreen.sh"
-          ", PRINT, exec, hyprshot -m output"
-          "shift, PRINT, exec, hyprshot -m region"
-          "ctrl, PRINT, exec, hyprshot -m window"
-          "$mainMod, h, movefocus, l"
-          "$mainMod, l, movefocus, r"
-          "$mainMod, k, movefocus, u"
-          "$mainMod, j, movefocus, d"
-          "$mainMod, 1, workspace, 1"
-          "$mainMod, 2, workspace, 2"
-          "$mainMod, 3, workspace, 3"
-          "$mainMod, 4, workspace, 4"
-          "$mainMod, 5, workspace, 5"
-          "$mainMod, 6, workspace, 6"
-          "$mainMod, 7, workspace, 7"
-          "$mainMod, 8, workspace, 8"
-          "$mainMod, 9, workspace, 9"
-          "$mainMod, 0, workspace, 10"
-          "$mainMod SHIFT, 1, movetoworkspace, 1"
-          "$mainMod SHIFT, 2, movetoworkspace, 2"
-          "$mainMod SHIFT, 3, movetoworkspace, 3"
-          "$mainMod SHIFT, 4, movetoworkspace, 4"
-          "$mainMod SHIFT, 5, movetoworkspace, 5"
-          "$mainMod SHIFT, 6, movetoworkspace, 6"
-          "$mainMod SHIFT, 7, movetoworkspace, 7"
-          "$mainMod SHIFT, 8, movetoworkspace, 8"
-          "$mainMod SHIFT, 9, movetoworkspace, 9"
-          "$mainMod SHIFT, 0, movetoworkspace, 10"
-          "$mainMod, S, togglespecialworkspace, magic"
-          "$mainMod SHIFT, S, movetoworkspace, special:magic"
-          "$mainMod, mouse_down, workspace, e+1"
-          "$mainMod, mouse_up, workspace, e-1"
-          "$mainMod SHIFT, h, resizeactive, -10 0"
-          "$mainMod SHIFT, l, resizeactive, 10 0"
-          "$mainMod SHIFT, k, resizeactive, 0 10"
-          "$mainMod SHIFT, j, resizeactive, 0 -10"
-          "$mainMod ALT, h, movewindow, l"
-          "$mainMod ALT, l, movewindow, r"
-          "$mainMod ALT, k, movewindow, u"
-          "$mainMod ALT, j, movewindow, d"
-        ];
-
-        bindm = [
-          # Mouse bindings
-          "$mainMod, mouse:272, movewindow"
-          "$mainMod, mouse:273, resizewindow"
-        ];
-
-        bindel = [
-          # Laptop multimedia keys (no repeat)
-          ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-          ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-          ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-          ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-          ",XF86MonBrightnessUp, exec, brightnessctl s 10%+"
-          ",XF86MonBrightnessDown, exec, brightnessctl s 10%-"
-        ];
-
-        bindl = [
-          # Keys with lock (repeat)
-          ", XF86AudioNext, exec, playerctl next"
-          ", XF86AudioPause, exec, playerctl play-pause"
-          ", XF86AudioPlay, exec, playerctl play-pause"
-          ", XF86AudioPrev, exec, playerctl previous"
-        ];
-
-        # WINDOWS AND WORKSPACES RULES
-        # Applied via exec-once to avoid windowrulev2 deprecation warnings in config
       };
+
+      extraConfig = ''
+        -- Dynamic monitors: hyprdynamicmonitors writes hyprlang-style lines to
+        -- ~/.config/hypr/monitors.conf (e.g. `monitor = DP-1,2560x1440@59.95,0x0,1`
+        -- or `monitor = eDP-1,disable`). Lua mode has no `source` directive, so
+        -- translate that file into hl.monitor(...) calls here. `hyprctl reload`
+        -- (run by hyprdynamicmonitors' post_apply_exec) re-runs this file, which
+        -- picks up the new profile on lid/external-monitor changes.
+        do
+          local f = io.open(os.getenv("HOME") .. "/.config/hypr/monitors.conf", "r")
+          if f then
+            for line in f:lines() do
+              local output, rest = line:match("^%s*monitor%s*=%s*([^,]+),%s*(.-)%s*$")
+              if output then
+                output = output:gsub("%s+$", "")
+                if rest == "disable" then
+                  hl.monitor({ output = output, disabled = true })
+                else
+                  local mode, position, scale = rest:match("^([^,]*),%s*([^,]*),%s*([^,]*)$")
+                  local t = { output = output }
+                  if mode and mode ~= "" then t.mode = mode end
+                  if position and position ~= "" then t.position = position end
+                  if scale and scale ~= "" then t.scale = scale end
+                  hl.monitor(t)
+                end
+              end
+            end
+            f:close()
+          end
+        end
+
+        -- AUTOSTART
+        hl.on("hyprland.start", function()
+          hl.exec_cmd(terminal)
+          hl.exec_cmd("wl-paste --watch cliphist store &")
+          hl.exec_cmd("nm-applet & blueman-applet")
+          hl.exec_cmd("~/.config/waybar/launch.sh & swaync")
+        end)
+
+        -- KEYBINDINGS
+        -- mainMod, terminal, fileManager, menu are the locals from `settings`.
+        -- The script ~/.config/waybar/launch.sh is managed by Nix.
+        hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("~/.config/waybar/launch.sh"))
+        hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
+        hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
+        hl.bind(mainMod .. " + C", hl.dsp.window.close())
+        hl.bind(mainMod .. " + x", hl.dsp.exit())
+        hl.bind(mainMod .. " + f", hl.dsp.exec_cmd(fileManager))
+        hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
+        hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd([[cliphist list | rofi -dmenu -p "Clipboard" -display-columns 2 | cliphist decode | wl-copy]]))
+        hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
+        hl.bind(mainMod .. " + SHIFT + m", hl.dsp.exec_cmd("rofi -show window"))
+        hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
+        hl.bind(mainMod .. " + m", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+        -- "$mainMod, m, fullscreenstate, 0 2" # Original commented out
+        hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("~/.config/hypr/scripts/cycle-next-fullscreen.sh"))
+        hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m output"))
+        hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("hyprshot -m region"))
+        hl.bind("CTRL + PRINT", hl.dsp.exec_cmd("hyprshot -m window"))
+        hl.bind(mainMod .. " + h", hl.dsp.focus({ direction = "left" }))
+        hl.bind(mainMod .. " + l", hl.dsp.focus({ direction = "right" }))
+        hl.bind(mainMod .. " + k", hl.dsp.focus({ direction = "up" }))
+        hl.bind(mainMod .. " + j", hl.dsp.focus({ direction = "down" }))
+        hl.bind(mainMod .. " + 1", hl.dsp.focus({ workspace = 1 }))
+        hl.bind(mainMod .. " + 2", hl.dsp.focus({ workspace = 2 }))
+        hl.bind(mainMod .. " + 3", hl.dsp.focus({ workspace = 3 }))
+        hl.bind(mainMod .. " + 4", hl.dsp.focus({ workspace = 4 }))
+        hl.bind(mainMod .. " + 5", hl.dsp.focus({ workspace = 5 }))
+        hl.bind(mainMod .. " + 6", hl.dsp.focus({ workspace = 6 }))
+        hl.bind(mainMod .. " + 7", hl.dsp.focus({ workspace = 7 }))
+        hl.bind(mainMod .. " + 8", hl.dsp.focus({ workspace = 8 }))
+        hl.bind(mainMod .. " + 9", hl.dsp.focus({ workspace = 9 }))
+        hl.bind(mainMod .. " + 0", hl.dsp.focus({ workspace = 10 }))
+        hl.bind(mainMod .. " + SHIFT + 1", hl.dsp.window.move({ workspace = 1 }))
+        hl.bind(mainMod .. " + SHIFT + 2", hl.dsp.window.move({ workspace = 2 }))
+        hl.bind(mainMod .. " + SHIFT + 3", hl.dsp.window.move({ workspace = 3 }))
+        hl.bind(mainMod .. " + SHIFT + 4", hl.dsp.window.move({ workspace = 4 }))
+        hl.bind(mainMod .. " + SHIFT + 5", hl.dsp.window.move({ workspace = 5 }))
+        hl.bind(mainMod .. " + SHIFT + 6", hl.dsp.window.move({ workspace = 6 }))
+        hl.bind(mainMod .. " + SHIFT + 7", hl.dsp.window.move({ workspace = 7 }))
+        hl.bind(mainMod .. " + SHIFT + 8", hl.dsp.window.move({ workspace = 8 }))
+        hl.bind(mainMod .. " + SHIFT + 9", hl.dsp.window.move({ workspace = 9 }))
+        hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
+        hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("magic"))
+        hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+        hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+        hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
+        hl.bind(mainMod .. " + SHIFT + h", hl.dsp.window.resize({ x = -10, y = 0, relative = true }))
+        hl.bind(mainMod .. " + SHIFT + l", hl.dsp.window.resize({ x = 10, y = 0, relative = true }))
+        hl.bind(mainMod .. " + SHIFT + k", hl.dsp.window.resize({ x = 0, y = 10, relative = true }))
+        hl.bind(mainMod .. " + SHIFT + j", hl.dsp.window.resize({ x = 0, y = -10, relative = true }))
+        hl.bind(mainMod .. " + ALT + h", hl.dsp.window.move({ direction = "left" }))
+        hl.bind(mainMod .. " + ALT + l", hl.dsp.window.move({ direction = "right" }))
+        hl.bind(mainMod .. " + ALT + k", hl.dsp.window.move({ direction = "up" }))
+        hl.bind(mainMod .. " + ALT + j", hl.dsp.window.move({ direction = "down" }))
+
+        -- Mouse bindings (hyprlang bindm)
+        hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
+        hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
+        -- Laptop multimedia keys (hyprlang bindel: locked + repeating)
+        hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+        hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
+        hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+        hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
+        hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl s 10%+"), { locked = true, repeating = true })
+        hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 10%-"), { locked = true, repeating = true })
+
+        -- Media keys (hyprlang bindl: locked)
+        hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
+        hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+        hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+        hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
+      '';
     };
   };
 }

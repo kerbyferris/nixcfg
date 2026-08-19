@@ -339,3 +339,40 @@ videos still take over the entire monitor. Not investigated further.
 hyprctl configerrors
 # Should return empty (no output)
 ```
+
+## Issue 8: Hyprland ".conf based configuration" notice — **RESOLVED 2026-08-19 (migrated to Lua)**
+
+**Symptom:** Hyprland 0.56.2 shows a notification at session start: "You are
+using the .conf config format, support for which will be removed in Hyprland 0.57."
+
+**Root cause:** Hyprland 0.55+ replaced the hyprlang config format with Lua.
+The main config is now `~/.config/hypr/hyprland.lua`; hyprlang `.conf` is
+deprecated and dropped in 0.57. The home-manager config still generated
+`hyprland.conf` via `configType = "hyprlang"`.
+
+**Fix:** migrated `home/features/desktop/hyprland.nix` to Lua:
+
+- `configType = "lua"` — home-manager now writes `hyprland.lua`.
+- `settings` maps to `hl.*` calls: `config` → `hl.config({...})` (sections),
+  `curve` → `hl.curve(...)`, `animation` → `hl.animation(...)`,
+  `env` → `hl.env(...)`, `window_rule` → `hl.window_rule(...)`,
+  `workspace_rule` → `hl.workspace_rule(...)`, `device` → `hl.device(...)`.
+  Locals (`mainMod`, `terminal`, ...) use `{ _var = "..." }`.
+- Keybinds, autostart and the monitor profile loader live in raw Lua in
+  `extraConfig` (appended after settings; locals from settings are in scope).
+- The old `exec-once` `hyprctl keyword windowrulev2` workarounds are gone —
+  rules are now native `hl.window_rule({ match = {...}, ... })` calls (v3-style
+  `windowrule` entries and the dynamic Wine/Blender rules all migrated).
+- **Monitors**: Lua mode has no `source` directive. `hyprdynamicmonitors`
+  still writes `~/.config/hypr/monitors.conf` (hyprlang lines); a small Lua
+  block in `extraConfig` reads it and issues `hl.monitor(...)` calls.
+  `hyprctl reload` (already in `post_apply_exec`) re-runs `hyprland.lua`.
+
+**Verified:** `Hyprland --verify-config -c <generated hyprland.lua>` → `config ok`.
+
+**How to verify:**
+```bash
+hyprctl configerrors   # empty
+ls ~/.config/hypr/hyprland.lua   # exists; hyprland.conf symlink removed
+# lid/external monitor switch still updates: cat ~/.config/hypr/monitors.conf
+```
