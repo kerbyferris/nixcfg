@@ -43,7 +43,7 @@
     setupVersion: 1
     hideThinkingBlock: true
     modelRoles:
-      default: commandcode/deepseek/deepseek-v4-flash:high
+      default: opencode-go/deepseek-v4-flash:high
       smol: ollama/qwen2.5-coder:3b:minimal
       task: ollama/qwen2.5-coder:3b:minimal
       slow: openrouter/anthropic/claude-sonnet-4.6:high
