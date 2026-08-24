@@ -83,17 +83,28 @@
     # NOTE: buildFHSEnv wraps runScript as `exec <runScript> "$@"`, so a
     # multi-line runScript becomes `exec export …` and fails — env must go
     # through extraBwrapArgs --setenv.
-    extraBwrapArgs = [
-      "--setenv"
-      "GST_PLUGIN_SYSTEM_PATH_1_0"
-      (lib.concatStringsSep ":" [
-        "${gst_all_1.gst-libav}/lib/gstreamer-1.0"
-        "${gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0"
-        "${gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
-        "${gst_all_1.gst-plugins-base}/lib/gstreamer-1.0"
-        "${gst_all_1.gstreamer.out}/lib/gstreamer-1.0"
-      ])
-    ];
+    extraBwrapArgs =
+      [
+        "--setenv"
+        "GST_PLUGIN_SYSTEM_PATH_1_0"
+        (lib.concatStringsSep ":" [
+          "${gst_all_1.gst-libav}/lib/gstreamer-1.0"
+          "${gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0"
+          "${gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
+          "${gst_all_1.gst-plugins-base}/lib/gstreamer-1.0"
+          "${gst_all_1.gstreamer.out}/lib/gstreamer-1.0"
+        ])
+      ]
+      ++ [
+        # WebKit's sandboxed WebProcess cannot exec the forked gst-plugin-scanner
+        # helper, so a cold/invalid registry cache (~/.cache/gstreamer-1.0) makes
+        # the scan silently yield an empty plugin registry -> "appsink not found"
+        # -> MP4/H.264 playback fails with MEDIA_ERR_SRC_NOT_SUPPORTED.
+        # In-process scanning (fork disabled) fixes cold starts.
+        "--setenv"
+        "GST_REGISTRY_FORK"
+        "no"
+      ];
 
     runScript = "refern";
   };
