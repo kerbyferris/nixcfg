@@ -22,30 +22,28 @@
   wayland,
   xorg,
   gst_all_1,
-}:
-let
-  version = "1.5.0";
+}: let
+  version = "1.6.0";
   src = fetchurl {
     url = "https://storage.googleapis.com/refern-releases/releases/v${version}/refern_${version}_amd64.deb";
-    hash = "sha256-9gMMIrE+wVuboodP6GpafRGesJ+xQyE62RZ67SWgXjs=";
+    hash = "sha256-6TCpCJcQUWInwYnh4hLHCXB/YQlKfa3bdILHMaOEleA=";
   };
-  unpacked = runCommand "refern-unpacked-${version}" {
-    nativeBuildInputs = [
-      binutils
-      gnutar
-    ];
-  } ''
-    mkdir -p $out
-    cd $out
-    ar x ${src}
-    tar -xf data.tar.gz
-  '';
-in
-buildFHSEnv {
-  name = "refern";
+  unpacked =
+    runCommand "refern-unpacked-${version}" {
+      nativeBuildInputs = [
+        binutils
+        gnutar
+      ];
+    } ''
+      mkdir -p $out
+      cd $out
+      ar x ${src}
+      tar -xf data.tar.gz
+    '';
+  fhs = buildFHSEnv {
+    name = "refern";
 
-  targetPkgs =
-    pkgs: [
+    targetPkgs = pkgs: [
       gtk3
       webkitgtk_4_1
       cairo
@@ -68,34 +66,44 @@ buildFHSEnv {
       gst_all_1.gst-libav
     ];
 
-  extraBuildCommands = ''
-    mkdir -p $out/usr/bin
-    ln -s ${unpacked}/usr/bin/refern $out/usr/bin/refern
-    ln -s ${unpacked}/usr/bin/refern-ffmpeg $out/usr/bin/refern-ffmpeg
-    ln -s ${unpacked}/usr/bin/refern-ffprobe $out/usr/bin/refern-ffprobe
-  '';
+    # /usr/bin symlinks inside the FHS env: the FHS profile prepends /usr/bin
+    # to PATH, so `refern` resolves here (avoids recursion back into the
+    # host-side wrapper script). refern-ffmpeg/ffprobe are the bundled
+    # binaries used for probing/thumbnails.
+    extraBuildCommands = ''
+      mkdir -p $out/usr/bin
+      ln -s ${unpacked}/usr/bin/refern $out/usr/bin/refern
+      ln -s ${unpacked}/usr/bin/refern-ffmpeg $out/usr/bin/refern-ffmpeg
+      ln -s ${unpacked}/usr/bin/refern-ffprobe $out/usr/bin/refern-ffprobe
+    '';
 
-  # WebKitGTK decodes <video> through GStreamer; without codec plugins MP4
-  # (H.264/HEVC) playback renders black. Pin the full plugin path so the
-  # refern process finds demuxers/parsers (base/good/bad) and decoders (libav).
-  extraBwrapArgs = [
-    "--setenv"
-    "GST_PLUGIN_SYSTEM_PATH_1_0"
-    (lib.concatStringsSep ":" [
-      "${gst_all_1.gst-libav}/lib/gstreamer-1.0"
-      "${gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0"
-      "${gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
-      "${gst_all_1.gst-plugins-base}/lib/gstreamer-1.0"
-      "${gst_all_1.gstreamer.out}/lib/gstreamer-1.0"
-    ])
-  ];
+    # WebKitGTK decodes <video> through GStreamer; without codec plugins MP4
+    # (H.264/HEVC) playback renders black. Pin the full plugin path so the
+    # refern process finds demuxers/parsers (base/good/bad) and decoders (libav).
+    # NOTE: buildFHSEnv wraps runScript as `exec <runScript> "$@"`, so a
+    # multi-line runScript becomes `exec export …` and fails — env must go
+    # through extraBwrapArgs --setenv.
+    extraBwrapArgs = [
+      "--setenv"
+      "GST_PLUGIN_SYSTEM_PATH_1_0"
+      (lib.concatStringsSep ":" [
+        "${gst_all_1.gst-libav}/lib/gstreamer-1.0"
+        "${gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0"
+        "${gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
+        "${gst_all_1.gst-plugins-base}/lib/gstreamer-1.0"
+        "${gst_all_1.gstreamer.out}/lib/gstreamer-1.0"
+      ])
+    ];
 
-  runScript = "refern";
-
-  meta = {
-    description = "Desktop reference manager for artists: Eagle-style organization, infinite canvas, relationship graph";
-    homepage = "https://www.refern.app";
-    license = lib.licenses.unfree;
-    platforms = [ "x86_64-linux" ];
+    runScript = "refern";
   };
-}
+in
+  # buildFHSEnv's output is a bare wrapper file (home-manager installs it as
+  # bin/<name>). Build a proper package dir: bin wrapper + desktop entry + icons,
+  # so refern shows up in the app launcher (profile share/ dirs).
+  runCommand "refern-pkg-${version}" {} ''
+    mkdir -p $out/bin $out/share/applications $out/share/icons
+    ln -s ${fhs}/bin/refern $out/bin/refern
+    ln -s ${unpacked}/usr/share/applications/refern.desktop $out/share/applications/refern.desktop
+    ln -s ${unpacked}/usr/share/icons/hicolor $out/share/icons/hicolor
+  ''
