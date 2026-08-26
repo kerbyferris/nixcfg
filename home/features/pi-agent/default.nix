@@ -17,9 +17,7 @@
 #   - tavily-web-search.ts — Web search via Tavily API (TAVILY_API_KEY)
 #   - pi-commandcode-provider — Command Code API provider (for pi, old; COMMANDCODE_API_KEY)
 #   - omp-commandcode-plugin — Command Code model provider for OMP (native /login)
-#   - pre-commit-hook.skill.md — Skill to install pre-commit secret scanner
-#   - ollama-tunnel — systemd user service: SSH tunnel to mac's ollama (qwen2.5:14b-64k)
-#     via autossh, exposing the remote model server at localhost:11435 for explicit discovery
+#   - models.yml — custom model providers (Nous Portal)
 #
 # ~/.pi/agent/settings.json is NOT managed via home.file (it must be writable
 # at runtime for provider settings). The activation script seeds it on first
@@ -47,6 +45,7 @@
       smol: ollama/qwen2.5-coder:3b:minimal
       task: ollama/qwen2.5-coder:3b:minimal
       slow: openrouter/anthropic/claude-sonnet-4.6:high
+      vision: openrouter/google/gemini-2.5-flash:high
     memory:
       backend: mnemopi
     mnemopi:
@@ -61,20 +60,37 @@
     }
   '';
 
-  # Seed models.yml for ~/.omp/agent/models.yml — registers mac's ollama at the tunnel port.
-  # Uses openai-completions because Ollama's /v1 endpoint speaks the OpenAI API format.
-  # OMP 17.2.11 dropped the "ollama" provider API type.
+  # Seed models.yml for ~/.omp/agent/models.yml — custom providers.
+  # IMPORTANT: map form (provider-id key), NOT list form (`- id:`). OMP's schema
+  # silently rejects list-form entries and skips the whole file.
+  # Nous Portal — OpenAI-compatible inference API. Key in ~/.omp/agent/.env as
+  # NOUS_API_KEY. discovery fetches the full catalog from /v1/models at runtime;
+  # explicit models below guarantee the Nous family is selectable even if the
+  # endpoint's bot-check blocks unauthenticated discovery.
   seedModels = pkgs.writeText "omp-models-seed" ''
     providers:
-      - id: ollama-mac
-        baseUrl: http://localhost:11435/v1
+      nous:
+        baseUrl: https://portal.nousresearch.com/v1
         api: openai-completions
+        apiKey: NOUS_API_KEY
+        authHeader: true
+        discovery:
+          type: openai-models-list
+        models:
+          - id: nousresearch/hermes-4-70b
+            name: Hermes 4 70B
+            contextWindow: 131072
+            maxTokens: 131072
+          - id: nousresearch/hermes-4-405b
+            name: Hermes 4 405B
+            contextWindow: 131072
+            maxTokens: 131072
+          - id: nousresearch/deephermes-3-mistral-24b-preview
+            name: DeepHermes 3 24B Preview
+            contextWindow: 32768
+            maxTokens: 32768
   '';
 in {
-  # autossh is required for the persistent SSH tunnel to mac's ollama
-  home.packages = with pkgs; [
-    autossh
-  ];
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
   # Declarative: edit ~/nixcfg/home/features/pi-agent/hermes-ssh.ts, then rebuild.
   home.file."${extensionDir}/hermes-ssh.ts".source = ./hermes-ssh.ts;
@@ -104,7 +120,7 @@ in {
   home.file.".omp/agent/keybindings.json".text = builtins.toJSON {
     "app.exit" = [];
   };
-  # Manage ~/.omp/agent/models.yml — registers the mac ollama provider (via SSH tunnel).
+  # Manage ~/.omp/agent/models.yml — custom providers (see seedModels above).
   # The local ollama at localhost:11434 is auto-discovered by omp's implicit discovery.
   home.file.".omp/agent/models.yml".source = seedModels;
   # Manage ~/bin/huly — CLI for quick Huly issue lookup from the terminal.
@@ -118,22 +134,6 @@ in {
   # at runtime for provider settings from /login). Instead, the activation
   # script seeds it on first install and ensures memory config on subsequent
   # rebuilds without overwriting runtime changes.
-  systemd.user.services.ollama-tunnel = {
-    Unit = {
-      Description = "SSH tunnel to mac ollama (qwen2.5:14b-64k)";
-      After = ["network.target"];
-      Wants = ["network.target"];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.autossh}/bin/autossh -M 0 -N -L 11435:localhost:11434 mac -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=accept-new";
-      Restart = "always";
-      RestartSec = 10;
-    };
-    Install = {
-      WantedBy = ["default.target"];
-    };
-  };
   home.activation.ensureAgentConfig = config.lib.dag.entryAfter ["writeBoundary"] ''
     cfg="$HOME/.omp/agent/config.yml"
     if [ ! -f "$cfg" ] || [ -L "$cfg" ]; then
