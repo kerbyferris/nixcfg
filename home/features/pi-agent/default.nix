@@ -63,14 +63,14 @@
   # Seed models.yml for ~/.omp/agent/models.yml — custom providers.
   # IMPORTANT: map form (provider-id key), NOT list form (`- id:`). OMP's schema
   # silently rejects list-form entries and skips the whole file.
-  # Nous Portal — OpenAI-compatible inference API. Key in ~/.omp/agent/.env as
-  # NOUS_API_KEY. discovery fetches the full catalog from /v1/models at runtime;
-  # explicit models below guarantee the Nous family is selectable even if the
-  # endpoint's bot-check blocks unauthenticated discovery.
+  # Nous Portal inference API — OpenAI-compatible. Key in ~/.omp/agent/.env as
+  # NOUS_API_KEY (sops agent-env). discovery pulls the full 370+ model catalog
+  # from /v1/models at runtime; explicit models below guarantee the Nous family
+  # is selectable even if discovery is unavailable.
   seedModels = pkgs.writeText "omp-models-seed" ''
     providers:
       nous:
-        baseUrl: https://portal.nousresearch.com/v1
+        baseUrl: https://inference-api.nousresearch.com/v1
         api: openai-completions
         apiKey: NOUS_API_KEY
         authHeader: true
@@ -85,10 +85,6 @@
             name: Hermes 4 405B
             contextWindow: 131072
             maxTokens: 131072
-          - id: nousresearch/deephermes-3-mistral-24b-preview
-            name: DeepHermes 3 24B Preview
-            contextWindow: 32768
-            maxTokens: 32768
   '';
 in {
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.
