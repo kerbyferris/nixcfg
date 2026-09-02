@@ -70,6 +70,7 @@
 
   programs.btop = {
     enable = true;
+    package = pkgs.btop.override {rocmSupport = true;};
     settings = {
       theme_background = true;
       vim_keys = true;
