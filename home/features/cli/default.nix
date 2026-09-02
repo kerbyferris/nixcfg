@@ -5,6 +5,7 @@
 }: {
   home.packages = with pkgs; [
     alejandra
+    amdgpu_top
     ghostscript
     imagemagick
     kubernetes
