@@ -54,10 +54,19 @@ member = "PropertiesChanged"
 name = "org.freedesktop.DBus.Properties.PropertiesChanged"
 body = "LidIsClosed"
 
+# Monitors are matched by connector *pattern*, not a hard-coded name: the external
+# display enumerates as DP-1 or DP-3 depending on which USB-C port the hub is on
+# (and as HDMI-A-1 over the laptop's HDMI port), so a profile pinned to "DP-1"
+# silently stops matching when the cable moves. Templates then name the actual
+# output, so no port-name list has to be maintained.
+#
+# Ties are broken by definition order (last wins), so the specific profiles are
+# declared after the generic laptop-only one.
+
 # --- Profile: Lid Open, No External Monitor ---
 [profiles.laptop_only]
-config_file = "hyprconfigs/laptop-only.conf"
-config_file_type = "static"
+config_file = "hyprconfigs/laptop-only.go.tmpl"
+config_file_type = "template"
 
 [profiles.laptop_only.conditions]
 lid_state = "Opened"
@@ -65,27 +74,39 @@ lid_state = "Opened"
 [[profiles.laptop_only.conditions.required_monitors]]
 name = "eDP-1"
 
-# --- Profile: Lid Open, External Monitor Attached ---
-[profiles.dual_monitor]
-config_file = "hyprconfigs/dual-monitor.conf"
-config_file_type = "static"
+# --- Profile: Lid Open, External Monitor Attached (any DP/HDMI output) ---
+[profiles.external]
+config_file = "hyprconfigs/external.go.tmpl"
+config_file_type = "template"
 
-[profiles.dual_monitor.conditions]
+[profiles.external.conditions]
 lid_state = "Opened"
 
-[[profiles.dual_monitor.conditions.required_monitors]]
+[[profiles.external.conditions.required_monitors]]
 name = "eDP-1"
+monitor_tag = "laptop"
 
-[[profiles.dual_monitor.conditions.required_monitors]]
-name = "DP-1"
+[[profiles.external.conditions.required_monitors]]
+name = "(DP|HDMI-A)-[0-9]+"
+match_name_using_regex = true
+monitor_tag = "external"
 
 # --- Profile: Lid Closed, External Monitor Attached (Clamshell) ---
 [profiles.clamshell]
-config_file = "hyprconfigs/clamshell.conf"
-config_file_type = "static"
+config_file = "hyprconfigs/clamshell.go.tmpl"
+config_file_type = "template"
 
 [profiles.clamshell.conditions]
 lid_state = "Closed"
 
 [[profiles.clamshell.conditions.required_monitors]]
-name = "DP-1"
+name = "(DP|HDMI-A)-[0-9]+"
+match_name_using_regex = true
+monitor_tag = "external"
+
+# --- Fallback: states no profile matches (e.g. lid shut with no external display) ---
+# Without this hdm logs "No matching profile found" and leaves the monitor config
+# from the previous profile in place.
+[fallback_profile]
+config_file = "hyprconfigs/laptop-only.go.tmpl"
+config_file_type = "template"

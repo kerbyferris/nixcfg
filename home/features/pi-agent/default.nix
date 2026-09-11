@@ -85,6 +85,15 @@
             name: Hermes 4 405B
             contextWindow: 131072
             maxTokens: 131072
+      deepseek:
+        baseUrl: https://api.deepseek.com
+        api: openai-completions
+        apiKey: DEEPSEEK_API_KEY
+        models:
+          - id: deepseek-v4-flash
+            name: DeepSeek V4 Flash
+          - id: deepseek-v4-pro
+            name: DeepSeek V4 Pro
   '';
 in {
   # Manage ~/.pi/agent/extensions/hermes-ssh.ts — the Hermes SSH bridge extension.

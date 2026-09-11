@@ -64,26 +64,9 @@ in {
         source = ./waybar/launch.sh;
         executable = true;
       };
-      "hyprdynamicmonitors/hyprconfigs/laptop-only.conf".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.conf;
-      "hyprdynamicmonitors/hyprconfigs/dual-monitor.conf".source = ./hyprdynamicmonitors/hyprconfigs/dual-monitor.conf;
-      "hyprdynamicmonitors/hyprconfigs/clamshell.conf".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.conf;
-      "hypr/scripts/cycle-next-fullscreen.sh" = {
-        text = ''
-          #!/usr/bin/env bash
-          # Cycle to next window preserving fullscreen/maximize state
-          data=$(hyprctl activewindow -j 2>/dev/null || echo '{"fullscreen":0}')
-          fs=''${data#*'"fullscreen":'}
-          fs=''${fs:0:1}
-          if [ "$fs" != "0" ]; then
-            mode=$((fs - 1))
-            hyprctl dispatch cyclenext
-            hyprctl dispatch fullscreenstate 1 "$mode"
-          else
-            hyprctl dispatch cyclenext
-          fi
-        '';
-        executable = true;
-      };
+      "hyprdynamicmonitors/hyprconfigs/laptop-only.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.go.tmpl;
+      "hyprdynamicmonitors/hyprconfigs/external.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/external.go.tmpl;
+      "hyprdynamicmonitors/hyprconfigs/clamshell.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.go.tmpl;
     };
 
     systemd.user.services.hyprdynamicmonitors = {
@@ -434,6 +417,23 @@ in {
             match = {class = "(eagle.exe)";};
             tile = true;
           }
+          # Hydrus — float its mpv player windows (spawned for media playback)
+          {
+            match = {
+              class = "(mpv)";
+              title = "(hydrus)";
+            };
+            float = true;
+          }
+          # Hydrus (wxPython, class python3) — float popups/media viewer so
+          # only the main window tiles; the popups overlay it instead
+          {
+            match = {
+              class = "(python3)";
+              title = "(popup messages|media viewer|hydrus.*(tags|search|options|manage))";
+            };
+            float = true;
+          }
           # Suppress blank Wine explorer.exe windows to the special (hidden) workspace
           {
             match = {class = "(explorer.exe)";};
@@ -549,7 +549,25 @@ in {
         hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
         hl.bind(mainMod .. " + m", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
         -- "$mainMod, m, fullscreenstate, 0 2" # Original commented out
-        hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("~/.config/hypr/scripts/cycle-next-fullscreen.sh"))
+        -- Cycle to the next window, carrying over the fullscreen/maximize mode
+        -- so the layout doesn't pop when cycling away from a fullscreen window.
+        -- Native Lua: under a lua config `hyprctl dispatch <name>` is evaluated
+        -- as `hl.dispatch(<name>)`, so legacy dispatcher names (cyclenext,
+        -- fullscreenstate) no longer exist and a script shelling out to them
+        -- silently does nothing.
+        hl.bind(mainMod .. " + TAB", function()
+          local w = hl.get_active_window()
+          local internal = w and w.fullscreen or 0
+          local client = w and w.fullscreen_client or 0
+          hl.dispatch(hl.dsp.window.cycle_next())
+          if internal ~= 0 or client ~= 0 then
+            hl.dispatch(hl.dsp.window.fullscreen_state({
+              internal = internal,
+              client = client,
+              action = "set",
+            }))
+          end
+        end)
         hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m output"))
         hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("hyprshot -m region"))
         hl.bind("CTRL + PRINT", hl.dsp.exec_cmd("hyprshot -m window"))

@@ -6,6 +6,46 @@
   imports = [
     ./hyprland.nix
   ];
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "x-scheme-handler/http" = "zen-beta.desktop";
+      "x-scheme-handler/https" = "zen-beta.desktop";
+      "x-scheme-handler/chrome" = "zen-beta.desktop";
+      "text/html" = "zen-beta.desktop";
+      "application/x-extension-htm" = "zen-beta.desktop";
+      "application/x-extension-html" = "zen-beta.desktop";
+      "application/x-extension-shtml" = "zen-beta.desktop";
+      "application/xhtml+xml" = "zen-beta.desktop";
+      "application/x-extension-xhtml" = "zen-beta.desktop";
+      "application/x-extension-xht" = "zen-beta.desktop";
+      "x-scheme-handler/sgnl" = "signal.desktop";
+      "x-scheme-handler/signalcaptcha" = "signal.desktop";
+      "x-scheme-handler/about" = "google-chrome.desktop";
+      "x-scheme-handler/unknown" = "google-chrome.desktop";
+      "application/pdf" = "zen-beta.desktop";
+      "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
+      "x-scheme-handler/tonsite" = "org.telegram.desktop.desktop";
+      "x-scheme-handler/mailto" = "google-chrome.desktop";
+      "audio/x-wav" = "vlc.desktop";
+      "audio/wav" = "vlc.desktop";
+      "audio/vnd.wave" = "vlc.desktop";
+      "audio/x-pn-wav" = "vlc.desktop";
+    };
+    associations.added = {
+      "x-scheme-handler/http" = "zen-beta.desktop";
+      "x-scheme-handler/https" = "zen-beta.desktop";
+      "text/html" = "zen-beta.desktop";
+      "x-scheme-handler/chrome" = "zen-beta.desktop";
+      "application/pdf" = [
+        "org.gnome.Papers.desktop"
+        "org.gnome.Evince.desktop"
+        "zen-beta.desktop"
+      ];
+      "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
+      "x-scheme-handler/tonsite" = "org.telegram.desktop.desktop";
+    };
+  };
   home.packages = with pkgs; [
     android-tools
     arduino-ide
@@ -43,6 +83,7 @@
     prusa-slicer
     qbittorrent
     quickemu
+    refern # Eagle alternative — AppImage wrapped in flake (pkgs/refern.nix)
     rpi-imager
     signal-desktop
     steam-run

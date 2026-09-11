@@ -72,9 +72,11 @@ in {
   boot.loader.efi.canTouchEfiVariables = true;
   # boot.loader.efi.catalogue.enable = true;
 
-  # Back on latest after Linux 7.1.8 boot-loop regression (Aug 2026).
-  # If the splash-loop returns, the regression is back — re-pin to linuxPackages_6_12.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Pinned to 6.12 LTS (Sep 2026): Intel AX211 Bluetooth HFP/SCO link is broken
+  # on the 7.x series — "SCO packet for unknown connection handle" / "corrupted
+  # SCO packet" in the kernel log kills headset mic + speaker during calls.
+  # Re-test with linuxPackages_latest once the AX211 SCO regression is fixed.
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   # boot.loader.grub.devices = ["/dev/nvme0n1"];
   # boot.loader.grub.devices = ["nodev"];
@@ -333,6 +335,13 @@ in {
   };
   environment.sessionVariables.VA_DRIVERS_PATH = "/nix/store/7wpjbidyx1g9algql7jvzm00lzjrwaw6-intel-media-driver-25.1.4/lib/dri/";
   # VA_DRIVERS_PATH = "${pkgs.intel-media-driver}/lib/dri"; # This assumes it's always in lib/dri.
+
+  # Direct HDMI: aquamarine allocates tiled/CCS buffers (4_TILED_MTL_RC_CCS_CC) that the
+  # HDMI-A-1 atomic commit rejects on this Intel MTL -> "atomic drm request: failed to
+  # commit: Invalid argument"; every mode in the EDID is retried and rejected, so the
+  # output stays disabled (dpms Off, mode 0x0). Linear buffers avoid the rejected
+  # modifiers. Upstream workaround: hyprwm/Hyprland#10420. USB-C/DP outputs are unaffected.
+  environment.sessionVariables.AQ_NO_MODIFIERS = "1";
 
   services.udev = {
     packages = with pkgs; [
