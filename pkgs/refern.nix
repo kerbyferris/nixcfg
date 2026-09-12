@@ -19,14 +19,15 @@
   libsoup_3,
   libgbm,
   libayatana-appindicator,
+  desktop-file-utils,
   wayland,
   xorg,
   gst_all_1,
 }: let
-  version = "1.6.0";
+  version = "1.8.1";
   src = fetchurl {
     url = "https://storage.googleapis.com/refern-releases/releases/v${version}/refern_${version}_amd64.deb";
-    hash = "sha256-6TCpCJcQUWInwYnh4hLHCXB/YQlKfa3bdILHMaOEleA=";
+    hash = "sha256-2T3Q08go3BwG1u13NeI6OaRvQf6S0UJ4qLr/cNmt26M=";
   };
   unpacked =
     runCommand "refern-unpacked-${version}" {
@@ -54,6 +55,10 @@
       libsoup_3
       libgbm
       libayatana-appindicator
+      # 1.8.1's tauri-plugin-deep-link setup runs `update-desktop-database`
+      # (desktop-file-utils) on startup; without it in PATH the app panics in
+      # its setup hook with "No such file or directory".
+      desktop-file-utils
       wayland
       xorg.libxcb
       # Video playback: refern previews media through WebKitGTK's <video> element,
