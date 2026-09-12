@@ -115,11 +115,19 @@
   };
 in
   # buildFHSEnv's output is a bare wrapper file (home-manager installs it as
-  # bin/<name>). Build a proper package dir: bin wrapper + desktop entry + icons,
-  # so refern shows up in the app launcher (profile share/ dirs).
+  # bin/<name>). Build a proper package dir: bin wrapper + desktop entries +
+  # icons, so refern shows up in the app launcher (profile share/ dirs).
+  #
+  # 1.8.1 ships TWO entries (1.6.0 had only the first, un-hidden):
+  #   refern.desktop            — NoDisplay=true + MimeType=x-scheme-handler/refern,
+  #                               registers the deep-link scheme, hidden from launchers
+  #   com.refernapp.refern.desktop — the visible launcher entry
+  # Linking only the first is why refern disappeared from rofi/launchers after the
+  # 1.6.0 -> 1.8.1 bump: the scheme handler is deliberately hidden.
   runCommand "refern-pkg-${version}" {} ''
     mkdir -p $out/bin $out/share/applications $out/share/icons
     ln -s ${fhs}/bin/refern $out/bin/refern
     ln -s ${unpacked}/usr/share/applications/refern.desktop $out/share/applications/refern.desktop
+    ln -s ${unpacked}/usr/share/applications/com.refernapp.refern.desktop $out/share/applications/com.refernapp.refern.desktop
     ln -s ${unpacked}/usr/share/icons/hicolor $out/share/icons/hicolor
   ''
