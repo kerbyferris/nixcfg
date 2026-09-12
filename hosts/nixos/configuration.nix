@@ -62,6 +62,14 @@ in {
     package = pkgs.mesa; # This ensures you're on the Mesa version NixOS provides for your channel.
     extraPackages = with pkgs; [
       intel-compute-runtime
+      # VA-API (iHD) for the Meteor Lake iGPU — required for hardware video
+      # decode. Without it libva finds no driver ("vaInitialize failed"), the
+      # GStreamer `va` plugin registers 0 elements, and every H.264/HEVC frame
+      # is decoded on the CPU: 4K50 HEVC measures ~1.2-1.4x realtime, i.e. no
+      # headroom (refern/WebKit playback stutters, seeks crawl). With iHD the
+      # same clip decodes at ~3-5x realtime with the CPU idle and vah265dec
+      # (rank 257) outranks avdec_h265 (rank 256).
+      intel-media-driver
     ];
   };
 
