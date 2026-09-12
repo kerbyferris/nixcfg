@@ -190,6 +190,14 @@
       clean = "nix-collect-garbage -d";
       pixel-kbd-on = "adb shell pm enable com.android.inputmethod.latin";
       pixel-kbd-off = "adb shell pm disable-user --user 0 com.android.inputmethod.latin";
+      # refern media ingest (scripts in ~/dev/media-mgmt/bin). refern's watcher
+      # never fires for media that arrives from the Proxmox side (Immich uploads)
+      # or from an `mv`, so new media needs an explicit trigger:
+      #   refern-wake   → touch an indexed file so the "changes detected" toast
+      #                   appears in refern; click Rescan on it to index
+      #   refern-rescan → do it end-to-end without the app's UI (restarts refern)
+      refern-wake = "$HOME/dev/media-mgmt/bin/refern-wake.sh";
+      refern-rescan = "$HOME/dev/media-mgmt/bin/refern-rescan.sh";
     };
   };
 
