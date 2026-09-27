@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync _agents/ context between NixOS OMP agent and Pi Hermes
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/omp-sync-agent-context.sh
