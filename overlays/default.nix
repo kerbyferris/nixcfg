@@ -44,6 +44,24 @@
         url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.1.1/installer_linux";
         hash = "sha256-FBe0R6YW4IS1OPvCwWseQvJnn7OrPn1uZ0v/GKRIIYE=";
       };
+      # Bitwig bundles an old fontconfig that reads cache format 9 from
+      # $XDG_CACHE_HOME/fontconfig. System fontconfig (2.18) writes format 12 and
+      # additionally creates *compatibility symlinks* named `*-cache-9` pointing at
+      # the cache-12 file; Bitwig follows such a symlink, mis-reads the newer format
+      # and spins forever in FcPatternGetString during `initSkia` — symptom is the
+      # log stopping at "begin skia initialization" with ~100% CPU and no window.
+      # Give Bitwig its own cache root so no other fontconfig's output can poison it.
+      postFixup =
+        (oldAttrs.postFixup or "")
+        + ''
+          if ! grep -qF 'BITWIG_XDG_CACHE_HOME' "$out/bin/.bitwig-studio-wrapped"; then
+            substituteInPlace "$out/bin/.bitwig-studio-wrapped" \
+              --replace-fail \
+              'currentDir="$(cd "$(dirname "$0")" && pwd)"' \
+              'export XDG_CACHE_HOME="''${BITWIG_XDG_CACHE_HOME:-$HOME/.cache/bitwig-studio}"
+          currentDir="$(cd "$(dirname "$0")" && pwd)"'
+          fi
+        '';
     });
 
     # patool 4.0.5 tests fail with nixpkgs-unstable's gnutar/file — MIME detection regressions

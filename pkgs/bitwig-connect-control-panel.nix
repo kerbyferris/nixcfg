@@ -31,6 +31,7 @@
   vulkan-headers,
   vulkan-loader,
   wrapGAppsHook3,
+  writeShellScript,
   xcbutilwm,
   xcb-imdkit,
   zlib,
@@ -144,18 +145,29 @@ assert src != null;
             runHook postInstall
     '';
 
-    postFixup = ''
-      wrapProgram "$out/libexec/bin/show-file-dialog-gtk3" \
-        "''${gappsWrapperArgs[@]}"
+    postFixup = let
+      # The panel bundles the same old fontconfig as Bitwig Studio (reads cache
+      # format 9). System fontconfig 2.18 writes format 12 plus compatibility
+      # symlinks named `*-cache-9` pointing at the cache-12 file; following one of
+      # those makes the panel spin forever at Skia init instead of opening its
+      # window. Run it with a private cache root so nothing else can poison it.
+      envWrapper = writeShellScript "bitwig-control-panel-env" ''
+        export XDG_CACHE_HOME="''${BITWIG_XDG_CACHE_HOME:-$HOME/.cache/bitwig-connect-control-panel}"
+        exec "$@"
+      '';
+    in ''
+              wrapProgram "$out/libexec/bin/show-file-dialog-gtk3" \
+                "''${gappsWrapperArgs[@]}"
 
-      makeWrapper "$out/libexec/BitwigConnectControlPanel" "$out/bin/bitwig-connect-control-panel" \
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [libxcb vulkan-loader libglvnd]} \
-        --prefix LD_PRELOAD : $out/lib/libvk_fix_xcb.so
+              makeWrapper ${envWrapper} "$out/bin/bitwig-connect-control-panel" \
+                --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [libxcb vulkan-loader libglvnd]} \
+                --prefix LD_PRELOAD : $out/lib/libvk_fix_xcb.so \
+                --add-flags $out/libexec/BitwigConnectControlPanel
 
-      ln -s bitwig-connect-control-panel "$out/bin/bitwig-control-panel"
+              ln -s bitwig-connect-control-panel "$out/bin/bitwig-control-panel"
 
-      mkdir -p $out/etc/udev/rules.d
-      cat > $out/etc/udev/rules.d/00-bitwig.rules <<'RULES'
+              mkdir -p $out/etc/udev/rules.d
+              cat > $out/etc/udev/rules.d/00-bitwig.rules <<'RULES'
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="17c8", ATTRS{idProduct}=="7010", MODE:="0666"
       KERNEL=="hidraw*", ATTRS{idVendor}=="17c8", ATTRS{idProduct}=="7010", MODE:="0666"
 
