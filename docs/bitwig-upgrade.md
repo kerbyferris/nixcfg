@@ -98,9 +98,14 @@ wrapper is killed — `pkill -f BitwigAudioEngine` after a scripted smoke test.
 `bin/check-bitwig-update.sh`:
 1. Extracts the current pinned version from `overlays/default.nix`
 2. Scrapes `bitwig.com/download/` for the latest public version
-3. Probes download URLs for intermediate versions (patch → minor increments)
-4. Fetches the SRI hash for the newest found version
-5. Prints the overlay snippet ready to paste
+3. Probes download URLs for versions newer than the pinned one (patch+1…+5, then the
+   next two minors × patch 0…2) and keeps the **highest** that exists
+4. Compares that against the download page's advertised version and uses whichever is
+   newer — the page led the probe on 2026-09-29 (page 6.1.3, probe 6.1.2), and a
+   pre-release can lead the page. Taking the page's number alone also misses jumps the
+   probe can't reach (e.g. a minor bump while the page is stale)
+5. Fetches the SRI hash for the chosen version
+6. Prints the overlay snippet ready to paste
 
 It does **not** edit files or rebuild — those steps are manual.
 

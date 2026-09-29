@@ -13,6 +13,12 @@ current_version() {
     | head -1
 }
 
+# True when $1 is strictly newer than $2 (dotted numeric versions)
+version_gt() {
+  [[ "$1" != "$2" ]] \
+    && [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" == "$1" ]]
+}
+
 # Check if a version exists on Bitwig's servers
 # Follows redirects and checks final HTTP status
 version_exists() {
@@ -29,7 +35,8 @@ latest_public_version() {
     | head -1
 }
 
-# Probe for pre-release versions by incrementing patch, then minor
+# Probe for pre-release versions by incrementing patch, then minor.
+# Returns the highest version that actually exists on the download server.
 probe_versions() {
   local base="$1"
   local major minor patch
@@ -37,27 +44,27 @@ probe_versions() {
   minor=$(echo "$base" | cut -d. -f2)
   patch=$(echo "$base" | cut -d. -f3)
 
+  local best="" v p m
   # Try patch bumps first (most common for pre-releases)
   for p in $(seq $((patch + 1)) $((patch + 5))); do
-    local v="${major}.${minor}.${p}"
-    if version_exists "$v"; then
-      echo "$v"
-      return 0
+    v="${major}.${minor}.${p}"
+    if version_exists "$v" && { [[ -z "$best" ]] || version_gt "$v" "$best"; }; then
+      best="$v"
     fi
   done
 
   # Try next minor version
   for m in $(seq $((minor + 1)) $((minor + 2))); do
     for p in 0 1 2; do
-      local v="${major}.${m}.${p}"
-      if version_exists "$v"; then
-        echo "$v"
-        return 0
+      v="${major}.${m}.${p}"
+      if version_exists "$v" && { [[ -z "$best" ]] || version_gt "$v" "$best"; }; then
+        best="$v"
       fi
     done
   done
 
-  return 1
+  [[ -n "$best" ]] || return 1
+  echo "$best"
 }
 
 # Fetch the SRI hash for a given version
@@ -85,11 +92,26 @@ fi
 
 echo ""
 echo "Probing for newer versions..."
-NEWER=$(probe_versions "$CURRENT" || true)
+PROBED=$(probe_versions "$CURRENT" || true)
 
-if [[ -n "${NEWER:-}" ]]; then
+# The download page can advertise a release the probe never reaches (a jump
+# bigger than patch+1..+5 / minor+1..+2), and the probe can lead the page when a
+# pre-release is published first — so install whichever candidate is newest.
+NEWER=""
+for candidate in "${PROBED:-}" "${PUBLIC:-}"; do
+  [[ -n "$candidate" ]] || continue
+  version_gt "$candidate" "$CURRENT" || continue
+  if [[ -z "$NEWER" ]] || version_gt "$candidate" "$NEWER"; then
+    NEWER="$candidate"
+  fi
+done
+
+if [[ -n "$NEWER" ]]; then
   echo ""
   echo "🎉 Newer version found: $NEWER"
+  if [[ -n "${PROBED:-}" && "$PROBED" != "$NEWER" ]]; then
+    echo "   (probe reached $PROBED, download page lists $PUBLIC — using the newer)"
+  fi
   echo ""
   echo "Fetching hash..."
   HASH=$(fetch_hash "$NEWER")
