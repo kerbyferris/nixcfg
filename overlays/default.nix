@@ -38,11 +38,11 @@
     };
 
     bitwig-studio6 = prev.bitwig-studio6.overrideAttrs (oldAttrs: {
-      version = "6.1.1";
+      version = "6.1.3";
       src = final.fetchurl {
-        name = "bitwig-studio-6.1.1.deb";
-        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.1.1/installer_linux";
-        hash = "sha256-FBe0R6YW4IS1OPvCwWseQvJnn7OrPn1uZ0v/GKRIIYE=";
+        name = "bitwig-studio-6.1.3.deb";
+        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.1.3/installer_linux";
+        hash = "sha256-PqsolH15g6wiv7hnYK6XcaSBFQ/axElYEGvgl5qToJk=";
       };
       # Bitwig bundles an old fontconfig that reads cache format 9 from
       # $XDG_CACHE_HOME/fontconfig. System fontconfig (2.18) writes format 12 and
