@@ -393,6 +393,8 @@ size-verified **before C2**. The Recycle Bin is copied verbatim — the `$I` sid
 filenames back to their originals, so they must travel with the payloads. After C8, move `~/preserved/` to `/data`;
 until then it is a 54 GiB duplicate on the same physical disk, which is a staging cost, not a backup.
 
+> **CLOSED 2026-10-11 — read this before acting on the line above.** The preserved copy was moved to `/data` and then **deliberately deleted by Kerby**; `~/preserved/win-c-2026-10-11/` is now an empty directory and no recovery was pursued (full record: `_agents/INFRA.md` → "CLOSED — deliberate"). Nothing in this runbook depends on it any more, and p1–p4 are gone, so do not go looking for the data. **Keep the lesson**: "move the staging copy to `/data`, then delete the copy it duplicates" is exactly how a *sole* copy dies — a staging copy that is the only copy must be verified to have landed **off-host** before the staging is deleted, and trash+expunge must never be the final step for it.
+
 C1 Records and mount check — Phase 0.2 and 0.6 verbatim: the `sfdisk -d` dump, the `efibootmgr -v` dump, and proof
 that none of `/dev/nvme0n1p{1,3,4,7}` is mounted.
 
