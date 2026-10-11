@@ -80,6 +80,19 @@ in {
   boot.loader.efi.canTouchEfiVariables = true;
   # boot.loader.efi.catalogue.enable = true;
 
+  # Bulk data pool: the former Windows p1-p4 region + the 'Shared' partition,
+  # one btrfs volume spanning two partitions of the same NVMe.
+  # Mounted by FILESYSTEM UUID, not a member PARTUUID: this is a multi-device
+  # filesystem, so the filesystem — not any one device — is what we name; a
+  # future mkfs yields a new UUID and makes the mount fail loudly instead of
+  # silently attaching a fresh empty filesystem. No nofail, no automount: it
+  # is local, always present, and a mount failure should be visible.
+  fileSystems."/data" = {
+    device = "/dev/disk/by-uuid/2f33dfb6-d596-4f5c-970a-cb1c7a89df46";
+    fsType = "btrfs";
+    options = ["noatime"];
+  };
+
   # Pinned to 6.12 LTS (Sep 2026): Intel AX211 Bluetooth HFP/SCO link is broken
   # on the 7.x series — "SCO packet for unknown connection handle" / "corrupted
   # SCO packet" in the kernel log kills headset mic + speaker during calls.

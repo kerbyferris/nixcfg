@@ -48,6 +48,47 @@ measured at 56 % used instead of the 88 % recorded at authoring time, the chosen
 btrfs volume spanning the former p1–p4 region and p7 (885.45 GiB), leaving `/`, `/boot`, the bootloader and the
 initrd untouched**. The root-growing options A/B are kept as a fenced, do-not-execute alternative.
 
+**✅ COMPLETED 2026-10-11.** All of C1–C8 ran successfully. Final state, verified after the C8 reboot:
+
+| part | start | size | type | role |
+|---|---|---|---|---|
+| p1 | 2048 | 488.39 GiB | Linux filesystem, `nixos-data` | member of `/data` |
+| p5 | 1024237568 | 1 GiB | EFI | `/boot` — **PARTUUID unchanged** `226c2b0b-…` |
+| p6 | 1026334720 | 976.56 GiB | Linux filesystem | `/` — **PARTUUID unchanged** `67c0b066-…`, single device, untouched |
+| p7 | 3074334720 | 397.06 GiB | Linux filesystem, `nixos-data` | member of `/data` |
+
+`/data` = one btrfs filesystem, label `data`, **FS UUID `2f33dfb6-d596-4f5c-970a-cb1c7a89df46`**, 2 devices,
+`Data: single` / `Metadata: RAID1` / `System: RAID1`, 885.45 GiB of device space (886G shown, 884G free). Mounted
+**unattended at boot** from `/etc/fstab` by FS UUID with `noatime`; `btrfs device stats` all zero on both members;
+`systemctl --failed` empty; `/` and `/boot` came up exactly as before on p6/p5. The bootloader and initrd were never
+touched (`Skipping … systemd-bootx64.efi, same boot loader version`), which is the whole point of B′ over A/B.
+Remaining optional item: Phase 7 (HOME Trash — now only **80 MB / 14 entries**, versus the 144 GB / 2106 entries this
+plan assumed when it was written, so it is no longer worth the ceremony).
+
+**What the three stalls cost, and the corrections they produced.** Every command in the destructive chain is now
+either rehearsed offline on image files or confirmed on the live device:
+
+- **Offline rehearsal of destructive commands** (sparse image files + `mkfs.vfat`/`mkntfs`/`mkfs.btrfs` + `dd … seek=`
+  to place filesystems at chosen offsets) replaced assumption with measurement, and corrected two errors in this
+  document: `wipefs -n` does **not** see NTFS superblocks buried inside the new p1 (only the old ESP's vfat entries,
+  because it probes only near-zero offsets), and a plain `wipefs -a` **cannot** clear p7's `dos` at `0x1fe` — nor can
+  the `wipefs -o` offset erase this document previously recommended, since both are refused by the non-whole-disk
+  guard. A targeted `wipefs -a --force` is required, after which `mkfs.btrfs` succeeds without `-f`. Confirmed on the
+  live devices: p1 reported three vfat entries and wiped clean; p7 reported `ntfs` + `dos`, the `dos` survived the
+  plain wipe with `ignoring nested "dos" partition table on non-whole disk device`, and the leftover loop cleared it.
+- **`sfdisk` cannot write a partition table on this disk at all.** With `/` (p6) and `/boot` (p5) mounted, every
+  `sfdisk` table write is refused by the in-use check (`This disk is currently in use … Use the --no-reread flag`),
+  which stalled stage 1 at C3. `parted` is unaffected and had already performed the deletions on the same busy disk,
+  so C3 and C4 are `parted` (`mkpart` / `type` / `name`). Not a fallback — it is the only path that works here.
+- **`set -e` must never be pasted at an interactive prompt.** The first stall was `/mnt/win-c` still mounted from the
+  p3 review, refusing `parted rm 3`; because the block was a bare `set -e` paste, the non-zero exit **killed the
+  shell** rather than stopping the block. Use a script or `( … )`, and always `umount` + `findmnt`-guard first.
+  (Also: `lsblk` right-aligns its columns, so parsing it needs `tr -d '[:space:]'` or a padded `" 2048"` compares
+  unequal to `"2048"` and aborts spuriously.)
+
+Scripts for the stages live in `~/reclaim/`: `1-delete-windows-partitions.sh` (executed), `1b-create-p1.sh`
+(executed), `1c-retag-p7.sh` (executed), `2-mkfs-data.sh` (executed).
+
 Facts verified this session (2026-09-13):
 
 - Disk `nvme0n1`, Samsung SSD 990 EVO Plus 2TB, serial `S7U7NU0Y626623M`, 3,907,029,168 sectors.
@@ -362,48 +403,98 @@ sudo parted -s /dev/nvme0n1 rm 3
 sudo parted -s /dev/nvme0n1 rm 2
 sudo parted -s /dev/nvme0n1 rm 1
 ```
+**Status 2026-10-11: DONE — all four partitions are gone.** It did not go in one pass, and the two stalls are worth
+keeping: `rm 4` and `rm 2` succeeded, `rm 3` was refused because `/mnt/win-c` was still mounted on p3, and the
+non-zero exit of a `set -e` block run at an interactive prompt killed the shell, ending the run. `rm 3` and `rm 1`
+were then completed by `~/reclaim/1-delete-windows-partitions.sh`.
+The lesson that outlives the run: **do not re-run a deletion for a partition that is already gone** — it exits 1 with
+`Partition doesn't exist` (measured) and aborts the whole block. Re-read the table with `sudo sfdisk -d /dev/nvme0n1`
+before any continuation, and let the C5 geometry gate — not an assumption — be what confirms p5/p6 did not move.
+The first step of any continuation must be `sudo umount /mnt/win-c`, guarded by an explicit
+`if findmnt -rn -S /dev/nvme0n1p3; then … exit 1; fi` — a mounted partition is exactly what caused the refusal.
+Run continuations as a **script or a `( … )` subshell**, never as a bare `set -e` paste at an interactive prompt.
 
-C3 Recreate the freed extent as GPT entry 1, typed as Linux filesystem (`--partno 1` is intentional: `--append` may
-choose a different unused slot, and `--wipe=never` leaves the stale ESP signature for C6 to erase):
+**Second stall, same run: C3's `sfdisk` command was refused.** Stage 1 got past C2 cleanly (the table is now
+`p5, p6, p7` only) and then `sfdisk` declined to write a partition table on a disk with mounted partitions —
+`This disk is currently in use … Use the --no-reread flag` — so the script exited at that point with everything
+consistent and `/` and `/boot` untouched. The corrected C3/C4 below use `parted`, which is the tool that already
+deleted p1/p3 on this same busy disk. Attachments: stage 1 record at
+`~/backups/nvme0n1-gpt-2026-10-11-mid.sfdisk` (that dump, and `lsblk`, both show `p5, p6, p7`, no drift).
+
+C3 Recreate the freed extent as GPT entry 1, typed as Linux filesystem.
+**Use `parted`, not `sfdisk` — `sfdisk` cannot do this on this disk.** Measured 2026-10-11: any `sfdisk` table
+write refused with
+`This disk is currently in use - repartitioning is probably a bad idea. … Use the --no-reread flag to suppress this
+check. sfdisk: Use the --force flag to overrule all checks.`
+because `/` (p6) and `/boot` (p5) are mounted from this disk. `parted` is the tool that already worked for the
+deletions on that same busy disk — it commits via per-partition kernel updates instead of requiring a full table
+re-read — so it is the primary path here, and the earlier sfdisk form is demoted to reference only.
 ```
-printf '%s\n' 'start=2048, size=1024235520, type=0fc63daf-8483-4772-8e79-3d69d8477de4, name="nixos-data"' \
-  | sudo sfdisk --partno 1 --wipe=never --quiet /dev/nvme0n1
-sudo partprobe /dev/nvme0n1
+sudo parted -s /dev/nvme0n1 unit s mkpart nixos-data ext4 2048 1024237567
+sudo partprobe /dev/nvme0n1   # may be a no-op on a busy disk; ignored if so
 sudo udevadm settle
 ```
+Validated offline against an image with this exact slot layout (1–4 free, 5/6/7 present): it creates **exactly slot
+1** at start 2048 with type GUID `0FC63DAF` (Linux filesystem), and leaves slots 5/6/7 byte-identical. Two
+consequences to check rather than assume: that the new partition really is number 1, and that the kernel has created
+the node — assert `lsblk -no START` is `2048` and `lsblk -bno SIZE` is `524408586240`. If `/dev/nvme0n1p1` does not
+appear after `partprobe`, try `sudo partx -a /dev/nvme0n1`; if it still does not exist the table is nonetheless
+written and **a plain reboot resolves it safely**, since p5/p6 are untouched.
+`parted`'s `mkpart` does not format anything, so the stale ESP signature survives for C6 to erase.
+(Reference-only sfdisk equivalent, which does **not** work here without `--no-reread --force`:
+`printf '%s\n' 'start=2048, size=1024235520, type=0fc63daf-8483-4772-8e79-3d69d8477de4, name="nixos-data"' | sudo sfdisk --partno 1 --wipe=never --quiet /dev/nvme0n1`
+— syntax validated offline, but the in-use check rejects it on the live disk.)
 
 C4 Retag and rename p7. Its extent and number do not change; only the GPT metadata stops describing it as Microsoft
-data, so nothing in the table is misleading afterwards:
+data, so nothing in the table is misleading afterwards. **`sfdisk --part-type`/`--part-label` hit the same in-use
+refusal as C3**, so these are `parted` too:
 ```
-sudo sfdisk --part-type  /dev/nvme0n1 7 0fc63daf-8483-4772-8e79-3d69d8477de4
-sudo sfdisk --part-label /dev/nvme0n1 7 nixos-data
-sudo partprobe /dev/nvme0n1 && sudo udevadm settle
+sudo parted -s /dev/nvme0n1 type 7 0fc63daf-8483-4772-8e79-3d69d8477de4
+sudo parted -s /dev/nvme0n1 name 7 nixos-data
+sudo partprobe /dev/nvme0n1 || true; sudo udevadm settle
 ```
+Validated offline: `parted type` accepts a raw GUID (an invalid one exits 1 rather than being silently ignored), and
+it changes only the type — geometry and PARTUUID are left exactly as they were.
 
 C5 Geometry gate before any filesystem exists. `lsblk -o NAME,SIZE,START,PARTTYPENAME,PARTLABEL,PARTUUID
 /dev/nvme0n1` must show p1 at start 2048, 488.39 GiB, type `Linux filesystem`; and p5/p6/p7 at their original start
 sectors with their original PARTUUIDs (`226c2b0b-…`, `67c0b066-…`). Any movement means stop — before any filesystem
 exists, the Phase 0 dump is still a valid thing to restore from.
 
-C6 Erase the stale signatures and create the filesystem. `wipefs -a` runs while neither device belongs to any
-filesystem and neither is mounted:
+C6 Erase the stale signatures and create the filesystem. Neither device belongs to any filesystem yet and neither is
+mounted:
 ```
-sudo wipefs -n /dev/nvme0n1p1; sudo wipefs -n /dev/nvme0n1p7
-findmnt -rn -S /dev/nvme0n1p1; findmnt -rn -S /dev/nvme0n1p7      # expect no output
-sudo wipefs -a /dev/nvme0n1p1
-sudo wipefs -a /dev/nvme0n1p7
-sudo wipefs -n /dev/nvme0n1p1; sudo wipefs -n /dev/nvme0n1p7      # expect no output
-sudo mkfs.btrfs -L data -d single -m raid1 /dev/nvme0n1p1 /dev/nvme0n1p7
-sudo btrfs filesystem show /dev/nvme0n1p1
+DEV1=/dev/nvme0n1p1; DEV2=/dev/nvme0n1p7
+sudo wipefs -n "$DEV1"; sudo wipefs -n "$DEV2"
+findmnt -rn -S "$DEV1"; findmnt -rn -S "$DEV2"          # expect no output
+sudo wipefs -a "$DEV1"
+sudo wipefs -a "$DEV2"
+for d in "$DEV1" "$DEV2"; do                            # plain wipefs CANNOT clear everything
+  if [ -n "$(sudo wipefs -n "$d" | tail -n +2)" ]; then
+    sudo wipefs -n "$d"                                 # show what survived
+    sudo wipefs -a --force "$d"                         # targeted: this one bare partition
+  fi
+  [ -n "$(sudo wipefs -n "$d" | tail -n +2)" ] && { echo "ABORT: $d still dirty"; exit 1; }
+done
+sudo mkfs.btrfs -L data -d single -m raid1 "$DEV1" "$DEV2"
+sudo btrfs filesystem show "$DEV1"
 ```
-**p1 will report more than one stale signature, not one.** New p1 covers the old p1–p4 extent, so it contains the old
-ESP vfat boot sector at offset 0 *plus* the old `C:` NTFS superblock at offset `(239616-2048)*512 = 121,634,816`
-bytes (116 MiB in) and the WinRE NTFS superblock at offset `(1022742528-2048)*512 = 523,643,125,760` bytes
-(~499 GiB in). All of them are inside a partition that belongs to no filesystem yet, so `wipefs -a` erases all of them
-in one pass; the second `wipefs -n` must come back empty. p7 reports exactly one (its NTFS superblock). No `-f`/force
-is used anywhere: `wipefs -a` before
-`mkfs.btrfs` is what makes that possible, and a `mkfs.btrfs` refusal at this point is a signature check working, not
-an error to force past.
+**What actually shows up — measured offline on 2026-10-11** on image files shaped like these two devices
+(btrfs-progs v7.1, util-linux wipefs), because the earlier text here got both of these wrong:
+
+- **p1 reports only the old ESP's vfat signatures** — three lines, all at low offsets (`0x0`, `0x36`, `0x1fe`). It
+  does **not** report the old `C:` or WinRE NTFS superblocks, even though those physically sit inside the new extent
+  at byte offsets 121,634,816 and 523,643,125,760: `wipefs` only probes the offsets libblkid's probers look at, which
+  are all near zero. A plain `wipefs -a` erases all three vfat entries and p1 comes back clean.
+- **p7 reports `ntfs` at `0x3` *plus* a `dos` signature at `0x1fe`.** The plain `wipefs -a` erases the ntfs magic but
+  **refuses the `dos` one** — `ignoring nested "dos" partition table on non-whole disk device … Use the --force option
+  to force erase` — and that single leftover makes `mkfs.btrfs` refuse with `appears to contain a partition table
+  (dos)`. **The offset-erase remedy this document previously recommended does not work:** `wipefs -o 0x1fe` is refused
+  by the same guard and changes nothing. A targeted `wipefs -a --force "$d"` does clear it (2 bytes at `0x1fe`), and
+  `mkfs.btrfs` then succeeds **without** `-f`. The `--force` is scoped to that one bare partition — it cannot reach the
+  GPT, which lives on the disk rather than on p7 — and it runs only when the leftover check finds something.
+- `mkfs.btrfs` is therefore still invoked **without** `-f`: a refusal there now means the leftover loop failed to
+  notice a signature, which is a stop condition, not something to force past.
 
 Profiles are stated explicitly rather than defaulted. `-m raid1` keeps metadata on both devices; both live on the
 same physical NVMe, so it protects against per-partition damage and scrub-detectable bit rot but **not** against
@@ -416,11 +507,16 @@ C7 Declare `/data` in the flake, keyed on the **filesystem UUID** that `mkfs` pr
 ```nix
   # Bulk data pool: former Windows p1-p4 region + the 'Shared' partition, one btrfs volume.
   fileSystems."/data" = {
-    device = "/dev/disk/by-uuid/<new FS UUID>";
+    device = "/dev/disk/by-uuid/2f33dfb6-d596-4f5c-970a-cb1c7a89df46";
     fsType = "btrfs";
     options = ["noatime"];
   };
 ```
+**Executed 2026-10-11: C6 produced FS UUID `2f33dfb6-d596-4f5c-970a-cb1c7a89df46`, label `data`.** The `mkfs`
+ran without `-f`, performed a full-device TRIM on both members (SSD detected), and reported exactly the rehearsed
+profile: `Data: single`, `Metadata: RAID1`, `System: RAID1`, `Filesystem size 885.45GiB`, `Number of devices: 2`
+(devid 1 = p1 488.39GiB, devid 2 = p7 397.06GiB). The C7 entry above is already applied to
+`hosts/nixos/configuration.nix` and the system has been switched to the generation that carries it.
 The filesystem UUID, not a member's PARTUUID: this is a multi-device filesystem, so the filesystem is what is being
 named rather than any one device, and a future `mkfs` produces a *new* UUID — so a re-created filesystem makes the
 mount **fail loudly** instead of silently attaching a fresh, empty filesystem at `/data`. Do not add `nofail` and do
@@ -581,7 +677,10 @@ printf '%s\n' 'start=2048, size=1024235520, type=0fc63daf-8483-4772-8e79-3d69d84
 sudo partprobe /dev/nvme0n1
 sudo udevadm settle
 ```
-Fallback only if sfdisk rejects the exact command: `sudo parted -s /dev/nvme0n1 mkpart nixos-pool ext4 2048s 1024237567s`,
+Fallback only if sfdisk rejects the exact command: `sudo parted -s /dev/nvme0n1 mkpart nixos-pool ext4 2048s 1024237567s`.
+**Measured 2026-10-11: this fallback is the real path, not a fallback.** `/` (p6) and `/boot` (p5) are mounted from
+this disk, so every `sfdisk` table write is refused by the in-use check (`This disk is currently in use … Use the
+--no-reread flag`) and `parted` is required for the create. Treat the sfdisk form as reference only;
 then run `partprobe`/`udevadm settle` and verify the resulting partition number before continuing. `partprobe` may
 warn about re-reading a busy table (p5/p6 are mounted) even when sfdisk's per-partition kernel update succeeded —
 the sole authoritative gate is the `lsblk` geometry check in 2.4, not partprobe's output. If the new p1 device node
@@ -646,7 +745,9 @@ signatures remain:
 sudo wipefs -n /dev/nvme0n1p1    # expect: only btrfs superblock offsets
 ```
 If a stale non-btrfs signature somehow survives the add, erase it by explicit offset
-(`sudo wipefs -o <offset> /dev/nvme0n1p1`); NEVER `wipefs -a` on a device that has joined the filesystem — that would
+(`sudo wipefs -o <offset> /dev/nvme0n1p1`) — **but note that a `dos` entry at `0x1fe` is refused by the same
+non-whole-disk guard and cannot be removed that way** (measured 2026-10-11); clear such an entry with
+`wipefs -a --force` *before* the add instead. NEVER `wipefs -a` on a device that has joined the filesystem — that would
 erase the btrfs superblocks.
 
 3.3 If and only if the 0.4b disposition chose **A (absorb)** and p7 was explicitly approved and recreated as p2,
@@ -944,8 +1045,8 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 |---|---|---|
 | Phase 0 | complete p3/p7 manifests, `sha256sum`, health checks, temporary-partition `findmnt` | Windows contents and exact p7 manifest reviewed; backup gate passes; all temporary mounts are gone; CIFS mounts are unchanged and not touched |
 | Phase 0.3 + C0 | read-only `ntfs3` mount, full `find` manifest + `sha256sum`, `cp -a` of the wanted items, size comparison | p3 reviewed in full (377,354 entries, manifest recorded); the Resolve project DB, `Photos-1-001.zip`, the two Downloads documents and the verbatim Recycle Bin are copied locally and size-verified **before** C2; nothing was written to p3 at any point |
-| Chosen path C1–C5 | `sfdisk -d` and `efibootmgr -v` pre-records, `parted rm`, `sfdisk --partno`, `lsblk -o …START,PARTTYPENAME,PARTUUID` | p1 removed and recreated at sector 2048 as `Linux filesystem`; p7 retagged and renamed with its extent unchanged; p5/p6 starts and PARTUUIDs identical to the pre-records; nothing mounted on p1/p3/p4/p7 |
-| Chosen path C6 | `wipefs -n` before and after, `findmnt -rn -S`, `mkfs.btrfs -d single -m raid1`, `btrfs filesystem show` | both stale signatures erased while neither device belonged to a filesystem; one btrfs filesystem `data` on 2 devices; no `-f`/force used anywhere |
+| Chosen path C1–C5 | `sfdisk -d` and `efibootmgr -v` pre-records, `parted rm`, **`parted mkpart`/`type`/`name`** (sfdisk refuses on this busy disk), `lsblk -o …START,PARTTYPENAME,PARTUUID` | p1 removed and recreated at sector 2048 as `Linux filesystem` (~488.4 GiB, asserted as start `2048` / `524408586240` bytes); p7 retagged and renamed with its extent unchanged; p5/p6 starts and PARTUUIDs identical to the pre-records; nothing mounted on p1/p3/p4/p7. Sizes/geometry for p1 and the slot-1 assignment rehearsed offline 2026-10-11 |
+| Chosen path C6 | `wipefs -n` before, plain `wipefs -a`, leftover loop with targeted `wipefs -a --force`, `mkfs.btrfs -d single -m raid1` (no `-f`), `btrfs filesystem show` | p1's three vfat entries erased by the plain wipe; p7's `dos` at `0x1fe` caught by the leftover check and cleared with a targeted `--force` (a plain `wipefs -a` and `wipefs -o` both refuse it); both devices report no signatures before `mkfs`; one btrfs filesystem `data` on 2 devices, Data `single`, Metadata `RAID1`; `mkfs.btrfs` itself never forced. Logic rehearsed offline on p1-/p7-shaped images 2026-10-11 |
 | Chosen path C7–C8 | `alejandra`, `dry-build`, `switch`, `findmnt /data`, `btrfs filesystem show /data`, `btrfs device stats /data`, `df -h /data`, `systemctl --failed`, reboot | `/data` declared by filesystem UUID, no `nofail`/automount; mounts unattended after reboot with ≈880 GiB usable; stats 0; no failed units; `/` mounted from p6 exactly as before, single device, boot path unmodified |
 | Phase 0.4b | p7 read-only mount + full listing + manifest checksum (done 2026-10-11); `ntfsinfo -m` only if the volume is unmounted | p7 holds 10 entries / ~1.0 MiB, all recorded in `~/backups/shared-old-2026-10-11.manifest` (`0496b60a…`); nothing on p7 constrains reclamation; the chosen disposition is B′ (one new `/data` volume), with A/B recorded as the rejected alternative |
 | Phase 1 | dry-build, generated fstab/initrd inspection (`lsinitrd` via `nix-shell -p dracut`), `efibootmgr -v`, `findmnt -no SOURCE /boot`, successful reboot | flake evaluates before deletion; initrd contains the scan service, target wants link, and btrfs executable; firmware uses the p5 Linux Boot Manager; `/boot` is p5 and root uses the pinned p6 PARTUUID |
@@ -1001,8 +1102,10 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 - **No `mkfs`, no `-f`, and no unreviewed balance.** Stale signatures are erased with `wipefs -a` BEFORE
   `btrfs device add`, which then runs without `-f` — a refusal is itself the signature check. Post-add `wipefs -n`
   must show only btrfs; any later signature removal is by explicit offset (`wipefs -o`), never `wipefs -a` on a
-  joined member. A balance is run only if the recorded allocation profiles require it, because unnecessary balancing
-  creates long, avoidable metadata/data movement.
+  joined member — **with the measured caveat that a `dos` entry at `0x1fe` is refused by both a plain `wipefs -a` and
+  `wipefs -o`, so it must be cleared with a targeted `wipefs -a --force` before the device joins anything.** A balance
+  is run only if the recorded allocation profiles require it, because unnecessary balancing creates long, avoidable
+  metadata/data movement.
 - **Flake discipline.** All persistent configuration changes are under `~/nixcfg`; `/etc/fstab` and the initrd are
   generated outputs. Use `nixos-rebuild ... --flake .#nixos --impure --no-write-lock-file`; do not hand-edit generated
   files or use an ad-hoc bootloader configuration as the final state.
