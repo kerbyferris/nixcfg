@@ -77,23 +77,14 @@ in {
       # quickemu
     ];
 
-    # Mount T7 Shield from Hermes (Raspberry Pi) Samba share
-    fileSystems."/mnt/t7-shield" = {
-      device = "//192.168.1.67/T7-Shield";
-      fsType = "cifs";
-      options = [
-        "guest"
-        "uid=1000"
-        "gid=100"
-        "iocharset=utf8"
-        "noexec"
-        "nofail"
-        "noatime"
-        "_netdev"
-        "x-systemd.automount"
-        "x-systemd.idle-timeout=300"
-      ];
-    };
+    # REMOVED 2026-10-11: fileSystems."/mnt/t7-shield" (CIFS -> //192.168.1.67/T7-Shield).
+    # It was declared on 2026-06-15 for the era when the Raspberry Pi hosted a Samba share over
+    # the T7 Shield. That drive was later reformatted and moved to Proxmox (it is now pve's
+    # /mnt/t7-backup, btrfs UUID 5210d908-...), so the Pi had no T7 attached any more and the
+    # share was exporting a plain empty directory on the Pi's own root filesystem. Losing its
+    # backing disk is what made this mount a hollow, per-boot automount. The Pi-side [T7-Shield]
+    # share was dropped at the same time. History: this is the share whose forced unmount
+    # corrupted the T7 - see RULES.md "Storage Safety".
 
     # Mount T7 media workspace from Proxmox (RW) — GoPro originals, audio, projects, refern roots.
     # Renamed 2026-10-11 (editor-neutral: FilmCraft, not just Resolve): mountpoint was /mnt/davinci,
