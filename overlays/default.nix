@@ -12,6 +12,33 @@
     };
   };
 
+  # ArtCraft apps (ipeglin/artcraft-nix) with native file drag-and-drop made to
+  # work. winit only implements native DnD on X11, so under a native Wayland
+  # session the apps disable it and say so ("Native file drag-and-drop is
+  # unavailable — ... run PhotoCraft under XWayland with `WAYLAND_DISPLAY= ...`").
+  # Re-wrap each binary so WAYLAND_DISPLAY is dropped whenever an X display
+  # exists, which makes winit pick the X11 backend — XWayland, where XDND works
+  # (the apps' X11 backend has it compiled in). Pure-Wayland hosts with no
+  # XWayland keep the native backend, since DISPLAY is unset there.
+  # `pkgs.artcraftX11.<app>` is the newest release of each app.
+  artcraftX11 = final: prev: let
+    lib = final.lib;
+    artcraft = import "${inputs.artcraft}/default.nix" {pkgs = final;};
+    newest = lib.filterAttrs (name: _: !(lib.hasInfix "_" name)) (removeAttrs artcraft ["default"]);
+    withX11Dnd = drv:
+      drv.overrideAttrs (old: {
+        postFixup =
+          (old.postFixup or "")
+          + ''
+            for bin in "$out"/bin/*; do
+              wrapProgram "$bin" --run 'if [ -n "''${DISPLAY-}" ]; then unset WAYLAND_DISPLAY; fi'
+            done
+          '';
+      });
+  in {
+    artcraftX11 = lib.mapAttrs (_: withX11Dnd) newest;
+  };
+
   modifications = final: prev: {
     # Pin Wine to nixpkgs-stable (25.05) — Eagle won't start with Wine 11.x
     wineWow64Packages = final.stable.wineWow64Packages;

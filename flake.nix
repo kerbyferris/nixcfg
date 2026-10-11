@@ -29,6 +29,10 @@
     hyprdynamicmonitors.url = "github:fiffeek/hyprdynamicmonitors";
     # pi-flake.url = "github:ChauDucToan/pi-flake";
     llm-agents.url = "github:numtide/llm-agents.nix";
+    artcraft = {
+      url = "github:ipeglin/artcraft-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -74,10 +78,11 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/nixos
+          inputs.artcraft.nixosModules.default
           determinate.nixosModules.default
           stylix.nixosModules.stylix
           home-manager.nixosModules.default
-          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.stable-packages outputs.overlays.modifications inputs.llm-agents.overlays.shared-nixpkgs];}
+          {nixpkgs.overlays = [outputs.overlays.additions outputs.overlays.stable-packages outputs.overlays.artcraftX11 outputs.overlays.modifications inputs.llm-agents.overlays.shared-nixpkgs];}
           sops-nix.nixosModules.sops
         ];
       };

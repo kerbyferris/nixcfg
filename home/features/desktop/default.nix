@@ -46,8 +46,64 @@
       "x-scheme-handler/tonsite" = "org.telegram.desktop.desktop";
     };
   };
+
+  # Thunar forced onto X11 (GDK_BACKEND=x11). Rationale: ArtCraft's winit-based
+  # apps implement native file drag-and-drop only in winit's X11 backend, and
+  # Hyprland does not reliably relay a *Wayland* drag onto an XWayland target
+  # (hyprwm/Hyprland#7644), so dropping from Nautilus does nothing. An X11 drag
+  # source never involves the compositor: plain XDND between two X11 clients.
+  # Nautilus stays on Wayland for everything else — use Thunar when dragging
+  # into an ArtCraft app.
+  xdg.desktopEntries."thunar" = {
+    name = "Thunar File Manager";
+    genericName = "File Manager";
+    comment = "Browse the filesystem with the file manager";
+    exec = "env GDK_BACKEND=x11 thunar %U";
+    icon = "org.xfce.thunar";
+    terminal = false;
+    categories = ["System" "Core" "GTK" "FileTools" "FileManager"];
+    mimeType = ["inode/directory"];
+    actions = {
+      open-home = {
+        name = "Home";
+        exec = "env GDK_BACKEND=x11 thunar %U";
+      };
+      open-computer = {
+        name = "Computer";
+        exec = "env GDK_BACKEND=x11 thunar computer:///";
+      };
+      open-trash = {
+        name = "Trash";
+        exec = "env GDK_BACKEND=x11 thunar trash:///";
+      };
+    };
+  };
+
+  # Thunar owns these D-Bus names. Without the env var here a D-Bus-activated
+  # instance would come up on Wayland and then swallow later menu launches via
+  # GApplication single-instance, silently undoing the X11 source above.
+  xdg.dataFile = {
+    "dbus-1/services/org.xfce.Thunar.service".text = ''
+      [D-BUS Service]
+      Name=org.xfce.Thunar
+      Exec=env GDK_BACKEND=x11 ${pkgs.thunar}/bin/Thunar --gapplication-service
+    '';
+    "dbus-1/services/org.xfce.FileManager.service".text = ''
+      [D-BUS Service]
+      Name=org.xfce.FileManager
+      Exec=env GDK_BACKEND=x11 ${pkgs.thunar}/bin/Thunar --gapplication-service
+    '';
+    "dbus-1/services/org.freedesktop.FileManager1.service".text = ''
+      [D-BUS Service]
+      Name=org.freedesktop.FileManager1
+      Exec=env GDK_BACKEND=x11 ${pkgs.thunar}/bin/Thunar --gapplication-service
+    '';
+  };
+
   home.packages = with pkgs; [
+    affine
     android-tools
+    anytype
     arduino-ide
     bambu-studio # replaces Flatpak version which crashes on NixOS (glycin sandbox DBus issue)
     brave
@@ -89,6 +145,7 @@
     steam-run
     syncthing
     telegram-desktop
+    thunar # X11-forced file manager — see the desktop entry comment above
     # tidal-hifi
     todoist-electron
     upower
