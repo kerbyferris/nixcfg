@@ -95,9 +95,12 @@ in {
       ];
     };
 
-    # Mount T7 DaVinci workspace from Proxmox (RW) — video editing, projects, audio
-    fileSystems."/mnt/davinci" = {
-      device = "//192.168.1.200/davinci";
+    # Mount T7 media workspace from Proxmox (RW) — GoPro originals, audio, projects, refern roots.
+    # Renamed 2026-10-11 (editor-neutral: FilmCraft, not just Resolve): mountpoint was /mnt/davinci,
+    # the Samba share was [davinci], and pve's host path was /mnt/t7-davinci. The backing btrfs
+    # subvolume is @media-workspace (was @davinci-workspace).
+    fileSystems."/mnt/media" = {
+      device = "//192.168.1.200/media";
       fsType = "cifs";
       options = [
         "credentials=${config.sops.templates."proxmox-samba-credentials".path}"

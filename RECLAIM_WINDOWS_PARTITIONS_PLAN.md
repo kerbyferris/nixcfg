@@ -7,7 +7,7 @@ Samba-mounted media. The only block-device filesystems this procedure may mount 
 partitions and temporary inspection mountpoints under `/mnt/win-esp`, `/mnt/win-c`, `/mnt/shared-old`, and
 `/mnt/test-root`. It may also write local records under `~/backups`, update the flake configuration under `~/nixcfg`,
 and delete confirmed-local entries from the user's Trash. It must never write, delete, unmount, or test-write
-`/mnt/davinci`, `/mnt/immich-data`, `/mnt/t7-shield`, or any other CIFS mount.
+`/mnt/media`, `/mnt/immich-data`, `/mnt/t7-shield`, or any other CIFS mount.
 
 **Chosen design (2026-10-11): one new btrfs volume `/data` spanning the former p1–p4 region and p7.** The existing
 root filesystem, `/boot`, the bootloader and the initrd are left completely untouched — no `btrfs device add`, no
@@ -114,7 +114,7 @@ Facts verified this session (2026-09-13):
 - Multi-device btrfs support is **not treated as proven solely by the stage-2 `ID_BTRFS_READY=1` observation**. The
   initrd rule path and mount ordering must be validated by the generated flake configuration and by the post-change
   reboot. The plan includes an explicit initrd `btrfs device scan` service and a live mount test before reboot.
-- `~/Videos` is local-only media currently on p6; its move to `/mnt/davinci` is separate user work. This plan never
+- `~/Videos` is local-only media currently on p6; its move to `/mnt/media` is separate user work. This plan never
   reads or writes its destination and never touches any Samba-mounted media.
 - p7 was intended as a volume shared between the Windows and Linux installs so that large files would not be
   duplicated, and it never worked: NixOS could not write to it, and it was never wired into the configuration at all
@@ -854,7 +854,7 @@ reboot.
 
 The user requested emptying Trash, but deleting all of `~/.local/share/Trash` blindly could permanently remove media
 that originated on a CIFS mount. Audit every `.trashinfo` sidecar and preserve anything whose decoded `Path=` is under
-the configured Samba targets (`/mnt/davinci`, `/mnt/immich-data`, `/mnt/t7-shield`) or any currently active CIFS target,
+the configured Samba targets (`/mnt/media`, `/mnt/immich-data`, `/mnt/t7-shield`) or any currently active CIFS target,
 plus any entry with missing, malformed, relative, or otherwise unknown provenance, or a missing sidecar. This protects
 automounts even when they are not currently mounted. The deletion rule is an ALLOWLIST, not a denylist: an entry is
 deleted only when its decoded origin is under `$HOME` AND not under any current mountpoint. An origin on removable or
@@ -863,7 +863,7 @@ configured CIFS targets — under a denylist it would be wrongly treated as loca
 payload may be the only copy. As of 2026-09-13 all 2106 sidecars have `/home/kerby/...` origins, so the dry run must
 show exactly 2106 `WOULD_DELETE` lines; investigate any deviation before the apply run. This phase only ever empties
 the HOME trash: media trashed directly on a Samba share lives in that share's topdir trash (e.g.
-`/mnt/davinci/.Trash-1000`), which this plan never opens, lists, or empties — those remain after Phase 7 by design.
+`/mnt/media/.Trash-1000`), which this plan never opens, lists, or empties — those remain after Phase 7 by design.
 
 Run the following exact script twice. The first run is a dry run (`TRASH_APPLY=0`) and must be reviewed before the
 second run. Only rerun with `TRASH_APPLY=1` after every `WOULD_DELETE` entry has been confirmed as local; any
@@ -891,7 +891,7 @@ def findmnt_targets(*args):
         raise RuntimeError(f"findmnt {args} failed: {result.stderr.strip()}")
     return [Path(os.path.normpath(x)) for x in result.stdout.splitlines()]
 
-configured_cifs = [Path("/mnt/davinci"), Path("/mnt/immich-data"), Path("/mnt/t7-shield")]
+configured_cifs = [Path("/mnt/media"), Path("/mnt/immich-data"), Path("/mnt/t7-shield")]
 active_cifs = findmnt_targets("-t", "cifs")
 cifs = configured_cifs + active_cifs
 all_mounts = findmnt_targets()
@@ -1004,7 +1004,7 @@ It handles the standard absolute Trash path and `file://` form; all other forms 
 a query matches nothing (the normal state once the CIFS automounts idle out), so the script tolerates return codes 0
 and 1 — an earlier version used `check_output` and crashed with `CalledProcessError` in exactly that common case. It
 also refuses to recursively remove a Trash payload if the payload or any descendant is a mountpoint. No command in
-this phase opens, writes, unmounts, or deletes `/mnt/davinci`, `/mnt/immich-data`, `/mnt/t7-shield`, or another CIFS
+this phase opens, writes, unmounts, or deletes `/mnt/media`, `/mnt/immich-data`, `/mnt/t7-shield`, or another CIFS
 mount.
 
 ### Phase 8 — Final record
@@ -1085,8 +1085,8 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 - **No automatic Samba Trash deletion.** The Trash audit has a dry-run/apply gate and is an allowlist: only entries
   with a decoded origin under `$HOME` and not under any current mountpoint are deleted; CIFS-originated,
   removable-media, malformed, mount-containing, and unknown-provenance entries are preserved. An incomplete emptying
-  is safer than deleting media. CIFS-topdir trash (e.g. `/mnt/davinci/.Trash-1000`) is never opened or emptied.
-- **No Samba access in the procedure.** `/mnt/davinci`, `/mnt/immich-data`, `/mnt/t7-shield`, and all current/future
+  is safer than deleting media. CIFS-topdir trash (e.g. `/mnt/media/.Trash-1000`) is never opened or emptied.
+- **No Samba access in the procedure.** `/mnt/media`, `/mnt/immich-data`, `/mnt/t7-shield`, and all current/future
   CIFS targets are not unmounted, remounted, listed for verification, written, or cleanup-targeted by this plan.
 - **Windows/p6 backup gate.** If p3 is unreadable or contains wanted data, stop before deletion. If p6 has nonzero
   Btrfs device stats, an incomplete scrub, or no confirmed independent backup of irreplaceable local data, stop before
