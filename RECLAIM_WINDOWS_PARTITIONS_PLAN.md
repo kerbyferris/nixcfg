@@ -2,14 +2,22 @@
 
 ## Context
 
-Reclaim the abandoned Windows 11 partition space for the existing NixOS root filesystem without touching any
+Reclaim the abandoned Windows 11 partition space as a new local btrfs data volume without touching any
 Samba-mounted media. The only block-device filesystems this procedure may mount or modify are the local NVMe
 partitions and temporary inspection mountpoints under `/mnt/win-esp`, `/mnt/win-c`, `/mnt/shared-old`, and
 `/mnt/test-root`. It may also write local records under `~/backups`, update the flake configuration under `~/nixcfg`,
 and delete confirmed-local entries from the user's Trash. It must never write, delete, unmount, or test-write
 `/mnt/davinci`, `/mnt/immich-data`, `/mnt/t7-shield`, or any other CIFS mount.
 
-The selected design adds the freed space as additional devices to the existing root btrfs filesystem. It does not
+**Chosen design (2026-10-11): one new btrfs volume `/data` spanning the former p1–p4 region and p7.** The existing
+root filesystem, `/boot`, the bootloader and the initrd are left completely untouched — no `btrfs device add`, no
+root PARTUUID repin, no scripted-to-systemd stage-1 switch. This was chosen after p7 was verified empty and `/` was
+measured at **56 % used (430 GiB free)** rather than the 88 % recorded when this plan was written: the reclaimed
+capacity is worth having, the boot-path risk is not. Options A (everything into `/`) and B (p1 into `/`, p7
+standalone) are retained below as the **rejected alternative**, behind an explicit do-not-execute fence, to be
+revisited only if a larger `/` is actually wanted.
+
+The procedure does not
 copy or relocate `~/Videos`; those local GoPro files are being moved to the Samba share separately by the user. The
 397 GiB `Shared` partition is inspected read-only, but it is reclaimed only after the user explicitly confirms that
 its complete listing contains nothing wanted; directory names such as `Windows`, `$RECYCLE.BIN`, or installers are not
@@ -29,6 +37,16 @@ deprecated `systemd-udev-settle.service` ordering was dropped from the initrd se
 switch is now called out as its own boot-path change; Phase 3.4 capacity expectations are exact GiB figures; and the
 Trash audit is now an allowlist (origin must be under `$HOME` and not under any current mountpoint) instead of a CIFS
 denylist.
+
+**p7 reclaim section added, and the design settled, 2026-10-11.** New 0.4b diagnoses, read-only, why the `Shared`
+partition was never writable from NixOS and turns p7's disposal into an explicit disposition. p7 was then mounted
+read-only and **verified effectively empty** (10 entries, ~1.0 MiB; manifest + sha256 in `~/backups`). p3 (`C:`) was
+then reviewed read-only in full too (377,354 entries; manifest + sha256 in `~/backups`) and the four pieces of real
+user data it held — a DaVinci Resolve project database, a 29.90 GiB `Photos-1-001.zip` of 87 Pixel videos, and two
+booking documents — plus the 24.28 GiB Recycle Bin, were preserved locally (C0) before any deletion. With `/`
+measured at 56 % used instead of the 88 % recorded at authoring time, the chosen design is **B′ — one new `/data`
+btrfs volume spanning the former p1–p4 region and p7 (885.45 GiB), leaving `/`, `/boot`, the bootloader and the
+initrd untouched**. The root-growing options A/B are kept as a fenced, do-not-execute alternative.
 
 Facts verified this session (2026-09-13):
 
@@ -57,6 +75,16 @@ Facts verified this session (2026-09-13):
   reboot. The plan includes an explicit initrd `btrfs device scan` service and a live mount test before reboot.
 - `~/Videos` is local-only media currently on p6; its move to `/mnt/davinci` is separate user work. This plan never
   reads or writes its destination and never touches any Samba-mounted media.
+- p7 was intended as a volume shared between the Windows and Linux installs so that large files would not be
+  duplicated, and it never worked: NixOS could not write to it, and it was never wired into the configuration at all
+  (no fstab entry, no `fileSystems` declaration). It was mounted read-only on 2026-10-11 and **verified effectively
+  empty** (10 entries, ~1.0 MiB of test and Windows-bookkeeping files). Its write failure is diagnosed read-only in
+  0.4b, and its disposition — plus p1–p4's — is settled as **B′**: one new `/data` btrfs volume spanning both, with
+  the root filesystem untouched. See `## Chosen path — B′`.
+- Re-read 2026-10-11: the layout above is unchanged (p1–p4 and p7 all still intact, p5/p6 at their original start
+  sectors), but root pressure has eased to **543 GiB used / 430 GiB free (56 %)**. The reclaim is therefore no longer
+  urgent, which makes the 0.4b disposition choice — and whether to reclaim at all — a deliberate decision rather than
+  a space emergency.
 
 **Root-device pinning.** `/etc/fstab` currently names `/` by the btrfs filesystem UUID. After a second partition joins,
 each member reports that same filesystem UUID, so the by-UUID name is ambiguous. The NixOS module therefore overrides
@@ -78,8 +106,13 @@ and refresh it if it expires. Do not grant persistent passwordless partition or 
 
 ## Approach
 
-Ordered so that nothing is destroyed until the boot path has been *proven*, and so that each phase is verifiable
-before the next.
+Ordered so that nothing is destroyed until it is verifiable and the layout around it has been checked, and so that
+each step can be verified before the next.
+
+**The executable path is `## Chosen path — B′` immediately after Phase 0.** It reclaims p1–p4 and p7 into one new
+`/data` btrfs volume and changes nothing in the boot path. Everything from `### Phase 1` onward is the **rejected
+A/B alternative** (growing the root filesystem), retained for reference and fenced off with a do-not-execute banner;
+Phases 7 and 8 apply to both paths. Phase 0 below is shared read-only pre-flight and applies in full.
 
 ### Phase 0 — Pre-flight, storage read-only (local records only)
 
@@ -130,6 +163,20 @@ not a full manifest — a deliberate asymmetry: the 730 MiB WinRE image is dispo
 `blkid` already probes p3 and p7 as `ntfs` today, so the encrypted-volume stop branch is known-clear in advance; the
 dirty/hibernated branch still applies.
 
+**p3 review carried out 2026-10-11 (read-only).** Mounted with
+`ntfs3 -o ro,uid=1000,gid=100,umask=022`; 155 GiB used of 487.6 GiB, **377,354 entries**, full manifest and checksum
+at `~/backups/windows-c-2026-10-11.manifest` (sha256 `d148bf6e0cce627b6d5d047b595c3ea234c14896e82cfc48bb0a96a1b8efd2e0`).
+The volume is a stock Windows 11 install plus four pieces of real user data, all of which were preserved (C0):
+a **DaVinci Resolve project database** (`Support/Resolve Project Library/Resolve Projects/Users/guest/Projects/` —
+`kitchen reno jam` and `Untitled Project 1`, plus `User.db`), **`Downloads/Photos-1-001.zip`** (29.90 GiB, 87 Pixel
+`PXL_2025*` videos), `Downloads/milanairbnb.pdf`, and a booking screenshot. `Downloads`, `Desktop`, `Documents`,
+`Pictures`, `Videos`, `Music`, `OneDrive` and `DaVinci Resolve Media` hold nothing else. The 24.28 GiB
+`$Recycle.Bin` holds 58 MP4s and 1 JPG, all from `C:\Users\kerby\Downloads\` and all deleted in one pass on
+2025-10-28 — preserved too, since the cost of keeping them is small and the cost of being wrong is not. Everything
+else (Windows, Program Files, ProgramData, `$WinREAgent`, Temp, PowerToys, installers) is disposable by inspection.
+**`hiberfil.sys` is present at 26 GiB**, which corroborates the 0.4b cause #1 as the reason p7 was never writable
+from Linux. No file on p3 is Samba data, so the CIFS prohibition is unaffected.
+
 
 0.4 Read-only review of p7:
 ```
@@ -145,6 +192,112 @@ The manifest is complete: it has no `maxdepth` or `sed` truncation. Preserve the
 locally, then show every entry to the user. Reclaim p7 only after explicit user confirmation against that exact
 manifest that every listed item is disposable; directory names are never enough. If the mount refuses read-only,
 stop; do not use `force` to bypass an unknown filesystem state.
+The `ntfs3` read-only mount in 0.4 is the kernel driver; if it refuses, try the FUSE driver (`ntfs-3g -o ro`, see
+0.4b) before treating the volume as unreadable. 0.4's stop condition applies only after both drivers have failed.
+
+0.4b p7 (`Shared`): why it was never writable, and its disposition.
+
+Re-verified unprivileged on 2026-10-11 (no root, no mounts):
+
+- p7 is 397.1 GiB at start sector 3074334720, GPT type `ebd0a0a2-…` (Microsoft basic data), FS `ntfs`, label
+  `Shared`, FS UUID `409883C657845728`.
+- **NixOS has never mounted p7.** There is no `/etc/fstab` entry, no `fileSystems` declaration in `~/nixcfg`, and no
+  reference to p7 or to the label `Shared` anywhere in the configuration. Every write attempt so far was an ad-hoc
+  manual mount, so the failure is not a broken fstab entry — nothing was ever configured to mount it.
+- `ntfs-3g` + `ntfsfix` + `ntfsinfo` are installed (`hosts/features/video-editing.nix:67`) and the in-kernel `ntfs3`
+  module ships with kernel 6.12 (`/run/booted-system/kernel-modules/.../fs/ntfs3/ntfs3.ko.xz`).
+- `boot.supportedFilesystems` does not list `ntfs`. This is irrelevant to an on-demand mount and relevant only if p7
+  were ever mounted at boot.
+- `kerby` is not in the `disk` group, so the block device (`brw-rw---- root:disk`) cannot be read unprivileged: the
+  volume's dirty/hibernation flag **is not verified and cannot be verified without root**.
+- No `ntfs`/`nvme0n1p7` lines exist in the current boot's kernel log, i.e. nothing attempted a mount this boot.
+
+The diagnosis and the 0.4 read-only review are the same step — run them together:
+
+```
+sudo ntfsinfo -m /dev/nvme0n1p7 | sed -n '1,40p'      # $Volume flags: dirty / hibernated
+sudo mount -t ntfs3 -o ro /dev/nvme0n1p7 /mnt/shared-old   # kernel-driver read-only mount
+sudo umount /mnt/shared-old
+sudo ntfs-3g -o ro /dev/nvme0n1p7 /mnt/shared-old     # FUSE read-only fallback
+sudo umount /mnt/shared-old
+dmesg | grep -i ntfs | tail -20                       # the exact refusal text, if any
+```
+
+Three candidate causes, in the order they should be checked; the evidence above distinguishes them:
+
+1. **Windows Fast Startup / hibernation (the expected one).** A hybrid shutdown leaves the `$Volume` dirty flag set
+   and a `hiberfil.sys` on the Windows `C:` (p3). Both drivers then refuse read-write and either mount read-only or
+   fail outright. Check the `hiberfil.sys` entry in the p3 manifest (0.3) and the dirty flag in `ntfsinfo`. This is
+   the canonical reason a partition built to be shared between Windows and Linux is writable from only one side.
+2. **No ownership mapping.** A manual `mount -t ntfs3` with no `uid=`/`gid=`/`umask=` presents every file as
+   `root:root`, so writes fail with `EACCES` as `kerby` even though the mount is nominally read-write. This reads as
+   "Linux cannot write to it" but is a mount-option problem, not a filesystem one.
+3. **`ntfs3` read-write refusal on a mildly inconsistent volume.** The in-kernel driver is stricter than the FUSE
+   driver; `ntfs-3g` is the more permissive fallback for a one-off read-write mount.
+
+None of the three changes the outcome now that Windows is being removed, and **none should be fixed**: the diagnosis
+exists only to establish whether the 0.4 listing is complete and whether the volume is in a state that makes the
+manifest untrustworthy. **Do not run `ntfsfix`, do not mount read-write, and do not repair p7** — every such write
+risks destroying evidence before the manifest has been reviewed and approved.
+
+**Disposition decision (gate for 2.5 and 3.3).** Windows no longer needs this extent, so p7 is reclaimed; the only
+open question is into what. Decide once, before Phase 2:
+
+| | A. Absorb into root btrfs (current plan) | B. Standalone btrfs volume (recommended) | C. Repair NTFS and keep it |
+|---|---|---|---|
+| result | p1 + p6 + p7 in one filesystem | p6 (+p1) root, p7 a separate `mkfs.btrfs` volume | p7 stays NTFS, made writable |
+| `df /` | shows the whole ≈1.82 TiB | unchanged | unchanged |
+| capacity view | one pool | two pools (`/` and the data mount) | n/a |
+| failure domain | **root depends on three partitions in two disjoint disk regions** — any one failing loses `/` | root unaffected by p7; each volume has its own `scrub`, snapshots and stats | n/a |
+| configuration cost | PARTUUID pin + initrd btrfs scan service (already in Phases 1 and 4) | one `fileSystems` entry; no root-config change for p7 | one fstab entry plus driver options |
+| right for | "one big `/`" | **"large files that should not be duplicated" — p7's original purpose** | nothing: Windows is going away, and NTFS is the worst choice for a Linux-only pool |
+
+Recommendation: **B.** p7 was created to hold large files that both operating systems reached, which is a separate
+data volume, not more root. It also keeps the failure domain honest: stretching root across a second, physically
+disjoint region of the same disk buys no redundancy and adds a boot dependency. Option A remains correct if a single
+unified pool is preferred, and the existing 2.5/3.3 commands then apply unchanged.
+
+**A (absorb):** run the existing 2.5 then 3.3 — recreate the extent as GPT entry 2 `nixos-pool2`, `wipefs -a` before
+the add, and `btrfs device add` without `-f`.
+
+**B (standalone):** do not run 2.5 or 3.3. Instead:
+
+```
+sudo wipefs -n /dev/nvme0n1p7        # expect: ntfs signature only
+findmnt -rn -S /dev/nvme0n1p7        # expect: no output
+sudo wipefs -a /dev/nvme0n1p7        # erase the NTFS signature; nothing has it mounted
+sudo mkfs.btrfs -L data /dev/nvme0n1p7
+lsblk -o NAME,SIZE,PARTUUID,FSTYPE,LABEL /dev/nvme0n1p7
+```
+No `parted`/`sfdisk` step and no partition renumbering: p7 keeps its number and its extent, and only its contents
+change. Then declare it in the flake, beside the other local mounts in `hosts/nixos/configuration.nix`:
+```nix
+  # Bulk data pool: the former Windows 'Shared' partition, reformatted for Linux.
+  fileSystems."/data" = {
+    device = "/dev/disk/by-partuuid/<p7 PARTUUID from the lsblk above>";
+    fsType = "btrfs";
+    options = ["noatime"];
+  };
+```
+Use the **PARTUUID**, not the new filesystem UUID, so a future re-`mkfs` cannot silently repoint the mount. Do not
+set `nofail` and do not add `x-systemd.automount`: this is local NVMe that is always present, so a plain boot mount
+is correct and a failure should drop to emergency mode visibly rather than be deferred or skipped.
+
+`compress=zstd` is deliberately omitted — the pool is expected to hold media that is already compressed, so zstd
+would burn CPU for no space gain; add `compress=` only if the contents turn out to be compressible. If snapshots of
+this pool are wanted later, create a `@data` subvolume after the `mkfs` and mount `subvol=@data`, mirroring root's
+`subvol=@` layout.
+Apply and verify:
+```
+alejandra hosts/nixos/configuration.nix
+sudo nixos-rebuild dry-build --flake .#nixos --impure --no-write-lock-file
+sudo nixos-rebuild switch --flake .#nixos --impure --no-write-lock-file
+findmnt /data && sudo btrfs filesystem show /data
+sudo chown kerby:users /data          # a fresh btrfs root is root:root
+```
+With B, the root filesystem gains exactly one device (p1) and the p2 path in 3.3 is dead; nothing else in Phases 1–5
+changes, including the PARTUUID pin and the initrd scan service, which are still required because root becomes
+multi-device.
 
 0.5 Health and backup gate before any root btrfs mutation:
 ```
@@ -161,6 +314,159 @@ for p in /dev/nvme0n1p1 /dev/nvme0n1p3 /dev/nvme0n1p4 /dev/nvme0n1p7; do
 done
 ```
 Expected: no output. Do not unmount or otherwise manipulate any CIFS mount shown in 0.2.
+
+## Chosen path — B′: one new `/data` btrfs volume (2026-10-11)
+
+**Outcome.** The former Windows p1–p4 region (488.39 GiB, sectors 2048–1024237567) and p7 (397.06 GiB) become a
+single new btrfs filesystem spanning **885.45 GiB of device space** (usable data capacity is slightly less, because
+metadata is RAID1 across both devices) mounted at `/data`. `/` (p6), `/boot` (p5), the bootloader and the
+initrd are not modified in any way. Partition numbers p5/p6/p7 do not move, so `/boot` and `/` references stay valid.
+GPT entries 2, 3 and 4 end up unused, and `nvme0n1p2/3/4` cease to exist.
+
+**Why this and not growing `/`.** See Context: `/` is 56 % used with 430 GiB free. Growing it is the only part of
+this procedure that carries boot risk, and it is not done for capacity that is not needed.
+
+**Preconditions.**
+- p7's contents were verified empty on 2026-10-11 — 10 entries, ~1.0 MiB, manifest and sha256 at
+  `~/backups/shared-old-2026-10-11.manifest`. Nothing on p7 constrains its reclamation.
+- p3 (`C:`) was listed read-only and reviewed in full on 2026-10-11 — 377,354 entries, manifest and sha256 at
+  `~/backups/windows-c-2026-10-11.manifest`; findings recorded in 0.3. Everything wanted from it is preserved in C0.
+  It is no longer a reason to stop, only a source of data to copy first.
+- `/mnt/shared-old` was unmounted after the p7 review (verified 2026-10-11), so nothing must be unmounted before C2.
+- No CIFS mount is touched at any point; p1–p4 hold no Samba data.
+
+C0 Preserve the confirmed-wanted data off p3 **before anything is deleted**, to a local path — never a CIFS mount:
+```
+mkdir -p ~/preserved/win-c-<date>
+cp -a /mnt/win-c/Users/kerby/Downloads/Photos-1-001.zip ~/preserved/win-c-<date>/
+cp -a /mnt/win-c/Users/kerby/Downloads/milanairbnb.pdf ~/preserved/win-c-<date>/
+cp -a "/mnt/win-c/Users/kerby/Downloads/Screenshot 2025-10-28 at 12-51-48 View Booking KBGSVP5 easyJet.com.png" \
+      ~/preserved/win-c-<date>/
+cp -a "/mnt/win-c/Users/kerby/AppData/Roaming/Blackmagic Design/DaVinci Resolve/Support/Resolve Project Library" \
+      ~/preserved/win-c-<date>/
+mkdir -p ~/preserved/win-c-<date>/recycle-bin
+cp -a "/mnt/win-c/\$Recycle.Bin/S-1-5-21-2391088008-423882448-4197848775-1001" ~/preserved/win-c-<date>/recycle-bin/
+```
+The destination is `/` (the local NVMe root, not `/data`, which does not exist yet) and the copy must complete and be
+size-verified **before C2**. The Recycle Bin is copied verbatim — the `$I` sidecars are what map the meaningless `$R`
+filenames back to their originals, so they must travel with the payloads. After C8, move `~/preserved/` to `/data`;
+until then it is a 54 GiB duplicate on the same physical disk, which is a staging cost, not a backup.
+
+C1 Records and mount check — Phase 0.2 and 0.6 verbatim: the `sfdisk -d` dump, the `efibootmgr -v` dump, and proof
+that none of `/dev/nvme0n1p{1,3,4,7}` is mounted.
+
+C2 Delete p1–p4 highest number first, one command at a time, stopping on any non-zero status:
+```
+sudo parted -s /dev/nvme0n1 rm 4
+sudo parted -s /dev/nvme0n1 rm 3
+sudo parted -s /dev/nvme0n1 rm 2
+sudo parted -s /dev/nvme0n1 rm 1
+```
+
+C3 Recreate the freed extent as GPT entry 1, typed as Linux filesystem (`--partno 1` is intentional: `--append` may
+choose a different unused slot, and `--wipe=never` leaves the stale ESP signature for C6 to erase):
+```
+printf '%s\n' 'start=2048, size=1024235520, type=0fc63daf-8483-4772-8e79-3d69d8477de4, name="nixos-data"' \
+  | sudo sfdisk --partno 1 --wipe=never --quiet /dev/nvme0n1
+sudo partprobe /dev/nvme0n1
+sudo udevadm settle
+```
+
+C4 Retag and rename p7. Its extent and number do not change; only the GPT metadata stops describing it as Microsoft
+data, so nothing in the table is misleading afterwards:
+```
+sudo sfdisk --part-type  /dev/nvme0n1 7 0fc63daf-8483-4772-8e79-3d69d8477de4
+sudo sfdisk --part-label /dev/nvme0n1 7 nixos-data
+sudo partprobe /dev/nvme0n1 && sudo udevadm settle
+```
+
+C5 Geometry gate before any filesystem exists. `lsblk -o NAME,SIZE,START,PARTTYPENAME,PARTLABEL,PARTUUID
+/dev/nvme0n1` must show p1 at start 2048, 488.39 GiB, type `Linux filesystem`; and p5/p6/p7 at their original start
+sectors with their original PARTUUIDs (`226c2b0b-…`, `67c0b066-…`). Any movement means stop — before any filesystem
+exists, the Phase 0 dump is still a valid thing to restore from.
+
+C6 Erase the stale signatures and create the filesystem. `wipefs -a` runs while neither device belongs to any
+filesystem and neither is mounted:
+```
+sudo wipefs -n /dev/nvme0n1p1; sudo wipefs -n /dev/nvme0n1p7
+findmnt -rn -S /dev/nvme0n1p1; findmnt -rn -S /dev/nvme0n1p7      # expect no output
+sudo wipefs -a /dev/nvme0n1p1
+sudo wipefs -a /dev/nvme0n1p7
+sudo wipefs -n /dev/nvme0n1p1; sudo wipefs -n /dev/nvme0n1p7      # expect no output
+sudo mkfs.btrfs -L data -d single -m raid1 /dev/nvme0n1p1 /dev/nvme0n1p7
+sudo btrfs filesystem show /dev/nvme0n1p1
+```
+**p1 will report more than one stale signature, not one.** New p1 covers the old p1–p4 extent, so it contains the old
+ESP vfat boot sector at offset 0 *plus* the old `C:` NTFS superblock at offset `(239616-2048)*512 = 121,634,816`
+bytes (116 MiB in) and the WinRE NTFS superblock at offset `(1022742528-2048)*512 = 523,643,125,760` bytes
+(~499 GiB in). All of them are inside a partition that belongs to no filesystem yet, so `wipefs -a` erases all of them
+in one pass; the second `wipefs -n` must come back empty. p7 reports exactly one (its NTFS superblock). No `-f`/force
+is used anywhere: `wipefs -a` before
+`mkfs.btrfs` is what makes that possible, and a `mkfs.btrfs` refusal at this point is a signature check working, not
+an error to force past.
+
+Profiles are stated explicitly rather than defaulted. `-m raid1` keeps metadata on both devices; both live on the
+same physical NVMe, so it protects against per-partition damage and scrub-detectable bit rot but **not** against
+losing the disk — it is not redundancy, and must not be described as such. `-d single` keeps the capacity arithmetic
+honest: data can use either device's free space, so the pool's usable data capacity is the sum of the devices minus
+the duplicated metadata, which is a few GiB. Verified offline on two image files with these exact flags
+(btrfs-progs v7.1): `Data: single`, `Metadata: RAID1`, `System: RAID1`, 2 devices.
+
+C7 Declare `/data` in the flake, keyed on the **filesystem UUID** that `mkfs` printed:
+```nix
+  # Bulk data pool: former Windows p1-p4 region + the 'Shared' partition, one btrfs volume.
+  fileSystems."/data" = {
+    device = "/dev/disk/by-uuid/<new FS UUID>";
+    fsType = "btrfs";
+    options = ["noatime"];
+  };
+```
+The filesystem UUID, not a member's PARTUUID: this is a multi-device filesystem, so the filesystem is what is being
+named rather than any one device, and a future `mkfs` produces a *new* UUID — so a re-created filesystem makes the
+mount **fail loudly** instead of silently attaching a fresh, empty filesystem at `/data`. Do not add `nofail` and do
+not add `x-systemd.automount`: `/data` is local and always present, and a mount failure should be visible rather than
+silent.
+```
+cd ~/nixcfg
+alejandra hosts/nixos/configuration.nix
+sudo nixos-rebuild dry-build --flake .#nixos --impure --no-write-lock-file
+sudo nixos-rebuild switch --flake .#nixos --impure --no-write-lock-file
+findmnt /data && sudo btrfs filesystem show /data && sudo btrfs device stats /data
+sudo chown kerby:users /data
+```
+There is deliberately no Phase 1 boot gate here: nothing in the boot path changes, and the only new boot-time
+behaviour is one ordinary filesystem mount. `hardware-configuration.nix` is not touched.
+
+C8 Reboot and verify `/data` mounts unattended:
+```
+findmnt -no SOURCE,OPTIONS /data    # btrfs at /dev/disk/by-uuid/<uuid>, unmodified options
+sudo btrfs filesystem show /data    # label 'data', 2 devices
+df -h /data                         # ≈880 GiB (885.45 GiB of devices, less duplicated metadata)
+sudo btrfs device stats /data       # every counter 0
+systemctl --failed                  # empty
+```
+If `/data` does not mount, `sudo btrfs device scan` then `sudo mount /data` is the first thing to try — the likely
+failure is a member device not yet registered with the kernel, not a damaged filesystem, and root boots regardless,
+so there is no emergency. **Fallback if the two-device pool proves flaky:** format p1 and p7 as two independent
+single-device btrfs volumes — no scanned-device ordering anywhere, at the cost of two mountpoints.
+
+C9 Final records — Phase 8 verbatim — then the Trash audit — Phase 7 verbatim.
+
+**Rollback is trivially safe, and that is the point of this design.** `/data` is new and empty: delete the
+`fileSystems."/data"` block, `nixos-rebuild switch`, and p1/p7 are inert unformatted space that can be reformatted,
+repurposed, or later fed into Option A/B — with `/`, `/boot` and the bootloader never having been touched at all.
+
+---
+
+## Rejected alternative — A/B: growing the root filesystem
+
+> **NOT THE CHOSEN PATH — do not execute.** Everything from here to Phase 8 describes the **rejected A/B
+> alternative**, in which the reclaimed space is added to the **root** btrfs filesystem with `btrfs device add`.
+> It is retained as reference and is the path to follow only if a larger `/` is actually wanted. It carries the
+> boot-path risk that B′ avoids: a root filesystem that cannot mount without the newly created partition, a root
+> PARTUUID repin, a scripted→systemd stage-1 initrd switch, an initrd `btrfs device scan` service, and a reboot gate
+> that must pass before anything is deleted. Phase 0 above is shared and still applies; Phases 7 and 8 apply to
+> both paths.
 
 ### Phase 1 — Prove the flake-managed firmware boot path before deletion
 
@@ -298,7 +604,9 @@ sudo partprobe /dev/nvme0n1
 sudo udevadm settle
 lsblk -o NAME,SIZE,START,PARTLABEL,PARTUUID /dev/nvme0n1
 ```
-If p7 is kept, do not run 2.5 and do not create p2.
+If p7 is kept, or if the 0.4b disposition chose **B (standalone btrfs volume)**, do not run 2.5 and do not create p2.
+Under B, p7 keeps its partition number and extent and is reformatted in place by 0.4b; under a decision to keep p7 as
+NTFS, Phase 2 leaves it untouched entirely.
 
 ### Phase 3 — Add only confirmed-disposable raw space to root Btrfs
 
@@ -341,7 +649,8 @@ If a stale non-btrfs signature somehow survives the add, erase it by explicit of
 (`sudo wipefs -o <offset> /dev/nvme0n1p1`); NEVER `wipefs -a` on a device that has joined the filesystem — that would
 erase the btrfs superblocks.
 
-3.3 If and only if p7 was explicitly approved and recreated as p2, repeat the same gates as 3.2 — mount check,
+3.3 If and only if the 0.4b disposition chose **A (absorb)** and p7 was explicitly approved and recreated as p2,
+repeat the same gates as 3.2 — mount check,
 expected-signature check, explicit pre-add wipe, add WITHOUT `-f`, post-add signature verification:
 ```
 sudo wipefs -n /dev/nvme0n1p2        # expect: only the stale NTFS signature
@@ -623,7 +932,10 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 - `~/nixcfg/hosts/nixos/hardware-configuration.nix` — reference only: generated `/` and `/boot` declarations. Do not
   edit; the override in `configuration.nix` wins.
 - `~/nixcfg/hosts/nixos/default.nix` — confirms the host imports the flake modules.
-- `~/backups/` — pre/post partition and EFI records.
+- `~/backups/` — pre/post partition and EFI records, and the `shared-old-*.manifest` p7 listing with its checksum.
+- `/dev/nvme0n1p7` — the `Shared` partition. Under disposition B it is reformatted in place and mounted at `/data`
+  (declared in `configuration.nix` by PARTUUID); under A it becomes GPT entry 2 `nixos-pool2`. Never mounted at a
+  fixed path until the disposition is chosen.
 - `~/.local/share/Trash/{files,info}` — audited by provenance before local-only deletion.
 
 ## Verification
@@ -631,6 +943,11 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 | after | command | expected |
 |---|---|---|
 | Phase 0 | complete p3/p7 manifests, `sha256sum`, health checks, temporary-partition `findmnt` | Windows contents and exact p7 manifest reviewed; backup gate passes; all temporary mounts are gone; CIFS mounts are unchanged and not touched |
+| Phase 0.3 + C0 | read-only `ntfs3` mount, full `find` manifest + `sha256sum`, `cp -a` of the wanted items, size comparison | p3 reviewed in full (377,354 entries, manifest recorded); the Resolve project DB, `Photos-1-001.zip`, the two Downloads documents and the verbatim Recycle Bin are copied locally and size-verified **before** C2; nothing was written to p3 at any point |
+| Chosen path C1–C5 | `sfdisk -d` and `efibootmgr -v` pre-records, `parted rm`, `sfdisk --partno`, `lsblk -o …START,PARTTYPENAME,PARTUUID` | p1 removed and recreated at sector 2048 as `Linux filesystem`; p7 retagged and renamed with its extent unchanged; p5/p6 starts and PARTUUIDs identical to the pre-records; nothing mounted on p1/p3/p4/p7 |
+| Chosen path C6 | `wipefs -n` before and after, `findmnt -rn -S`, `mkfs.btrfs -d single -m raid1`, `btrfs filesystem show` | both stale signatures erased while neither device belonged to a filesystem; one btrfs filesystem `data` on 2 devices; no `-f`/force used anywhere |
+| Chosen path C7–C8 | `alejandra`, `dry-build`, `switch`, `findmnt /data`, `btrfs filesystem show /data`, `btrfs device stats /data`, `df -h /data`, `systemctl --failed`, reboot | `/data` declared by filesystem UUID, no `nofail`/automount; mounts unattended after reboot with ≈880 GiB usable; stats 0; no failed units; `/` mounted from p6 exactly as before, single device, boot path unmodified |
+| Phase 0.4b | p7 read-only mount + full listing + manifest checksum (done 2026-10-11); `ntfsinfo -m` only if the volume is unmounted | p7 holds 10 entries / ~1.0 MiB, all recorded in `~/backups/shared-old-2026-10-11.manifest` (`0496b60a…`); nothing on p7 constrains reclamation; the chosen disposition is B′ (one new `/data` volume), with A/B recorded as the rejected alternative |
 | Phase 1 | dry-build, generated fstab/initrd inspection (`lsinitrd` via `nix-shell -p dracut`), `efibootmgr -v`, `findmnt -no SOURCE /boot`, successful reboot | flake evaluates before deletion; initrd contains the scan service, target wants link, and btrfs executable; firmware uses the p5 Linux Boot Manager; `/boot` is p5 and root uses the pinned p6 PARTUUID |
 | Phase 2 | `parted`/`lsblk` after table reread | new p1 is exactly 488.39 GiB at sector 2048; p5/p6 starts and exact PARTUUIDs are unchanged; p7 is either unchanged or explicitly approved/recreated as p2; kernel sees the new table |
 | Phase 3 | privileged `btrfs filesystem show/usage/df`, pre/post-add `wipefs -n`, and `findmnt` gates | 2 (3) devices; profiles match the no-balance decision; pre-add stale signatures erased with `wipefs -a`; `btrfs device add` runs WITHOUT `-f`; post-add `wipefs -n` shows only btrfs; expanded capacity matches the exact GiB figures; no Samba path involved |
@@ -644,6 +961,26 @@ at a time, p2 before p1 if p7 was reclaimed). The Samba mounts are not opened or
 
 - **No automatic p7 classification.** The complete, checksummed read-only manifest is shown to the user; reclaim
   happens only after explicit confirmation against that exact manifest. Any uncertainty means p7 stays untouched.
+- **The chosen path is B′ and the A/B phases are fenced off.** `/data` is a new, empty, standalone btrfs volume on
+  p1+p7; the root filesystem, `/boot`, the bootloader and the initrd are untouched, which is why the multi-device-root
+  gate, the PARTUUID repin, the stage-1 initrd switch and the pre-deletion reboot gate do not apply. Everything from
+  `### Phase 1` to Phase 8 is the rejected alternative, retained for reference and not to be executed unless the
+  disposition is revisited. Because B′ never mutates the root filesystem's metadata, the p6 independent-backup gate
+  is no longer a precondition for the destructive steps — it remains good practice and is still the gate for the
+  fenced A/B path.
+- **B′'s own multi-device caveat is not hidden.** `/data` spans two partitions on the same physical NVMe, so it
+  depends on both member devices being registered before the mount (`btrfs device scan`, normally driven by udev). A
+  failure there is survivable — root still boots, `/data` is simply absent and the failed unit is visible — and the
+  documented fallback is two independent single-device volumes. `-m raid1` on one physical disk is not redundancy.
+- **p7 write failure is diagnosed, never repaired.** The 0.4b diagnosis is read-only. `ntfsfix`, read-write mounts,
+  and any other NTFS repair are forbidden: the cause (Fast Startup/hibernation, missing `uid=`/`gid=`, or an
+  `ntfs3` read-write refusal) does not change the disposition now that Windows is removed, and writing to p7 before
+  the manifest is approved risks destroying the only copy of its contents.
+- **p7 disposition is an explicit, recorded choice.** A (absorb into root btrfs) or B (standalone btrfs volume) is
+  chosen in 0.4b before Phase 2, and 2.5/3.3 run only under A. B leaves p7's partition number and extent untouched
+  and only replaces its contents, so Phases 1–5 are otherwise unchanged.
+- **Bulk pool sizing is not the goal of collecting p7.** Whether p7 becomes `/data` or part of `/`, it does not
+  satisfy the p6 backup gate; the gate still requires an independent backup of irreplaceable local data.
 - **No automatic Samba Trash deletion.** The Trash audit has a dry-run/apply gate and is an allowlist: only entries
   with a decoded origin under `$HOME` and not under any current mountpoint are deleted; CIFS-originated,
   removable-media, malformed, mount-containing, and unknown-provenance entries are preserved. An incomplete emptying
