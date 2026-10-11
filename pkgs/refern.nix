@@ -24,10 +24,10 @@
   xorg,
   gst_all_1,
 }: let
-  version = "1.9.2";
+  version = "1.10.0";
   src = fetchurl {
     url = "https://storage.googleapis.com/refern-releases/releases/v${version}/refern_${version}_amd64.deb";
-    hash = "sha256-hSBD8eAJ+8yVy/KVdk2tasf7zkKCWb5U2NytG4JykXg=";
+    hash = "sha256-7A8b+WPEa3UZBnRr33OATzkDgj9yDu8zYj3tmSBDK/c=";
   };
   unpacked =
     runCommand "refern-unpacked-${version}" {
