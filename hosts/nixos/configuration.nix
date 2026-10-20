@@ -404,8 +404,10 @@ in {
       # Two jobs: TAG+="uaccess" grants the seated user the port regardless of the
       # dialout group, and ID_MM_* stops ModemManager from probing/holding the
       # CDC-ACM node (which makes esptool see a busy port). platformio-core.udev
-      # above also matches 303a but assigns GROUP="plugdev", a group that does not
-      # exist on this host, so it grants nobody access.
+      # also matches 303a:1001, but it sets no GROUP at all — it sets MODE="0666",
+      # and because 99-platformio-udev.rules sorts after 99-local.rules its MODE
+      # wins, so the port ends up 0666 rather than the 0660 above. Harmless (more
+      # permissive than intended, and TAG+="uaccess" from this file still applies).
       ATTRS{idVendor}=="303a", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
     '';
   };
