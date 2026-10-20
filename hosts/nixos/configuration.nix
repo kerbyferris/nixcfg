@@ -385,6 +385,28 @@ in {
       # ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", MODE="660", GROUP="plugdev", TAG+="uaccess"
       # # Raspberry Pi Pico
       # ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+      # nRF52 / nRF52840 Meshtastic boards — Seeed Wio Tracker L1 (e-ink), XIAO nRF52840,
+      # Adafruit, RAK. Three enumerations to cover:
+      #   2886:xxxx  Seeed — CDC-ACM app port + UF2 mass-storage in bootloader mode
+      #   239a:xxxx  Adafruit nRF52 bootloader — serial DFU (adafruit-nrfutil) + UF2 drive
+      #   1915:xxxx  Nordic S140 DFU port
+      # The stock 50-udev-default rule only sets GROUP="dialout"; TAG+="uaccess" grants the
+      # logged-in session user access on hotplug, and the ID_MM_* keys stop ModemManager from
+      # probing/holding the CDC-ACM port — that probe is what breaks the 1200-baud DFU touch
+      # ("port busy" / no DFU drive) and adafruit-nrfutil's dfu serial.
+      ATTRS{idVendor}=="2886", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
+      ATTRS{idVendor}=="239a", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
+      ATTRS{idVendor}=="1915", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
+
+      # Espressif ESP32-S3 / ESP32-Cx native USB (303a:1001 = USB-Serial/JTAG, also
+      # 303a:1000) — M5Stack Cardputer/Cardputer ADV, Heltec, and most devkits.
+      # Two jobs: TAG+="uaccess" grants the seated user the port regardless of the
+      # dialout group, and ID_MM_* stops ModemManager from probing/holding the
+      # CDC-ACM node (which makes esptool see a busy port). platformio-core.udev
+      # above also matches 303a but assigns GROUP="plugdev", a group that does not
+      # exist on this host, so it grants nobody access.
+      ATTRS{idVendor}=="303a", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
     '';
   };
 

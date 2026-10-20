@@ -7,6 +7,7 @@
     immich-go = final.callPackage ../pkgs/immich-go.nix {};
     omp-commandcode-plugin = final.callPackage ../pkgs/omp-commandcode-plugin.nix {};
     refern = final.callPackage ../pkgs/refern.nix {};
+    m5burner = final.callPackage ../pkgs/m5burner.nix {};
     bitwig-connect-control-panel = final.callPackage ../pkgs/bitwig-connect-control-panel.nix {
       src = /home/kerby/.local/share/nixcfg-vendor/bitwig-connect-control-panel-1.0.deb;
     };
@@ -45,24 +46,6 @@
     wine = final.stable.wine;
     wine64 = final.stable.wine64;
     winetricks = final.stable.winetricks;
-
-    # nixpkgs pins the DaVinci Resolve installer as a fixed-output derivation, but
-    # Blackmagic re-uploaded the 21.1 Linux installer (last-modified 2026-09-10)
-    # after that hash was taken. Unfree packages are never built by Hydra, so the
-    # stale hash never surfaces upstream. Re-instantiate the package with the src
-    # hash patched. If Blackmagic re-uploads again the build fails with a hash
-    # mismatch whose "got" value goes in here.
-    davinci-resolve = prev.callPackage (prev.path + "/pkgs/by-name/da/davinci-resolve/package.nix") {
-      runCommandLocal = name: attrs: script:
-        prev.runCommandLocal
-        name
-        (
-          if name == "davinci-resolve-src.zip"
-          then attrs // {outputHash = "sha256-+3SB32EHpH9/0hM3h8CrO6f7V4ZAmxUFh3P8m6QDeO0=";}
-          else attrs
-        )
-        script;
-    };
 
     bitwig-studio6 = prev.bitwig-studio6.overrideAttrs (oldAttrs: {
       version = "6.1.3";

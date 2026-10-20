@@ -104,6 +104,7 @@
     affine
     android-tools
     anytype
+    arduino-cli # headless builds against the esp32 core; nixpkgs wraps it in bwrap so the downloaded xtensa/riscv toolchains run on NixOS
     arduino-ide
     bambu-studio # replaces Flatpak version which crashes on NixOS (glycin sandbox DBus issue)
     brave
@@ -118,6 +119,7 @@
     dropbox
     esptool
     fstl
+    m5burner # M5Stack firmware flasher — see pkgs/m5burner.nix
     llm-agents.dsh
     google-chrome
     hydrus
@@ -147,7 +149,7 @@
     telegram-desktop
     thunar # X11-forced file manager — see the desktop entry comment above
     # tidal-hifi
-    todoist-electron
+    # todoist-electron
     upower
     vital
     vlc
