@@ -48,11 +48,11 @@
     winetricks = final.stable.winetricks;
 
     bitwig-studio6 = prev.bitwig-studio6.overrideAttrs (oldAttrs: {
-      version = "6.1.3";
+      version = "6.1.5";
       src = final.fetchurl {
-        name = "bitwig-studio-6.1.3.deb";
-        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.1.3/installer_linux";
-        hash = "sha256-PqsolH15g6wiv7hnYK6XcaSBFQ/axElYEGvgl5qToJk=";
+        name = "bitwig-studio-6.1.5.deb";
+        url = "https://www.bitwig.com/dl/Bitwig%20Studio/6.1.5/installer_linux";
+        hash = "sha256-Q2j+exxDV3LuCb5JlQLZpZFP4nUm9treD+fJAT06rfY=";
       };
       # Bitwig bundles an old fontconfig that reads cache format 9 from
       # $XDG_CACHE_HOME/fontconfig. System fontconfig (2.18) writes format 12 and
