@@ -46,10 +46,6 @@ in {
       SUBSYSTEM=="usb_device", MODE="0664", GROUP="985"
     '';
 
-    # Blackmagic panels/Speed Editor rules ship inside davinci-resolve; NixOS
-    # only aggregates udev rules from services.udev.packages, not systemPackages.
-    services.udev.packages = [pkgs.davinci-resolve];
-
     environment.systemPackages = with pkgs; [
       kdePackages.kdenlive
       wineWow64Packages.stable
@@ -59,7 +55,6 @@ in {
       wineWow64Packages.staging
       winetricks
       wineWow64Packages.waylandFull
-      davinci-resolve
       digikam
       clinfo
       wimlib
