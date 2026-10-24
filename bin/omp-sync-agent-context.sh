@@ -15,11 +15,11 @@
 #   5. compile ~/.omp/agent/AGENTS.md from the live files (always)
 #
 # Silent on a no-op run so cron stays quiet. Log: ~/.local/state/omp-agent-context-sync.log
-# Related: Dropbox is told to ignore .git via the user.com.dropbox.ignored xattr.
+# The vault lives on the /data pool since 2026-10-24; it is no longer inside Dropbox.
 
 set -u
 
-VAULT_DIR="$HOME/Dropbox/obsidian/fruit-fruit-studio"
+VAULT_DIR="/data/proton-drive/obsidian/fruit-fruit-studio"
 AGENTS_DIR="$VAULT_DIR/_agents"
 OMP_AGENTS_FILE="$HOME/.omp/agent/AGENTS.md"
 LOG="$HOME/.local/state/omp-agent-context-sync.log"

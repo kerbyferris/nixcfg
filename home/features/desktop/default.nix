@@ -26,7 +26,7 @@
       "application/pdf" = "zen-beta.desktop";
       "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
       "x-scheme-handler/tonsite" = "org.telegram.desktop.desktop";
-      "x-scheme-handler/mailto" = "google-chrome.desktop";
+      "x-scheme-handler/mailto" = "thunderbird.desktop";
       "audio/x-wav" = "vlc.desktop";
       "audio/wav" = "vlc.desktop";
       "audio/vnd.wave" = "vlc.desktop";
@@ -44,6 +44,7 @@
       ];
       "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
       "x-scheme-handler/tonsite" = "org.telegram.desktop.desktop";
+      "x-scheme-handler/mailto" = "thunderbird.desktop";
     };
   };
 
@@ -110,7 +111,7 @@
     brave
     blender
     # bottles
-    calibre
+    # calibre
     clickup
     code-cursor
     cursor-cli
@@ -125,6 +126,7 @@
     hydrus
     kew
     lmstudio
+    logseq # 2.0.2 "DB version" — overlay overrides nixpkgs' EOL-electron 0.10.15 (pkgs/logseq.nix)
     nwg-look
     obs-studio
     obsidian
@@ -138,6 +140,7 @@
     # orca-slicer # via Flatpak — nixpkg links webkitgtk 2.52 which crashes the Device tab; Flatpak runtime ships a working webkitgtk
     pavucontrol
     pdfarranger
+    protonmail-bridge # IMAP/SMTP bridge for Proton Mail (included in the paid Proton plan); needed for any desktop client
     prusa-slicer
     qbittorrent
     quickemu
@@ -148,6 +151,7 @@
     syncthing
     telegram-desktop
     thunar # X11-forced file manager — see the desktop entry comment above
+    thunderbird # mail hub for Proton (via Bridge) + Gmail (OAuth2)
     # tidal-hifi
     # todoist-electron
     upower
@@ -202,6 +206,37 @@
       ExecStart = "${pkgs.bash}/bin/bash -c 'echo \"\" | ${pkgs.gnome-keyring}/bin/gnome-keyring-daemon --replace --daemonize --unlock'";
       RemainAfterExit = true;
       KillMode = "process";
+    };
+    Install = {
+      WantedBy = ["graphical-session.target"];
+    };
+  };
+
+  # Proton Mail Bridge, headless. nixpkgs builds it without the Qt frontend, so
+  # `protonmail-bridge` on its own dies with "no frontend specified"; --noninteractive
+  # is the daemon mode. It serves IMAP/SMTP on 127.0.0.1 only (1143/1025, STARTTLS,
+  # self-signed cert), which is what Thunderbird connects to — Bridge does the
+  # decryption locally, so mail is never decrypted outside this machine.
+  # The account credential lives in the keyring, hence the ordering against
+  # gnome-keyring-unlock; without that it cannot start until the keyring is open.
+  # If you exit an interactive `protonmail-bridge --cli` and this unit is already
+  # failed, `systemctl --user start protonmail-bridge` picks up the free lock.
+  systemd.user.services.protonmail-bridge = {
+    Unit = {
+      Description = "Proton Mail Bridge (headless IMAP/SMTP bridge)";
+      After = ["graphical-session.target" "gnome-keyring-unlock.service"];
+      Wants = ["gnome-keyring-unlock.service"];
+      PartOf = ["graphical-session.target"];
+    };
+    Service = {
+      ExecStart = "${pkgs.protonmail-bridge}/bin/protonmail-bridge --noninteractive";
+      # "always", not "on-failure": when an interactive `protonmail-bridge --cli`
+      # already holds the data-dir lock, Bridge exits 0 (after logging "another
+      # instance is running"), so on-failure would never retry and the daemon
+      # would stay dead after you simply close the CLI. always retries until it
+      # gets the lock, which is exactly the handover we want.
+      Restart = "always";
+      RestartSec = 30;
     };
     Install = {
       WantedBy = ["graphical-session.target"];

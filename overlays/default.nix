@@ -8,6 +8,10 @@
     omp-commandcode-plugin = final.callPackage ../pkgs/omp-commandcode-plugin.nix {};
     refern = final.callPackage ../pkgs/refern.nix {};
     m5burner = final.callPackage ../pkgs/m5burner.nix {};
+    # Shadows nixpkgs' logseq (0.10.15, pinned to electron_39, which this
+    # nixpkgs refuses to evaluate as EOL) with upstream's 2.x "DB version"
+    # release. See pkgs/logseq.nix.
+    logseq = final.callPackage ../pkgs/logseq.nix {};
     bitwig-connect-control-panel = final.callPackage ../pkgs/bitwig-connect-control-panel.nix {
       src = /home/kerby/.local/share/nixcfg-vendor/bitwig-connect-control-panel-1.0.deb;
     };
@@ -80,6 +84,35 @@
       // {
         patool = prev.python3Packages.patool.overridePythonAttrs (_: {
           doCheck = false;
+        });
+
+        # PyPI publishes this sdist with UNDERSCORES in the filename
+        # (show_in_file_manager-1.1.6.tar.gz) while fetchPypi builds the URL from
+        # `pname` (dashes) → 404, which blocked hydrus and everything downstream
+        # (`error: cannot download show-in-file-manager-1.1.6.tar.gz from any
+        # mirror`). 1.1.6 also builds with hatchling, not setuptools.
+        # Same fix as upstream nixpkgs commit da9a3bc190 (2026-10-21); drop this
+        # override once the pinned nixpkgs contains it.
+        show-in-file-manager = prev.python3Packages.show-in-file-manager.overridePythonAttrs (old: {
+          src = prev.fetchurl {
+            url = "https://files.pythonhosted.org/packages/source/s/show_in_file_manager/show_in_file_manager-1.1.6.tar.gz";
+            hash = "sha256-VZtZbj5WOADPadc0zSNoJCeanYINHYQWQMXxPgBY+bY=";
+          };
+          nativeBuildInputs =
+            (old.nativeBuildInputs or [])
+            ++ [
+              prev.python3Packages.hatchling
+              prev.python3Packages.hatch-argparse-manpage
+            ];
+        });
+
+        # The test asserts on an exact TypeError message; Cython 3.3.0 reworded it
+        # ("must be str" → "Expected str, got int"), so it fails while the other
+        # 1678 tests pass. pyopenjtalk-plus commit 90b644f fixes the regex and
+        # nixpkgs carries it via a fetchpatch (commit dfb035a649) that our pin
+        # predates. Skip just this test; drop the override once the pin has it.
+        pyopenjtalk-plus = prev.python3Packages.pyopenjtalk-plus.overridePythonAttrs (_: {
+          disabledTests = ["test_run_njd_from_mecab_invalid_input_should_not_break_next_call"];
         });
       };
 

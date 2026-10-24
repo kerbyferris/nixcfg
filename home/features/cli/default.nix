@@ -6,6 +6,7 @@
   home.packages = with pkgs; [
     alejandra
     amdgpu_top
+    awscli2
     ghostscript
     imagemagick
     kubernetes
@@ -14,6 +15,7 @@
     nmap
     nodejs
     probe-rs-tools
+    proton-cli
     tldr
     yt-dlp
     bun

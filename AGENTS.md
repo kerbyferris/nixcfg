@@ -170,7 +170,7 @@ This NixOS machine is part of a broader homelab. Key nodes (all on the same LAN 
 
 **Reverse proxy architecture** (2026-07-01 onwards):
 - **Gateway CT 104** (Caddy + Tailscale, `100.73.99.43`) handles `media.*`, `tasks.*`, `chat.*.fruitfruit.studio` on the Proxmox side
-- **Pi Caddy** handles `now.*`, `kanban.*`, `cms.*`, `work.kerbyandnaomi.com`, `qa.work.kerbyandnaomi.com`, `export.media.*` (Pi-local services)
+- **Pi Caddy** handles `now.*` (:3120), `kanban.*` (:9119) and `work.kerbyandnaomi.com` (:3001) — the only three site blocks in `/etc/caddy/Caddyfile` as of 2026-10-22. `cms.*`, `qa.work.kerbyandnaomi.com` and `export.media.*` were stale names pointing at the Pi with no site block and were removed (block + Route53 record) on 2026-10-22.
 - Route53 DNS-01 TLS for all domains via the `acme-dns-route53` IAM policy, creds at both `/etc/caddy/route53.env` (Pi) and `CT 104:/etc/caddy/route53.env`
 - All `*.fruitfruit.studio` A records point to the relevant Tailscale IP (tailnet-only access)
 
