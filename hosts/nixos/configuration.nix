@@ -5,7 +5,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }: let
   # Minimal allow-all seccomp profile for podman (development default)
@@ -17,9 +16,6 @@
     archMap = [];
     syscalls = [];
   });
-  # Kernel A/B switch — see boot.kernelPackages.
-  # true = pkgs.linuxPackages_latest (7.3.0), false = 6.12.113 pin.
-  useLatestKernel = true;
 in {
   imports = [
     # Include the results of the hardware scan.
@@ -97,37 +93,24 @@ in {
     options = ["noatime"];
   };
 
-  # ---------------------------------------------------------------------------
-  # Kernel choice. Two known-good/known-bad axes, so this is an explicit switch:
-  # flip `useLatestKernel` and rebuild (`nixos-rebuild boot` + reboot).
-  #
-  # true  → pkgs.linuxPackages_latest (7.3.0). L2CAP getsockopt is fully wired
-  #         here (l2cap_sock_ops.getsockopt_iter *and* the matching
-  #         do_sock_getsockopt() dispatch), so Bluetooth works. UNVERIFIED:
-  #         whether the Intel AX211 HFP/SCO regression is gone.
-  # false → 6.12.113 via the `nixpkgs-kernel` flake input. Known-good for both
-  #         Bluetooth HID and headset HFP, but older than 6.12.114 and therefore
-  #         without "Bluetooth: L2CAP: access chan->conn safely in get/setsockopt".
-  #
-  # History (why this exists at all):
-  #  - Sep 2026: Intel AX211 HFP/SCO breaks on the 7.x series — "SCO packet for
-  #    unknown connection handle" / "corrupted SCO packet" kills headset mic +
-  #    speaker during calls. Pinned to 6.12 LTS.
-  #  - 2026-10-25: 6.12.114 backported "Bluetooth: L2CAP: convert to
-  #    getsockopt_iter" (upstream bf01627cc04b) WITHOUT the matching
-  #    do_sock_getsockopt() dispatch, leaving proto_ops.getsockopt NULL for
-  #    L2CAP. Every getsockopt() on an L2CAP socket then returns EOPNOTSUPP and
-  #    bluetoothd dies at "Failed to create GATT database for adapter" /
-  #    "Unable to register new adapter" — no controller, no mouse, no applet.
-  #    Pinned to 6.12.113 behind this switch.
-  #  - 7.3 does not have that defect; the 6.12-series pin can be retired as soon
-  #    as either 7.3's HFP test passes or linux_6_12 >= 6.12.115 dispatches
-  #    getsockopt_iter (check v6.12.115 net/socket.c before bumping).
-  # ---------------------------------------------------------------------------
-  boot.kernelPackages =
-    if useLatestKernel
-    then pkgs.linuxPackages_latest
-    else inputs.nixpkgs-kernel.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linuxPackages_6_12;
+  # Kernel: rolling latest (7.3.x). Nothing is pinned; if Bluetooth or the
+  # headset mic regresses, know that BOTH are kernel-sensitive on this box:
+  #  - Intel AX211 HFP/SCO was broken on 7.x for a while (Sep 2026): log shows
+  #    "SCO packet for unknown connection handle" / "corrupted SCO packet",
+  #    headset mic + speaker dead during calls while A2DP still worked.
+  #    2026-10-25: tested on 7.3.0 — HID mouse AND headset mic/speaker both fine
+  #    in a Google Meet call, no SCO errors in the log, so the pin is gone.
+  #  - 6.12.114 shipped an incomplete backport of "Bluetooth: L2CAP: convert to
+  #    getsockopt_iter" (upstream bf01627cc04b) with no matching
+  #    do_sock_getsockopt() dispatch, so every getsockopt() on an L2CAP socket
+  #    returned EOPNOTSUPP and bluetoothd died at "Failed to create GATT
+  #    database for adapter" / "Unable to register new adapter" — no controller,
+  #    no mouse, no applet, while `systemctl status bluetooth` still said active.
+  # Fallback if a future kernel reintroduces either bug: boot the previous
+  # generation from the systemd-boot menu (Space at the splash), or pin
+  # `boot.kernelPackages` to a known-good set. Diagnosis + the exact checks are
+  # in the vault: _agents/NIXOS_AGENT.md → "Bluetooth on the AX211".
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # boot.loader.grub.devices = ["/dev/nvme0n1"];
   # boot.loader.grub.devices = ["nodev"];

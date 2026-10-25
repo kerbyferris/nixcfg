@@ -2,10 +2,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
-    # Kernel source only — supplies Linux 6.12.113 to boot.kernelPackages while
-    # 6.12.114 is broken (L2CAP getsockopt_iter backport without the matching
-    # do_sock_getsockopt() dispatch). See hosts/nixos/configuration.nix.
-    nixpkgs-kernel.url = "github:nixos/nixpkgs/02c087f3fe673c9e317f206a627cb6b910336dbe";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
