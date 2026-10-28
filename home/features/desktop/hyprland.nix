@@ -67,6 +67,8 @@ in {
       "hyprdynamicmonitors/hyprconfigs/laptop-only.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/laptop-only.go.tmpl;
       "hyprdynamicmonitors/hyprconfigs/external.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/external.go.tmpl;
       "hyprdynamicmonitors/hyprconfigs/clamshell.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/clamshell.go.tmpl;
+      "hyprdynamicmonitors/hyprconfigs/external-side.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/external-side.go.tmpl;
+      "hyprdynamicmonitors/hyprconfigs/clamshell-side.go.tmpl".source = ./hyprdynamicmonitors/hyprconfigs/clamshell-side.go.tmpl;
     };
 
     systemd.user.services.hyprdynamicmonitors = {

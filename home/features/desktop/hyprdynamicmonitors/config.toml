@@ -104,6 +104,54 @@ name = "(DP|HDMI-A)-[0-9]+"
 match_name_using_regex = true
 monitor_tag = "external"
 
+# --- Profiles: desk monitor + portable ZenScreen (side panel) ---
+# The ZenScreen (ASUS MB16AC) is physically parked *under* the main monitor's
+# bottom-right corner, so these two states need explicit geometry that the
+# generic profiles above cannot express (they only require "some DP/HDMI
+# output", and would treat the ZenScreen as the only external display).
+# Matching is by EDID description because the connector name is not stable —
+# the main monitor appears as DP-1 or DP-3 depending on the USB-C port.
+# Declared after the generic profiles: equal scores are broken by order (last
+# wins), and these carry extra description matches anyway.
+
+[profiles.external_side]
+config_file = "hyprconfigs/external-side.go.tmpl"
+config_file_type = "template"
+
+[profiles.external_side.conditions]
+lid_state = "Opened"
+
+[[profiles.external_side.conditions.required_monitors]]
+name = "eDP-1"
+monitor_tag = "laptop"
+
+[[profiles.external_side.conditions.required_monitors]]
+description = "JAPANNEXT"
+match_description_using_regex = true
+monitor_tag = "main"
+
+[[profiles.external_side.conditions.required_monitors]]
+description = "ASUS MB16AC"
+match_description_using_regex = true
+monitor_tag = "side"
+
+[profiles.clamshell_side]
+config_file = "hyprconfigs/clamshell-side.go.tmpl"
+config_file_type = "template"
+
+[profiles.clamshell_side.conditions]
+lid_state = "Closed"
+
+[[profiles.clamshell_side.conditions.required_monitors]]
+description = "JAPANNEXT"
+match_description_using_regex = true
+monitor_tag = "main"
+
+[[profiles.clamshell_side.conditions.required_monitors]]
+description = "ASUS MB16AC"
+match_description_using_regex = true
+monitor_tag = "side"
+
 # --- Fallback: states no profile matches (e.g. lid shut with no external display) ---
 # Without this hdm logs "No matching profile found" and leaves the monitor config
 # from the previous profile in place.

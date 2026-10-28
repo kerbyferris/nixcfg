@@ -1,0 +1,14 @@
+{{- /*
+  Lid closed: main desk monitor at the origin, portable ZenScreen (ASUS MB16AC)
+  hanging off its bottom-right corner, i.e. the composite's absolute bottom-right.
+  Main is 2560x1440 and the ZenScreen is 1920x1080@1.0, so the side panel starts
+  exactly where the main monitor ends: x = 2560, y = 1440. That keeps the panel
+  reachable straight down from the main monitor's right edge.
+  Connector names are taken from the matched monitors, never hard-coded: the
+  main monitor enumerates as DP-1 or DP-3 depending on the USB-C port.
+*/ -}}
+{{- $main := index .MonitorsByTag "main" -}}
+{{- $side := index .MonitorsByTag "side" -}}
+monitor = eDP-1,disable
+monitor = {{$main.Name}},preferred,0x0,1
+monitor = {{$side.Name}},1920x1080@60,2560x1440,1

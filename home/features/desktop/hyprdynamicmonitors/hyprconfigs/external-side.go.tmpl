@@ -1,0 +1,11 @@
+{{- /*
+  Lid open with the portable ZenScreen also attached: internal panel at the
+  origin, main desk monitor to its right, ZenScreen hanging off the main
+  monitor's bottom-right corner (main 2560x1440 at x=1920 ends at x=4480, so the
+  side panel starts at x = 1920 + 2560 = 4480, y = 1440).
+*/ -}}
+{{- $main := index .MonitorsByTag "main" -}}
+{{- $side := index .MonitorsByTag "side" -}}
+monitor = eDP-1,1920x1200@60,0x0,1
+monitor = {{$main.Name}},preferred,1920x0,1
+monitor = {{$side.Name}},1920x1080@60,4480x1440,1
