@@ -16,6 +16,77 @@
     archMap = [];
     syscalls = [];
   });
+
+  # Re-execs ollama when an AMD GPU (the RX 580 eGPU) enumerates or disappears.
+  # ollama enumerates its Vulkan devices once, at start-up, and never rescans, so a
+  # card that appears after the unit starts stays invisible to it for the rest of the
+  # boot — and a card that DISAPPEARS leaves it holding a dead device, after which
+  # every model load hangs (`load_duration` never completes, no error). Both events
+  # need a restart; `$1` is `add` or `remove`.
+  #
+  # On `add` the udev event fires *before* amdgpu finishes probing, and a restart at
+  # that moment still finds only the Intel iGPU — so wait for the AMD DRM card node.
+  # On `remove` the card is already gone; wait a little in case it is a transient
+  # re-enumeration (the add handler will cover that), then fall back to CPU.
+  ollamaGpuRestart = pkgs.writeShellApplication {
+    name = "ollama-gpu-restart";
+    runtimeInputs = with pkgs; [systemd coreutils gnugrep];
+    text = ''
+      mode="''${1:-add}"
+
+      amd_card() {
+        for v in /sys/class/drm/card*/device/vendor; do
+          [ -e "$v" ] || continue
+          if [ "$(cat "$v" 2>/dev/null)" = "0x1002" ]; then
+            echo "$v"
+            return 0
+          fi
+        done
+        return 1
+      }
+
+      if [ "$mode" = "remove" ]; then
+        # Give a flapping link a chance to come straight back; the add handler
+        # restarts ollama properly with the card once it re-enumerates.
+        sleep 15
+        if amd_card >/dev/null; then
+          echo "AMD GPU came back within 15s — leaving the restart to the add handler"
+          exit 0
+        fi
+        echo "AMD GPU disappeared; restarting ollama so it falls back instead of hanging"
+        systemctl restart ollama.service
+        exit 0
+      fi
+
+      found=""
+      for _ in $(seq 1 120); do
+        if found=$(amd_card); then
+          break
+        fi
+        found=""
+        sleep 1
+      done
+
+      if [ -z "$found" ]; then
+        echo "no AMD DRM card after 120s — leaving ollama alone" >&2
+        exit 0
+      fi
+
+      card=''${found%/device/vendor}
+      echo "AMD GPU appeared at $card; settling for 5s"
+      sleep 5
+      if [ ! -e "$found" ]; then
+        echo "$card disappeared again (amdgpu init failed?) — not restarting ollama" >&2
+        exit 0
+      fi
+
+      echo "restarting ollama.service to pick up $card"
+      systemctl restart ollama.service
+      echo "ollama.service restarted; device enumeration:"
+      journalctl -u ollama --no-pager --since "30 seconds ago" \
+        | grep -iE 'inference compute|vulkan[0-9]|dropping integrated' || true
+    '';
+  };
 in {
   imports = [
     # Include the results of the hardware scan.
@@ -255,9 +326,42 @@ in {
   services.ollama = {
     enable = true;
     package = pkgs.ollama-vulkan;
-    loadModels = [
-      "qwen2.5-coder:3b"
-    ];
+    # Nothing is preloaded any more. The `tiny` role (the only automatic ollama
+    # consumer here) moved to a cloud model on 2026-11-01 precisely because a
+    # second model request evicts the first, and that eviction tears the RX 580
+    # down (see OLLAMA_KEEP_ALIVE below). With no preload, ollama holds nothing
+    # until you ask for a model — and the one you ask for is then pinned.
+    loadModels = [];
+    # Never unload an idle model. The RX 580 does not survive a runner teardown on
+    # this enclosure: `amdgpu … finishing device` is followed by
+    # `SMU message 0x261 failed` and then `rlc is busy` / `Timeout wait for RLC
+    # serdes`, after which the card is off the bus until the enclosure is power
+    # cycled. Loading a SECOND model is the reliable way to trigger it, so: one
+    # model at a time, kept resident (measured 2026-11-01).
+    environmentVariables.OLLAMA_KEEP_ALIVE = "-1";
+  };
+
+  # Started by udev (rules in services.udev.extraRules) when an AMD GPU appears or
+  # disappears. oneshot without RemainAfterExit, so the next hotplug can start it again.
+  systemd.services.ollama-gpu-restart = {
+    description = "Restart ollama after an AMD GPU (eGPU) enumerates";
+    after = ["ollama.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${ollamaGpuRestart}/bin/ollama-gpu-restart add";
+      # the script waits up to 120s for the DRM node, then restarts ollama
+      TimeoutStartSec = 300;
+    };
+  };
+  systemd.services.ollama-gpu-lost = {
+    description = "Restart ollama after an AMD GPU (eGPU) disappears";
+    after = ["ollama.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      # 15s grace for a re-enumeration, then restart so it can't hang on a dead device
+      ExecStart = "${ollamaGpuRestart}/bin/ollama-gpu-restart remove";
+      TimeoutStartSec = 300;
+    };
   };
 
   # Podman — daemonless container runtime (Docker-compatible)
@@ -422,6 +526,17 @@ in {
       # wins, so the port ends up 0666 rather than the 0660 above. Harmless (more
       # permissive than intended, and TAG+="uaccess" from this file still applies).
       ATTRS{idVendor}=="303a", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
+
+      # AMD GPU (RX 580 eGPU on Thunderbolt) → restart ollama. ollama enumerates its
+      # Vulkan devices ONCE at start-up and never rescans: a card that appears after
+      # the unit starts stays invisible for the rest of the boot (symptom: "ollama ps"
+      # reports CPU only, no "inference compute" line for the card), and one that
+      # reappears after a Thunderbolt drop is missed entirely. Matched by vendor+class
+      # (VGA) rather than device id, so a replacement card is covered too. The helper
+      # unit waits for the AMD DRM card node before restarting, because udev fires
+      # long before amdgpu has finished probing.
+      SUBSYSTEM=="pci", ACTION=="add", ATTR{vendor}=="0x1002", ATTR{class}=="0x030000", TAG+="systemd", ENV{SYSTEMD_WANTS}+="ollama-gpu-restart.service"
+      SUBSYSTEM=="pci", ACTION=="remove", ATTR{vendor}=="0x1002", ATTR{class}=="0x030000", TAG+="systemd", ENV{SYSTEMD_WANTS}+="ollama-gpu-lost.service"
     '';
   };
 

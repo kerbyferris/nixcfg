@@ -104,11 +104,11 @@
   home.packages = with pkgs; [
     affine
     android-tools
-    anytype
+    # anytype
     arduino-cli # headless builds against the esp32 core; nixpkgs wraps it in bwrap so the downloaded xtensa/riscv toolchains run on NixOS
     arduino-ide
     bambu-studio # replaces Flatpak version which crashes on NixOS (glycin sandbox DBus issue)
-    brave
+    # brave
     blender
     # bottles
     # calibre

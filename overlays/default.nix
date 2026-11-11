@@ -45,6 +45,13 @@
   };
 
   modifications = final: prev: {
+    # bambu-studio from the rev-frozen nixpkgs-pin set (see flake.nix). It is
+    # unfree, so cache.nixos.org never has it, and it takes ~3 h to build from
+    # source; taking it from a frozen rev stops ordinary nixpkgs updates from
+    # re-keying the derivation and rebuilding it. Same derivation as before the
+    # pin, so nothing is rebuilt today — bump `nixpkgs-pin` to get a new version.
+    bambu-studio = final.pinned.bambu-studio;
+
     # Pin Wine to nixpkgs-stable (25.05) — Eagle won't start with Wine 11.x
     wineWow64Packages = final.stable.wineWow64Packages;
     wine = final.stable.wine;
@@ -130,6 +137,18 @@
 
   stable-packages = final: _prev: {
     stable = import inputs.nixpkgs-stable {
+      system = final.stdenv.hostPlatform.system;
+      config.allowUnfree = true;
+    };
+  };
+
+  # Package set from the rev-frozen nixpkgs-pin input (flake.nix). Deliberately a
+  # *bare* nixpkgs — no overlays, no follows — so `final.pinned.<pkg>` depends
+  # only on that frozen rev and never gets re-keyed when the rest of the system
+  # updates. That stability is the whole point: a re-keyed derivation means a
+  # full rebuild for packages the binary cache does not carry (unfree ones).
+  pinned-packages = final: _prev: {
+    pinned = import inputs.nixpkgs-pin {
       system = final.stdenv.hostPlatform.system;
       config.allowUnfree = true;
     };
