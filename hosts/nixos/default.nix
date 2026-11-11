@@ -5,6 +5,7 @@
     freecad.enable = false;
     amd-egpu.enable = true;
     sops.enable = true;
+    proton-backup.enable = true;
   };
 
   # ArtCraft apps (PhotoCraft, VectorCraft, DesignCraft, LightCraft,
