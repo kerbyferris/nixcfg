@@ -52,7 +52,19 @@ GIB = 1024**3
 # so it is snapshotted properly instead. `secrets` holds recovery codes for the
 # very account being uploaded to (plus Google OAuth client secrets): storing
 # them inside that account is a circular dependency, so it is opt-in.
-DEFAULT_EXCLUDES = ["apps", "secrets", "node_modules", ".cache", ".Trash-*", ".Trash-1000"]
+# `google-chrome` is browser profile state (caches, history SQLite, Local
+# Storage): 6 GB and 62k files of it under sys/.config, actively written while
+# the browser runs, and worth nothing next to the 1.7 GB of real files around
+# it -- it alone accounted for 97% of the tree's file count.
+DEFAULT_EXCLUDES = [
+    "apps",
+    "secrets",
+    "node_modules",
+    ".cache",
+    ".Trash-*",
+    ".Trash-1000",
+    "google-chrome",
+]
 
 
 def log(msg: str, *, quiet: bool = False) -> None:
@@ -68,7 +80,31 @@ def human(n: float) -> str:
     return f"{n:.1f} TiB"
 
 
-def run_proton(args: list[str], timeout: int = 3600) -> tuple[int, str, str]:
+TRANSIENT_MARKERS = (
+    "502",
+    "503",
+    "504",
+    "stream error",
+    "cancel",
+    "connection reset",
+    "i/o timeout",
+    "temporary failure",
+    "timed out",
+    "unexpected eof",
+    "no path matching",
+)
+
+
+def transient(message: str) -> bool:
+    """Proton returns HTTP/2 stream aborts (502 / CANCEL) that succeed on a retry.
+    A missing source file is NOT transient -- that needs a rescan, not a retry."""
+    low = message.lower()
+    if "no such file or directory" in low:
+        return False
+    return any(marker in low for marker in TRANSIENT_MARKERS)
+
+
+def run_proton(args: list[str], timeout: int = 5400) -> tuple[int, str, str]:
     cmd = ["proton", "--no-input", "--no-log", *args]
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
@@ -93,6 +129,7 @@ class Tree:
         self.digest: dict[str, bytes] = {}
         self.files: dict[str, list[str]] = {}
         self.nfiles: dict[str, int] = {}
+        self.has_symlink: dict[str, bool] = {}
         self.excluded: list[str] = []
         self.symlinks: list[str] = []
         self.errors: list[str] = []
@@ -108,6 +145,7 @@ class Tree:
     def scan(self, path: str) -> tuple[int, bytes]:
         total = 0
         nfiles = 0
+        syms = False
         entries: list[bytes] = []
         direct_files: list[str] = []
         subdirs: list[str] = []
@@ -120,6 +158,7 @@ class Tree:
             self.digest[path] = hashlib.sha256(b"").digest()
             self.nfiles[path] = 0
             self.files[path] = []
+            self.has_symlink[path] = False
             return 0, self.digest[path]
         with it:
             for entry in it:
@@ -132,6 +171,7 @@ class Tree:
                 name = entry.name.encode("utf-8", "surrogateescape")
                 if stat.S_ISLNK(mode):
                     self.symlinks.append(entry.path)
+                    syms = True
                     continue
                 if stat.S_ISDIR(mode):
                     if self._skip_dir(entry.name):
@@ -140,6 +180,7 @@ class Tree:
                     csize, cdig = self.scan(entry.path)
                     total += csize
                     nfiles += self.nfiles[entry.path]
+                    syms = syms or self.has_symlink[entry.path]
                     subdirs.append(entry.path)
                     entries.append(b"D\x00" + name + b"\x00" + cdig)
                 elif stat.S_ISREG(mode):
@@ -162,6 +203,7 @@ class Tree:
         self.size[path] = total
         self.nfiles[path] = nfiles
         self.files[path] = direct_files
+        self.has_symlink[path] = syms
         self.digest[path] = h.digest()
         return total, h.digest()
 
@@ -183,41 +225,74 @@ class Unit:
         self.rel = os.path.relpath(path, root)
 
 
-def build_units(tree: Tree, root: Path, threshold: int) -> list[Unit]:
+def _file_unit(tree: Tree, root: Path, path: str) -> Unit | None:
+    try:
+        st = os.stat(path, follow_symlinks=False)
+    except OSError as exc:
+        tree.errors.append(f"{path}: {exc}")
+        return None
+    dig = hashlib.sha256(
+        b"F\x00"
+        + os.path.basename(path).encode("utf-8", "surrogateescape")
+        + b"\x00"
+        + str(st.st_size).encode()
+        + b"\x00"
+        + str(st.st_mtime_ns).encode()
+    ).digest()
+    return Unit(path, "file", st.st_size, 1, dig, root)
+
+
+def _fits(tree: Tree, path: str, threshold: int, max_files: int) -> bool:
+    """A recursive upload is one CLI call that walks the tree itself, so it must
+    satisfy three limits: bytes (retry cost), file count (Proton does a round
+    trip per file, so a big subtree blows any sane timeout), and symlinks --
+    `items upload --recursive` tries to OPEN them and aborts the whole unit on a
+    dangling link, which our own scanner silently skips."""
+    return (
+        tree.size[path] <= threshold
+        and tree.nfiles[path] <= max_files
+        and not tree.has_symlink[path]
+    )
+
+
+def legacy_units(tree: Tree, root: Path, threshold: int) -> list[Unit]:
+    """Greedy split by BYTES only -- deliberately independent of --max-files and
+    the symlink rule. State is keyed by unit path, so if the split rule changed
+    the granularity of everything, every previously uploaded unit would be
+    re-keyed and re-uploaded. Keeping the outer granularity stable means a
+    --max-files change only re-splits the units that actually need uploading."""
     units: list[Unit] = []
 
     def rec(path: str) -> None:
         subs = tree.children.get(path, [])
-        if tree.size[path] <= threshold or not subs:
-            if tree.size[path] <= threshold:
-                units.append(
-                    Unit(path, "dir", tree.size[path], tree.nfiles[path], tree.digest[path], root)
-                )
-            else:
-                # oversized flat directory: one unit per file so a single
-                # changed wav does not drag the whole directory back up
-                for f in tree.files[path]:
-                    try:
-                        st = os.stat(f, follow_symlinks=False)
-                    except OSError as exc:
-                        tree.errors.append(f"{f}: {exc}")
-                        continue
-                    dig = hashlib.sha256(
-                        b"F\x00"
-                        + os.path.basename(f).encode("utf-8", "surrogateescape")
-                        + b"\x00"
-                        + str(st.st_size).encode()
-                        + b"\x00"
-                        + str(st.st_mtime_ns).encode()
-                    ).digest()
-                    units.append(Unit(f, "file", st.st_size, 1, dig, root))
+        if tree.size[path] <= threshold:
+            units.append(Unit(path, "dir", tree.size[path], tree.nfiles[path], tree.digest[path], root))
             return
-        for s in subs:
-            rec(s)
+        if subs:
+            for s in subs:
+                rec(s)
+            return
+        for f in tree.files[path]:
+            u = _file_unit(tree, root, f)
+            if u:
+                units.append(u)
 
     rec(str(root))
-    units.sort(key=lambda u: u.rel)
     return units
+
+
+def split_unit(tree: Tree, root: Path, path: str, threshold: int, max_files: int) -> list[Unit]:
+    """Break one subtree down until every part satisfies the upload limits."""
+    if _fits(tree, path, threshold, max_files):
+        return [Unit(path, "dir", tree.size[path], tree.nfiles[path], tree.digest[path], root)]
+    out: list[Unit] = []
+    for f in tree.files[path]:
+        u = _file_unit(tree, root, f)
+        if u:
+            out.append(u)
+    for s in tree.children.get(path, []):
+        out.extend(split_unit(tree, root, s, threshold, max_files))
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -322,7 +397,16 @@ def main() -> int:
         help="largest directory subtree uploaded as one unit (default 2G; larger dirs are split, "
         "and a flat dir above the limit uploads per file)",
     )
+    ap.add_argument(
+        "--max-files",
+        type=int,
+        default=1500,
+        help="largest file count per recursive unit (default 1500). Proton does one round trip per "
+        "file, so a subtree with many thousands of files blows any timeout; splitting keeps each "
+        "unit to roughly 20 minutes and a retry cheap",
+    )
     ap.add_argument("--jobs", type=int, default=3, help="parallel uploads (default 3)")
+    ap.add_argument("--retries", type=int, default=2, help="retries per unit on a transient error (default 2)")
     ap.add_argument("--exclude", action="append", default=[], help="extra name/glob to skip (repeatable)")
     ap.add_argument("--include-secrets", action="store_true", help="also upload ./secrets (off by default)")
     ap.add_argument("--only", action="append", default=[], help="only these top-level names (repeatable)")
@@ -362,7 +446,7 @@ def main() -> int:
 
     tree = Tree(root, excludes)
     total, _ = tree.scan(str(root))
-    units = build_units(tree, root, threshold)
+    units = legacy_units(tree, root, threshold)
 
     if args.only:
         keep = set(args.only)
@@ -386,14 +470,22 @@ def main() -> int:
 
     known = state["units"]
     planned: list[Unit] = []
+    unchanged = 0
     for u in units:
         prev = known.get(u.rel)
-        if args.full or not prev or prev.get("sig") != u.digest.hex() or not prev.get("at"):
+        if not args.full and prev and prev.get("sig") == u.digest.hex() and prev.get("at"):
+            unchanged += 1
+            continue
+        if u.kind == "file":
             planned.append(u)
+        else:
+            # Only what actually needs uploading gets re-split, so changing
+            # --max-files never re-keys units that are already backed up.
+            planned.extend(split_unit(tree, root, u.path, threshold, args.max_files))
 
     log(
         f"scan: {len(units)} units, {human(total)} local; "
-        f"{len(units) - len(planned)} unchanged, {len(planned)} to upload "
+        f"{unchanged} unchanged, {len(planned)} to upload "
         f"({human(sum(u.size for u in planned))})",
         quiet=args.quiet,
     )
@@ -432,8 +524,16 @@ def main() -> int:
         if u.kind == "dir":
             cmd.append("--recursive")
         cmd += [u.path, dest]
-        rc, out, err = run_proton(cmd)
-        return u, rc == 0, (err or out).strip()
+        last = ""
+        for attempt in range(args.retries + 1):
+            rc, out, err = run_proton(cmd)
+            if rc == 0:
+                return u, True, (err or out).strip()
+            last = (err or out).strip()
+            if not transient(last) or attempt == args.retries:
+                break
+            time.sleep(2 + 3 * attempt)
+        return u, False, last
 
     with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
         futures = {pool.submit(work, u): u for u in planned}
