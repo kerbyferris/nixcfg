@@ -8,6 +8,9 @@
     omp-commandcode-plugin = final.callPackage ../pkgs/omp-commandcode-plugin.nix {};
     refern = final.callPackage ../pkgs/refern.nix {};
     m5burner = final.callPackage ../pkgs/m5burner.nix {};
+    # ROTO-CONTROL companion app (vendor AppImage); udev rule in
+    # hosts/nixos/configuration.nix. See pkgs/roto-setup.nix.
+    roto-setup = final.callPackage ../pkgs/roto-setup.nix {};
     # Shadows nixpkgs' logseq (0.10.15, pinned to electron_39, which this
     # nixpkgs refuses to evaluate as EOL) with upstream's 2.x "DB version"
     # release. See pkgs/logseq.nix.

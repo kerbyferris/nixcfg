@@ -145,6 +145,7 @@
     qbittorrent
     quickemu
     refern # Eagle alternative — AppImage wrapped in flake (pkgs/refern.nix)
+    roto-setup # ROTO-CONTROL companion app — vendor AppImage (pkgs/roto-setup.nix)
     rpi-imager
     signal-desktop
     steam-run

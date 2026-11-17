@@ -527,6 +527,21 @@ in {
       # permissive than intended, and TAG+="uaccess" from this file still applies).
       ATTRS{idVendor}=="303a", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", TAG+="uaccess"
 
+      # Melbourne Instruments ROTO-CONTROL — two USB identities:
+      #   f010  application firmware: two CDC-ACM interfaces (the app opens
+      #         /dev/ttyACM0 as the "main port") and it also opens the raw USB
+      #         node through its `usb` node module, so both need to be reachable.
+      #   0003  RP2040 ROM bootloader (RPI-RP2 mass storage) while flashing.
+      # The vendor's own rule covers only 0003, with GROUP="plugdev", and tells you
+      # to add yourself to dialout,plugdev. TAG+="uaccess" is used here instead so
+      # the seated user gets the nodes on hotplug regardless of group membership,
+      # and ID_MM_* stops ModemManager probing/holding the CDC-ACM node (the usual
+      # "cannot open port" cause). Verified: the unit enumerates as 2e8a:f010 and
+      # the app connects to /dev/ttyACM0 and reads its firmware version.
+      SUBSYSTEM=="usb", ATTR{idVendor}=="2e8a", ATTR{idProduct}=="f010", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+      SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="f010", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="2e8a", ATTR{idProduct}=="0003", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
       # AMD GPU (RX 580 eGPU on Thunderbolt) → restart ollama. ollama enumerates its
       # Vulkan devices ONCE at start-up and never rescans: a card that appears after
       # the unit starts stays invisible for the rest of the boot (symptom: "ollama ps"
