@@ -52,6 +52,31 @@
     # pin, so nothing is rebuilt today — bump `nixpkgs-pin` to get a new version.
     bambu-studio = final.pinned.bambu-studio;
 
+    # tailscale 1.104.7 — no nixpkgs rev carries it yet (master and
+    # nixos-unstable both still pin 1.104.6 as of 2026-11-17, and the only open
+    # 1.104.7 PR is for tailscale-gui). 1.104.7 is the fix floor for
+    # TS-2026-018; TS-2026-013…017 are fixed in 1.104.2/1.104.4. Drop this
+    # override once the pinned nixpkgs is >= 1.104.7.
+    tailscale = prev.tailscale.overrideAttrs (old: {
+      version = "1.104.7";
+      src = final.fetchFromGitHub {
+        owner = "tailscale";
+        repo = "tailscale";
+        tag = "v1.104.7";
+        hash = "sha256-6bCZpWZY4IYF5Vz/a65naqAa83IIPvmk2yuqet317n8=";
+      };
+      # 1.104.7's go.mod demands Go >= 1.27.4; nixpkgs (even master) has
+      # 1.27.3. The go directive's patch number only enforces a minimum
+      # *toolchain*, not a language version (still `go 1.27`), so lowering it
+      # changes nothing semantically — but the build verifies it.
+      postPatch =
+        (old.postPatch or "")
+        + ''
+          sed -i 's/^go 1\.27\.4$/go 1.27.3/' go.mod
+        '';
+      vendorHash = "sha256-IJ0m56UP0RyMBE5eQeQ082EMJZfvrgE37lfPHE2ujCA=";
+    });
+
     # Pin Wine to nixpkgs-stable (25.05) — Eagle won't start with Wine 11.x
     wineWow64Packages = final.stable.wineWow64Packages;
     wine = final.stable.wine;
